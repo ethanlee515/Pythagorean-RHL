@@ -1,0 +1,323 @@
+\documentclass{article}
+
+\input{packages}
+
+\title{Relational Hoare Logic with Pythagorean Errors}
+\author{(Placeholder Authors List)}
+\date{\today}
+
+\input{macros}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    We propose \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply the \emph{Pythagorean probability preservation} property to pairs of probabilistic programs.
+    (This is possibly \emph{not} enough material to be a paper draft in and of itself.
+    More likely however, this will become part of a larger paper.)
+\end{abstract}
+
+\section{Introduction}
+
+In program analysis, pairs of programs are often compared with each other.
+For example, we may show that an optimized program implements its specification faithfully, or is equivalent to a reference implementation.
+On the other hand, cryptography researchers often prove that certain sub-protocols are indistinguishable from idealized building blocks that are (by definition) composable and secure.
+Machinery for these analyses falls under the \emph{relational Hoare Logic} (RHL) framework.
+In this work, we present a variant of RHL that considers \emph{Pythagorean probability preservation} of discrete Guassian distributions.
+
+The term \emph{Pythagorean probability preservation} is coined by the work \cite{mw17}, which generalizes an analysis involving Kullback-Leibler divergence in the work \cite{kl-queries}.
+Pythagorean probability preservation is used today to argue the security of the ``CKKS" fully homomorphic encryption, as well as to bound the security loss due to floating-point precision limitations in lattice-based cryptography.
+Roughly speaking, suppose two distributions $\mathcal{D}$ and $\mathcal{D}'$ are $\varepsilon$-close, and a program $c$ takes $n$ samples from either $\mathcal{D}$ or $\mathcal{D}'$ before outputting $y$ or $y'$ respectively.
+By \emph{data processing inequality} or \emph{up-to-bad arguments} then, we would conclude that $y$ and $y'$ are $(n\cdot\varepsilon)$-close.
+This standard analysis would however make use of only that $\mathcal{D}$ and $\mathcal{D}'$ are close in total variation distance.
+On the other hand, Pythagorean probability preservation achieves an $O(\sqrt{n})$ bound instead \Ethan{What's the scaling on $\varepsilon$?} if $\mathcal{D}$ and $\mathcal{D}'$ are also close in KL-divergence.
+
+The Pythagorean probability preservation property is a cryptographic one;
+in other words, it corresponds to analysis at the semantics level.
+Much like data-processing inequality is packaged in program logic terms using RHL and up-to-bad arguments then, we present \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply Pythagorean probability preservation directly at the syntactic level.
+
+\section{Preliminaries}
+
+Here we describe the preliminary mathematical and cryptographic background.
+
+\subsection{Notations}
+
+We write $$\Delta(\cD_1, \cD_2)=\frac{1}{2}\sum_x \abs{\cD_1(x)-\cD_2(x)}$$ for statistical distance,
+and $$\KL{\cD_1}{\cD_2}=\sum_x \cD_1(x)\ln\parens{\frac{\cD_1(x)}{\cD_2(x)}}$$ for Kullback-Leibler divergence.
+For $x\in\bbR^n$, we write $\norm{x}_2=\sqrt{\sum x_i^2}$ for its $\ell_2$-norm.
+
+\subsection{Cryptography Background}
+
+We first recall the formal definition of \emph{Pythagorean Probability Preservation} as given in the work \cite{mw17}.
+
+\begin{definition}
+    \label{def:pythagorean-probability-preservation}
+    Suppose $\delta(\cD, \cD')$ is a function on two distributions.
+    For a parameter $\lambda>0$, we say $\delta$ is $\lambda$-Pythagorean if the following holds:
+    
+    For all integer $n\in\bbN$ and joint distributions $\set{\cP_i}_{i=1}^n$ and $\set{\cQ_i}_{i=1}^n$ with the same supports $\set{X_i}_{i=1}^n$ such that
+    $\delta(\cP_i | a_i, \cQ_i | a_i)\leq \lambda$
+    for all $i\in \bbN$ and $a_i\in \set{X_j}_{j=1}^{i-1}$,
+    we have
+    \[\Delta(\set{\cP_i}, \set{\cQ_i})\leq \norm{\max_{a_i} \delta(\cP_i | a_i, \cQ_i | a_i)}_2.\]
+\end{definition}
+
+Restated in terms of Pythagorean probability preservation then,
+the work \cite{kl-queries} gives the following theorem:
+\begin{theorem}
+    \label{thm:kl-is-pythagorean}
+    The function $\delta=\sqrt{\dKL}$ is $\lambda$-Pythagorean for all $\lambda\geq 0$.
+    \Ethan{Need to double check if there is in fact a constraint on $\lambda$.}
+\end{theorem}
+
+\subsection{Discrete Gaussian Distributions}
+
+We denote by $\mathcal{G}_{\mu, \sigma^2}(x)=e^{(x-\mu)^2/\sigma^2}$ the Gaussian function, and its weight as $W_{\mu, \sigma}=\sum_{x=-\infty}^\infty e^{(x-\mu)^2/\sigma^2}$.
+We denote the discrete Gaussian distribution as $\mathcal{DG}_{\mu, \sigma^2}$, which satisfies the following probability distribution function:
+$$\Pr_{x\gets \mathcal{DG}_{\mu, \sigma^2}}[x=x_0]=\frac{1}{W_{\mu, \sigma^2}}e^{(x_0-\mu)^2/\sigma^2}.$$
+
+Suppose two discrete Gaussian have the same variance and close centers,
+then we can then bound the KL-divergence between them.
+\begin{lemma}
+    For all $\mu, \nu\in\bbZ$ and $\sigma\in\bbR$, we have
+	\begin{equation}
+		\KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}} = \frac{\parens{\nu - \mu}^2}{2\sigma^2}
+	\end{equation}
+\end{lemma}
+
+\section{RHL with Pythagorean Errors}
+
+We now present our logic.
+In particular, we reuse the constructions of SSProve \cite{ssprove} where possible, and simply extend the logic in a compatible way to what already exists.
+
+\subsection{Programs and their Semantics}
+
+Our language matches that of the SSProve framework.
+For completeness however, we will restate the language and its semantics.
+The syntax of the language is given by \Cref{fig:ssprove-dsl}.
+In particular, the language is stateful and probabilistic.
+Observe that programs are encoded in the monadic formalism, where sequences of instructions are modeled by continuations and stringed together using monadic binds.
+Consequently, like many other domain-specific languages for cryptography,
+our language does not support unbounded loops, and therefore is not Turing complete.
+It is however expressive enough to describe most popular cryptographic constructions,
+with the notable exception of post-quantum digital signatures such as the \emph{Fiat-Shamir with Aborts} construction.
+Finally, as the language already allows sampling from arbitrary distributions,
+we need not extend the syntax to support discrete Gaussians.
+Instead, we simply inject $\DG{\mu}{\sigma^2}$ as a possible parameter to the ``sampler" instruction.
+
+As for semantics,
+observe that the pure subset of the language admits a natural definition by its monadic structure.
+The states can then be added and strung along the monadic binds in the standard way, which is formalized using a monad morphism.
+For technical details involving semantics, we point the interested reader at the paper \cite{ssprove} or its associated GitHub repository.
+
+\begin{figure}
+\caption{The Language}
+\label{fig:ssprove-dsl}
+\begin{minted}{coq}
+  Inductive raw_code (A : choiceType) : Type :=
+  | ret (x : A)
+  | opr (o : opsig) (x : src o) (k : tgt o → raw_code A)
+  | getr (l : Location) (k : l → raw_code A)
+  | putr (l : Location) (v : l) (k : raw_code A)
+  | sampler (op : Op) (k : Arit op → raw_code A).
+\end{minted}    
+\end{figure}
+
+\subsection{Pythagorean Errors by KL Divergence}
+
+We are now ready to turn our attention to Pythagorean probability preservation.
+We first need to 
+
+
+We again start with a relational judgment.
+More concretely, we consider settings where two programs $c_1$ and $c_2$ are syntactically identical except in $n$ randomized assignments, and record the distances between the corresponding expressions.
+We now present our judgment.
+
+\begin{definition}
+    Let $\mathcal{E}=(\varepsilon_1,\ldots, \varepsilon_n)\in\bbR^n$.
+    For two programs $c_1$ and $c_2$, we write
+    \[
+        \KLs(c_1, c_2)\leq \mathcal{E}
+    \]
+    if there exists some blocks $\set{s_i}_{i=1}^{n+1}$ and sampling expressions $\set{e_{1, i}}_{i=1}^{n}$ and $\set{e_{2, i}}_{i=1}^{n}$ such that:
+    \begin{itemize}
+        \item For all memories $m$ and $i\in\bbN$, $\llbracket e_{1, i}\rrbracket(m)$ and $\llbracket e_{2, i}\rrbracket(m)$ have the same support.
+        Moreover, $\dKL(\llbracket e_{1, i}\rrbracket(m), \llbracket e_{2, i}\rrbracket(m))\leq \varepsilon_i$.
+        \item $c_1=(s_1;v_1\gets e_{1, 1}; s_2; v_2\gets e_{1, 2};\ldots;s_{n+1})$
+        \item $c_2=(s_1;v_1\gets e_{2, 1}; s_2; v_2\gets e_{2, 2};\ldots;s_{n+1})$
+    \end{itemize}
+\end{definition}
+
+Now, with our judgments defined, Pythagorean probability preservation (\Cref{def:pythagorean-probability-preservation} and \Cref{thm:kl-is-pythagorean}) corresponds to the following inference rule:
+\[
+\inferrule
+  {\vdash \KLs(c_1, c_2) \leq \mathcal{E} \\ \delta = \norm{\mathcal{E}}_2}
+  {\vdash c_1\sim_\delta c_2 : m_1=m_2 \implies m_1'=m_2'}
+\]
+where $m_1, m_2$ are the entire initial memories, and $m_1', m_2'$ are the final memories.    
+
+We now state a few more inference rules, before giving a sketch on how this logic can be used.
+To build this KL judgment, we certainly need the ``base cases" as well as sequence rules.
+First, two identical programs satisfy this judgment with the right-hand side being the empty tuple $\emptyset$:
+\[
+\inferrule
+  {}
+  {\vdash \KLs(c, c) \leq \emptyset}.
+\]
+On the other hand, if the two programs are both a single randomized assignment instruction, the right-hand side is simply their distance:
+\[
+\inferrule
+  {\forall m, \dKL(\llbracket e_1 \rrbracket(m), \llbracket e_2\rrbracket(m))\leq \varepsilon}
+  {\vdash \KLs(v\gets e_1, v\gets e_2) \leq \varepsilon }
+\]
+where by abuse of notation we write $\varepsilon$ for also the single-element tuple.
+The sequence rule then simply concatenates the two lists of divergences, where we write $(\mathcal{E}_1, \mathcal{E}_2)$ as the (flattened) concatenation of the two tuples. 
+\[
+\inferrule
+  {\vdash \KLs(s_1, s_2) \leq \mathcal{E}_1 \\ \vdash \KLs(s_1', s_2') \leq \mathcal{E}_2 \\ c_1=s_1;s_1' \\ c_2=s_2;s_2'}
+  {\vdash \KLs(c_1, c_2) \leq (\mathcal{E}_1, \mathcal{E}_2) }
+\]
+
+Finally, we sketch how we would use these rules to prove that two programs $c_1$ and $c_2$ are approximately equivalent:
+\begin{enumerate}
+    \item We first use the sequential composition rule of our KLs judgment in a statement-by-statement way, until we have the KLs judgment on the entirety of $c_1$ and $c_2$.
+    \item We then use the Pythagorean rule to turn a KLs judgment into an additive errors judgment.
+    \item Finally, we apply \Cref{lem:additive-error-to-pr} to conclude that the outputs of $c_1$ and $c_2$ are indeed close in TVD.
+\end{enumerate}
+
+\subsection{RHL with Additive Errors}
+
+As a building block, we start with a judgment that captures typical ``up-to-bad arguments".
+We remark that similar judgments exist in many other formulations, which we will discuss in \Cref{sec:related-works}.
+For now, we begin with a relational Hoare-style judgment stating that the post-condition is satisfied with high probability.
+
+\begin{definition}
+    \label{def:additive-judgment}
+    Let $\delta > 0$.
+    Let $\Phi$ be a predicate on pairs of initial memories $(m_1,m_2)\in \cM_1\times \cM_2$, 
+and let $\Psi$ be a predicate on pairs of final memories.
+    We write
+    \[c_1\sim_\delta c_2:\Phi\implies \Psi\]
+    if for all initial memories $(m_1, m_2)$ satisfying $\Phi$, there exists a coupling $\cP\in\cD(\cM_1\times\cM_2)$ over final memories such that
+    \[\Pr_{(m_1', m_2')\gets \cP}[\Psi(m_1', m_2')]\geq 1 - \delta.\]
+\end{definition}
+
+As one may expect, this judgment indeed admits many natural inference rules.
+For example, one can obtain this judgment by simply sampling from two close distributions:
+\[
+\inferrule
+  {\Delta(\cD_1, \cD_2)\leq \varepsilon \\ v_1, v_2\notin Vars(\Phi)}
+  {\vdash v_1\gets\cD_1 \sim_\varepsilon v_2\gets\cD_2:\Phi \Rightarrow (\Phi \wedge v_1 = v_2)}
+\]
+We show also that this judgment can be used to show that two programs are approximately equivalent.
+More concretely, if the post-condition is of the form $y_1=y_2$, then the difference between $\Pr[y_1=y]$ and $\Pr[y_2=y]$ is small:
+\begin{lemma}
+    \label{lem:additive-error-to-pr}
+    Let $\Phi$ be a precondition, and $m_1$ and $m_2$ be initial memories satisfying $\Phi$.
+    Suppose we have
+    $$c_1\sim_\delta c_2:\Phi\implies(y_1=y_2)$$
+    for variables $y_1$ and $y_2$ in the final memory of $c_1(m_1)$ and $c_2(m_2)$ respectively.
+    We then have
+    \[\abs{\Pr_{m_1'\gets c_1(m_1)}[m_1'(b_1) = \top]-\Pr_{m_2'\gets c_2(m_2)}[m_2'(b_2) = \top]} \leq \delta.\]
+\end{lemma}
+Finally, a sequential composition rule for this judgment can also be easily written down and proven sound by data processing inequality.
+\Ethan{I know I will have to write down a bunch of other boilerplate rules like this and prove their soundness.}
+
+\subsection{Soundness Proofs}
+
+\Ethan{Of course we need to prove that everything is sound.
+I will sometime.}
+
+\section{Related Works}
+\label{sec:related-works}
+
+We first recall how up-to-bad arguments are typically formalized in RHL and compare it to our additive errors logic.
+We then compare our full logic to apRHL \cite{aprhl}.
+
+\subsection{Additive Errors and Up-to-bad Arguments}
+
+Up-to-bad arguments are often formalized using a combination of relational and probabilistic Hoare logic.
+More concretely, in RHL we set the post-condition to $\neg B \implies \Psi$, and in pHL we show the probability of $B$ is low.
+Frameworks such as EasyCrypt then provide inference rules taking two judgments of the form above and automatically concluding that two programs' outputs are $\varepsilon$-close.
+Our additive errors judgment can be seen as simply combining the two judgments above,
+with an additional advantage of no longer requiring an explicit description of the ``bad event" $B$.
+More precisely, we have
+\Ethan{double check that this is true}
+\[
+\inferrule
+  {\vdash c_1 \sim c_2:\Phi\implies(\neg B_2 \Rightarrow\Psi) \\ \vdash \Pr[c_2:\Phi\implies B_2]<\varepsilon}
+  {\vdash c_1 \sim_\varepsilon c_2:\Phi\implies\Psi}
+\]
+where $B_2$ is a predicate on the second program's final memory.
+
+\subsection{Comparison to apRHL}
+
+Approximate relational Hoare logic \cite{aprhl} is another logic for analysis involving KL divergence.
+The main motivation is to analyze differential privacy bounds of the form
+\[
+\Pr[E_1] \leq e^\varepsilon \Pr[E_2] + \delta.
+\]
+Accordingly, it is based on relational judgments of the form
+$c_1\sim_{\langle\varepsilon, \delta\rangle} c_2:\Phi\implies\Psi$.
+Roughly speaking, this judgment states that for all initial memories $(m_1, m_2)$, there exists \emph{two} couplings $\cP_L$ and $\cP_R$ such that:
+\begin{itemize}
+    \item The two couplings are close, with a \emph{multiplicative privacy budget} factor on top of the total variation distance:
+    \[
+        \sup_E \abs{\Pr_{m_1\gets \cP_L}[E(m_1)] -  e^\varepsilon \Pr_{m_2\gets \cP_R}[E(m_2)]}\leq \delta
+    \]
+    \item The first marginal of $\cP_L$ matches $\llbracket c_1\rrbracket (m_1)$.
+    \item The second marginal of $\cP_R$ matches $\llbracket c_2\rrbracket (m_2)$.
+\end{itemize}
+
+Now, first we compare the $\varepsilon = 0$ case of apRHL with our additive errors judgment.
+We claim that our judgment is more general than this case of apRHL, in the sense that apRHL judgment implies ours, but not the other way around.
+This can also be interpreted as a form of interoperability:
+apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
+
+\begin{lemma}
+    For all $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, suppose we have
+    $c_1\sim_{\langle 0, \delta\rangle} c_2:\Phi\implies\Psi$ under apRHL.
+    We then have
+    $c_1\sim_\delta c_2:\Phi\implies\Psi$ as our additive errors judgment.
+    \Ethan{Maybe missing a factor of 2 on one of the $\delta$'s?}
+\end{lemma}
+\begin{proof}
+    \Ethan{Just proof sketch for now.}
+    By $\cP_L\approx_\varepsilon \cP_R$, we know that the marginal $\cP_{L, 2}$ is $\varepsilon$-close to $c_2(m_2)$.
+    We can therefore define the coupling in our judgment by sampling with weight $1-\varepsilon$ from the ``overlap" of $\cP_{L, 2}$ and $c_2(m_2)$.
+    \Ethan{If the previous sentence makes no sense, that's because actually some clever Baysian ``magic" is required.
+    I suspect the technique was discovered during our Dilithium project, but never described in the final paper.}
+\end{proof}
+
+\begin{lemma}
+    There exists $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, so that we have $c_1\sim_\delta c_2:\Phi\implies\Psi$ as our additive errors judgment, but $c_1\sim_{\langle 0, \delta\rangle} c_2:\Phi\implies\Psi$ is not true under apRHL.
+    \Ethan{Maybe can strengthen to say that for any ``nontrivial" $\delta$ the apRHL judgment is not true with $\delta'=f(\delta)$.}
+\end{lemma}
+\begin{proof}
+    \Ethan{Just proof sketch for now.}
+    By construction.
+    Take $c_1$ and $c_2$ to both first sample a good/bad bit $b$.
+    If $b=0$ then output some stuff that will always satisfy $\Phi$.
+    If $b=1$ then output some stuff that will never satisfy $\Psi$.
+\end{proof}
+
+Now we compare our full logic with the entirety of apRHL.
+Here are the main differences.
+\begin{itemize}
+    \item Differential privacy allows multiplicative errors in the final security bound, so there is no need for apRHL to remove the $\varepsilon$ factor once it is introduced.
+    On the other hand, security of cryptographic primitives (e.g. CKKS) is always additive.
+    We therefore do not have a multiplicative factor, and we provide an inference rule to map our Pythagorean judgment back to the additive errors setting.
+    \item Pythagorean preservation achieves a sublinear bound in the number of differing sampling operations.
+    On the other hand, in apRHL the only inference rules to combine multiple sampling operations cause the errors to grow linearly,
+    As a result, any bounds derived using apRHL would be $\Omega(n)$ and no better than by standard data processing inequality.
+\end{itemize}
+
+\section*{Acknowledgements}
+
+We thank ChatGPT for insightful technical discussions, and for improving the writing quality of this work.
+
+\bibliographystyle{plain}
+\bibliography{reference}
+
+\end{document}
