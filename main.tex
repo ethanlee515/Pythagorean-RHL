@@ -93,66 +93,108 @@ In particular, we reuse the constructions of SSProve \cite{ssprove} where possib
 
 \subsection{Programs and their Semantics}
 
-Our language matches that of the SSProve framework.
-For completeness however, we will restate the language and its semantics.
-The syntax of the language is given by \Cref{fig:ssprove-dsl}.
-In particular, the language is stateful and probabilistic.
-Observe that programs are encoded in the monadic formalism, where sequences of instructions are modeled by continuations and stringed together using monadic binds.
-Consequently, like many other domain-specific languages for cryptography,
-our language does not support unbounded loops, and therefore is not Turing complete.
-It is however expressive enough to describe most popular cryptographic constructions,
-with the notable exception of post-quantum digital signatures such as the \emph{Fiat-Shamir with Aborts} construction.
-Finally, as the language already allows sampling from arbitrary distributions,
-we need not extend the syntax to support discrete Gaussians.
-Instead, we simply inject $\DG{\mu}{\sigma^2}$ as a possible parameter to the ``sampler" instruction.
-
-As for semantics,
-observe that the pure subset of the language admits a natural definition by its monadic structure.
-The states can then be added and strung along the monadic binds in the standard way, which is formalized using a monad morphism.
-For technical details involving semantics, we point the interested reader at the paper \cite{ssprove} or its associated GitHub repository.
+Our language matches that of the SSProve framework;
+for completeness, we sketch its syntax and semantics here.
+SSProve encodes cryptographic code using a mix of its computational monad and Rocq's ambient language Gallina.
+The monad is defined in \Cref{fig:ssprove-monad}, and an example program is given in \Cref{fig:ssprove-example-program}.
+In particular, sequences of sampling operations are encoded using the monadic \texttt{sampler} and \texttt{ret}, much like one would write \texttt{dlet} and \texttt{dunit} in MathComp and EasyCrypt.
+Memory accesses are encoded through the monad as well, while pure computations such as control flow are expressed in Gallina.
+Finally, to model cryptographic games, the \texttt{opr} instruction allows invoking subroutines throughout the monadic computation.
+This can be used to express \emph{memory restrictions} --- for example, to enforce that an adversary cannot simply read the secret key from the internal memory of the challenger.
 
 \begin{figure}
-\caption{The Language}
-\label{fig:ssprove-dsl}
+\caption{The Monad}
+\label{fig:ssprove-monad}
 \begin{minted}{coq}
   Inductive raw_code (A : choiceType) : Type :=
   | ret (x : A)
-  | opr (o : opsig) (x : src o) (k : tgt o → raw_code A)
+  | sampler (op : Op) (k : Arit op → raw_code A)
   | getr (l : Location) (k : l → raw_code A)
   | putr (l : Location) (v : l) (k : raw_code A)
-  | sampler (op : Op) (k : Arit op → raw_code A).
+  | opr (o : opsig) (x : src o) (k : tgt o → raw_code A).
 \end{minted}    
 \end{figure}
 
+\begin{figure}
+\caption{Example Program}
+\label{fig:ssprove-example-program}
+\begin{minted}{coq}
+#import {sig #[0] : 'nat → 'bool × 'nat } as f ;;
+#import {sig #[1] : 'bool → 'unit } as g ;;
+'(b,k) ← f 0 ;;
+if b then (
+  g false ;;
+  m ← sample uniform 2 ;;
+  ret 0
+)
+else (
+  o ← get ℓ ;;
+  #assert (isSome o) as oSome ;;
+  let n := getSome o oSome in
+  put n := Some (2 + n) ;;
+  ret n
+)
+\end{minted}    
+\end{figure}
+
+As with many languages for cryptography, SSProve does not treat unbounded loops.
+Finally, as it supports sampling from arbitrary distributions,
+no extensions are needed to support discrete Gaussians.
+Instead, we simply include the discrete Gaussian $\DG{\mu}{\sigma^2}$ as a possible parameter to the \texttt{sampler} instruction.
+For technical details involving semantics of SSProve, we refer the interested reader to the paper \cite{ssprove} and its associated GitHub repository.
+
+\subsection{Judgments and their Validity}
+
+We start with a relational judgment that encodes the right-hand side of \Cref{def:pythagorean-probability-preservation}.
+\Ethan{Maybe there is more to be said here.
+Finding a ``right" thing to write down was by no means \emph{free}...}
+
+\begin{definition}[Pythagorean Judgment]
+Let $\ell>0$ and $\mathcal{E}=(\varepsilon_1,\ldots, \varepsilon_\ell)\in\bbR^\ell$.
+Let $\Phi:(X_1\times \cM)\times (X_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of initial memories and inputs, and $\Psi:Y\times \cM\rightarrow\set{0, 1}$ be a predicate on final memories and outputs.
+For two programs $c_1:X_1\rightarrow\code(Y)$ and $c_2:X_2\rightarrow\code(Y)$, we write
+\begin{equation}
+    \vDash\Pyth \set{\Phi} c_1\approx_{\mathcal{E}} c_2\set{\Psi}
+\end{equation}
+if for any initial memories $m_1, m_2\in\cM$ and inputs $x_1\in X_1$ and $x_2\in X_2$ satisfying $\Phi(x_1, m_1, x_2, m_2)$,
+we have the following:
+\begin{itemize}
+    \item There exist two distributions $\cP, \cQ\in\distr(\set{Y_i\times M}_{i=1}^\ell)$ where $Y_\ell=Y$ such that:
+    \begin{itemize}
+        \item $\cP_\ell = \semantic{c_1(x_1)}(m_1)$ and $\cQ_\ell = \semantic{c_2(x_2)}(m_2)$.
+        \item For all $t<\ell$ and $a\in \set{Y_i\times M}_{i=1}^{t-1}$,
+        let $\cP_{t|a}$ denote $\cP_t$ conditioned on $\cP_{<t}=a$, and similarly for $\cQ_{t|a}$.
+        We then have
+        $$\KL{\cP_{t|a}}{\cQ_{t|a}} < \varepsilon_t.$$
+    \end{itemize}
+    \item For all $(y, m')\in \supp\semantic{c_1(x_1)}(m_1)$, we have $\Psi(y, m')$.
+\end{itemize}
+\end{definition}
+
+We consider also the following total variation distance based relational Hoare judgment which expresses standard up-to-bad arguments.
+
+\newcommand{\UTB}{\mathsf{UTB}}
+
+\begin{definition}[Up-to-bad Judgment]
+    Let $\delta > 0$.
+    Let $\Phi:(X_1\times \cM)\times (X_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of initial memories and inputs,
+    and let $\Psi:(Y_1\times \cM)\times (Y_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of final memories and outputs.
+    For two programs $c_1:X_1\rightarrow\code(Y_1)$ and $c_2:X_2\rightarrow\code(Y_2)$, we write
+    \begin{equation}
+    \vDash\UTB \set{\Phi} c_1\approx_{\delta} c_2\set{\Psi}
+    \end{equation}
+    if for all initial memories and inputs satisfying $\Phi(x_1, m_1, x_2, m_2)$, there exists a coupling $\cP\in\distr(Y_1\times\cM_1\times Y_2\times\cM_2)$ over final memories and outputs such that
+    \[\Pr_{(y_1, m_1', y_2, m_2')\gets \cP}[\Psi(y_1, m_1', y_2, m_2')]\geq 1 - \delta.\]
+\end{definition}
+
 \subsection{Pythagorean Errors by KL Divergence}
 
-We are now ready to turn our attention to Pythagorean probability preservation.
-We first need to 
-
-
-We again start with a relational judgment.
-More concretely, we consider settings where two programs $c_1$ and $c_2$ are syntactically identical except in $n$ randomized assignments, and record the distances between the corresponding expressions.
-We now present our judgment.
-
-\begin{definition}
-    Let $\mathcal{E}=(\varepsilon_1,\ldots, \varepsilon_n)\in\bbR^n$.
-    For two programs $c_1$ and $c_2$, we write
-    \[
-        \KLs(c_1, c_2)\leq \mathcal{E}
-    \]
-    if there exists some blocks $\set{s_i}_{i=1}^{n+1}$ and sampling expressions $\set{e_{1, i}}_{i=1}^{n}$ and $\set{e_{2, i}}_{i=1}^{n}$ such that:
-    \begin{itemize}
-        \item For all memories $m$ and $i\in\bbN$, $\llbracket e_{1, i}\rrbracket(m)$ and $\llbracket e_{2, i}\rrbracket(m)$ have the same support.
-        Moreover, $\dKL(\llbracket e_{1, i}\rrbracket(m), \llbracket e_{2, i}\rrbracket(m))\leq \varepsilon_i$.
-        \item $c_1=(s_1;v_1\gets e_{1, 1}; s_2; v_2\gets e_{1, 2};\ldots;s_{n+1})$
-        \item $c_2=(s_1;v_1\gets e_{2, 1}; s_2; v_2\gets e_{2, 2};\ldots;s_{n+1})$
-    \end{itemize}
-\end{definition}
+We now present our building blocks of our Pythagorean relational Hoare logic.
 
 Now, with our judgments defined, Pythagorean probability preservation (\Cref{def:pythagorean-probability-preservation} and \Cref{thm:kl-is-pythagorean}) corresponds to the following inference rule:
 \[
 \inferrule
-  {\vdash \KLs(c_1, c_2) \leq \mathcal{E} \\ \delta = \norm{\mathcal{E}}_2}
+  {\vDash\Pyth\set{\Phi} \KLs(c_1, c_2) \leq \mathcal{E} \\ \delta = \norm{\mathcal{E}}_2}
   {\vdash c_1\sim_\delta c_2 : m_1=m_2 \implies m_1'=m_2'}
 \]
 where $m_1, m_2$ are the entire initial memories, and $m_1', m_2'$ are the final memories.    
