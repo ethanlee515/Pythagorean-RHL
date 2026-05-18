@@ -1,7 +1,7 @@
 \section{Comparison with Other Program Logics}
 \label{sec:related-works}
 
-We first recall how standard hybrid arguments are typically formalized in RHL and compare it to our additive errors logic.
+We first recall how standard hybrid arguments are typically formalized in RHL and compare it to our additive-error logic.
 We then compare our full logic to apRHL \cite{aprhl}.
 
 \subsection{Additive Errors and Up-to-bad Arguments}
@@ -12,11 +12,11 @@ In toolchains such as EasyCrypt,
 they are usually treated using a combination of relational and probabilistic Hoare logic.
 More concretely, in RHL we define a \emph{bad event} $B$ and set the post-condition to the form $\neg B \implies \Psi$, and in pHL we show the probability of $B$ is low.
 These existing toolchains then provide specialized inference rules taking two judgments of the form above and automatically concluding that two programs' outputs are $\varepsilon$-close.
-Our additive errors judgment can be seen as simply combining the two judgments above,
+Our additive-error judgment can be seen as simply combining the two judgments above,
 with an additional advantage of no longer requiring an explicit description of the ``bad event" $B$.
 More precisely, if needed, we can connect the two different styles as follows:
 \begin{mathpar}
-\inferrule[UtB-Hyb]
+\inferrule[UtB-AE]
     {\vdash c_1 \sim c_2:\Phi\implies(\neg B_2 \Rightarrow\Psi) \\ \vdash \Pr[c_2:\Phi\implies B_2]<\varepsilon}
   {\vdash c_1 \sim_\varepsilon c_2:\Phi\implies\Psi}
 \end{mathpar}
@@ -69,14 +69,14 @@ That is, the error grows linearly in the length of the experiment, and therefore
 There are no sub-linear scalings here that we would achieve by Pythagorean probability preservation.
 
 Finally, if we set $\varepsilon=0$ in ApRHL, we claim that our judgment is strictly more expressive than apRHL, due to our different way of handling couplings and attributing errors.
-In particular, apRHL judgments always implies our hybrid judgment, but not the other way around.
+In particular, apRHL judgments always implies our additive-error judgment, but not the other way around.
 This can also be interpreted as a form of interoperability:
 apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
 \begin{lemma}
     For all $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, suppose we have
     $$\vDash\aprhl\set{\Phi} c_1\sim_{\langle 0, \delta\rangle} c_2\set{\Psi}$$
     then have
-    $$\vDash\UTB \set{\Phi} c_1\sim_\delta c_2\set{\Psi}$$
+    $$\vDash\AE \set{\Phi} c_1\sim_\delta c_2\set{\Psi}$$
     \Ethan{Maybe missing a factor of 2 on one of the $\delta$'s?}
 \end{lemma}
 \begin{proof}
@@ -87,14 +87,14 @@ apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
     I discovered the technique during our Dilithium project, but did not put it into the final paper.}
 \end{proof}
 \begin{lemma}
-    There exists $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, so that we have $c_1\sim_\delta c_2:\Phi\implies\Psi$ as our additive errors judgment, but $c_1\sim_{\langle 0, \delta\rangle} c_2:\Phi\implies\Psi$ is not true under apRHL.
+    There exists $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, so that we have $c_1\sim_\delta c_2:\Phi\implies\Psi$ as our additive-error judgment, but $c_1\sim_{\langle 0, \delta\rangle} c_2:\Phi\implies\Psi$ is not true under apRHL.
     \Ethan{Maybe can strengthen to say that for any ``nontrivial" $\delta$, the apRHL judgment is not true with $\delta'=f(\delta)$.}
 \end{lemma}
 \begin{proof}
     \Ethan{Just proof sketch for now.}
     By construction.
     We have
-    $$\vDash\UTB\set{\top}x_1\gets\Bern(1-\delta)\sim_{\delta}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
+    $$\vDash\AE\set{\top}x_1\gets\Bern(1-\delta)\sim_{\delta}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
     by taking the trivial matching coupling.
     We however have also
     $$\not\vDash\aprhl\set{\top}x_1\gets\Bern(1-\delta)\sim_{\langle\varepsilon, \delta\rangle}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$

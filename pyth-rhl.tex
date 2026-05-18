@@ -91,30 +91,30 @@ we have the following:
 \end{itemize}
 \end{definition}
 
-We also formalize a relational judgment encoding the standard hybrid argument as a first-class object.
+We also formalize an additive-error relational judgment encoding the standard hybrid argument as a first-class object.
 This allows the left-hand side of \Cref{eq:pyth-preserv} in Pythagorean probability preservation to be stated cleanly.
 In particular, it removes the need for explicitly defining a low-probability ``bad event" which is common in existing frameworks today.
 In \Cref{sec:up-to-bad-event}, we will discuss the existing ``up-to-bad argument" proof strategies in more details.
 
-\begin{definition}[Hybrid Judgment]
-    \label{def:hybrid-judgment}
+\begin{definition}[Additive-Error Judgment]
+    \label{def:additive-error-judgment}
     Let $\delta > 0$.
     Let $\Phi:(X_1\times \cM)\times (X_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of initial memories and inputs,
     and let $\Psi:(Y_1\times \cM)\times (Y_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of final memories and outputs.
     For two programs $c_1:X_1\rightarrow\code(Y_1)$ and $c_2:X_2\rightarrow\code(Y_2)$, we write
     \begin{equation}
-    \vDash\UTB \set{\Phi} c_1\sim_{\delta} c_2\set{\Psi}
+    \vDash\AE \set{\Phi} c_1\sim_{\delta} c_2\set{\Psi}
     \end{equation}
     if for all initial memories and inputs satisfying $\Phi(x_1, m_1, x_2, m_2)$, there exists a coupling $\cP\in\distr(Y_1\times\cM_1\times Y_2\times\cM_2)$ over final memories and outputs such that
     \[\Pr_{(y_1, m_1', y_2, m_2')\gets \cP}[\Psi(y_1, m_1', y_2, m_2')]\geq 1 - \delta.\]
 \end{definition}
 
-Finally, we give a simple lemma connecting our ``up-to-bad judgment" to the standard hybrid argument of pen-and-paper cryptography.
+Finally, we give a simple lemma connecting our additive-error judgment to the standard hybrid argument of pen-and-paper cryptography.
 
 \begin{lemma}
     Suppose we have
     \begin{equation}
-    \vDash\UTB \set{\Phi} c_1\sim_{\delta} c_2\set{y_1=y_2}
+    \vDash\AE \set{\Phi} c_1\sim_{\delta} c_2\set{y_1=y_2}
     \end{equation}
     for pre-condition $\Phi$, real $\delta>0$, and programs $c_i:X_i\rightarrow \code Y$.
     For all inputs $(x_1, x_2)$ and initial memories $(m_1, m_2)$ satisfying $\Phi(x_1, m_1, x_2, m_2)$ then, the outputs $(y_1, y_2)$ of the programs satisfy
@@ -137,16 +137,16 @@ We begin with our encoding of Pythagorean probability preservation from \Cref{de
   \mathcal{E}\in\mathbb{R}^\ell
   \\
   \vDash\Pyth\set{\Phi} c_1\approx_{\mathcal{E}}c_2\set{\Psi} \\ \delta = \norm{\mathcal{E}}_2}
-  {\vDash\UTB \set{\Phi} c_1\sim_\delta c_2 \set{\Psi(y_1, m_1') \wedge (y_1, m_1') = (y_2, m_2')}}
+  {\vDash\AE \set{\Phi} c_1\sim_\delta c_2 \set{\Psi(y_1, m_1') \wedge (y_1, m_1') = (y_2, m_2')}}
 \end{mathpar}
 where $y_i$ denote the outputs and $m_i'$ denote the final memories of the programs.
 As another bridge between our two judgments,
 we next highlight our sequence rule.
 \begin{mathpar}
-\inferrule[Hyb-Pyth-Seq]{
+\inferrule[AE-Pyth-Seq]{
     c_i:X_i\rightarrow\code X_i' \\
     c_i':X_i'\rightarrow \code Y \\
-    \vDash\UTB\set{P}c_1\sim_{0}c_2\set{Q}\\
+    \vDash\AE\set{P}c_1\sim_{0}c_2\set{Q}\\
     \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi}
 }{
     \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}}c_2;c_2'\set{\Phi}
@@ -165,15 +165,15 @@ We state the Pythagorean judgment version to show how we handle the mismatch in 
     \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}\doubleplus\mathcal{E}'}c_2;c_2'\set{\Phi'}
 }
 \end{mathpar}
-The hybrid judgment's sequence rule is rather standard:
+The additive-error judgment's sequence rule is rather standard:
 \begin{mathpar}
-\inferrule[Hyb-Seq]{
+\inferrule[AE-Seq]{
     c_i:X_i\rightarrow\code X'_i \\
     c_i':X'_i\rightarrow\code Y_i \\
-    \vDash\UTB\set{P}c_1\sim_{\delta}c_2\set{P'}\\
-    \vDash\UTB\set{P'}c_1'\sim_{\delta'}c_2'\set{Q}
+    \vDash\AE\set{P}c_1\sim_{\delta}c_2\set{P'}\\
+    \vDash\AE\set{P'}c_1'\sim_{\delta'}c_2'\set{Q}
 }{
-    \vDash\UTB\set{P}c_1;c_1'\sim_{\delta+\delta'}c_2;c_2'\set{Q}
+    \vDash\AE\set{P}c_1;c_1'\sim_{\delta+\delta'}c_2;c_2'\set{Q}
 }
 \end{mathpar}
 
@@ -202,10 +202,10 @@ For lattice cryptography, we specialize our \LabTirName{KL-Samp} rule to the dis
 For certain applications, one may also wish to consider ``truncated" discrete Gaussians, such as to achieve $\varepsilon=0$ in approximate correctness.
 In that case, care must be taken as the KL divergence is not symmetric, and the ordering of parameters indeed affects the final bounds.
 
-We now turn our attentions to sampling operations in our hybrid judgment.
-Of course, instances of this judgment can be constructed directly from \Cref{def:hybrid-judgment} by providing the corresponding coupling.
+We now turn our attentions to sampling operations in our additive-error judgment.
+Of course, instances of this judgment can be constructed directly from \Cref{def:additive-error-judgment} by providing the corresponding coupling.
 \begin{mathpar}
-\inferrule[Hyb-Couple]
+\inferrule[AE-Couple]
     {
     \cD(\lambda_1, \lambda_2)\in\distr(Y_1\times Y_2) \\
     \cD_1(\lambda_1)= \sum_{\lambda_2}\cD(\lambda_1, \lambda_2)\\
@@ -215,34 +215,34 @@ Of course, instances of this judgment can be constructed directly from \Cref{def
     \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies
     \Pr_{(y_1, y_2)\gets\cD(\lambda_1, \lambda_2)}[\Psi(y_1, m_1, y_2, m_2)] \geq 1 - \delta
     }
-    {\vDash\UTB \set{\Phi}x\gets \cD_1(\lambda_2)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+    {\vDash\AE \set{\Phi}x\gets \cD_1(\lambda_2)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
 \end{mathpar}
 As it is tedious and unwieldy to manually construct couplings, we specialize the above rule to a TVD setting:
 \begin{mathpar}
-\inferrule[Hyb-TVD]
+\inferrule[AE-TVD]
     {\Phi:X_1\times\cM\times X_2\times \cM\rightarrow\set{0, 1} \\
     \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \Psi(m_1, m_2) \\
     \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \TVD(\cD_1(\lambda_1), \cD_2(\lambda_2)) \leq \delta}
-    {\vDash\UTB \set{\Phi}x\gets \cD_1(\lambda_1)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+    {\vDash\AE \set{\Phi}x\gets \cD_1(\lambda_1)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
 \end{mathpar}
 Finally, in the case of sampling from \emph{the same} distribution, we further specialize the above judgment to the $\delta=0$ case.
 \begin{mathpar}
-\inferrule[Hyb-Sym]
+\inferrule[AE-Sym]
     {\Phi:X\times\cM\times X\times \cM\rightarrow\set{0, 1} \\
     \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda, m, \lambda, m)\implies \Psi(m, m)}
-    {\vDash\UTB \set{\Phi}x\gets \cD(\lambda)\sim_{0}x\gets\cD(\lambda) \set{\Psi}}
+    {\vDash\AE \set{\Phi}x\gets \cD(\lambda)\sim_{0}x\gets\cD(\lambda) \set{\Psi}}
 \end{mathpar}
 
 Finally, the two judgments each support standard ``conseq" rules too.
 \begin{mathpar}
-\inferrule[Hyb-Conseq] {
+\inferrule[AE-Conseq] {
     c_i:X_i\rightarrow\code Y_i \\
     P'\implies P \\
     Q\implies Q' \\
     \delta' \geq \delta \\
-    \vDash\UTB\set{P}c_1\sim_{\delta}c_2\set{Q}\\
+    \vDash\AE\set{P}c_1\sim_{\delta}c_2\set{Q}\\
 }{
-    \vDash\UTB\set{P'}c_1\sim_{\delta'}c_2\set{Q'}
+    \vDash\AE\set{P'}c_1\sim_{\delta'}c_2\set{Q'}
 }
 \end{mathpar}
 \begin{mathpar}
