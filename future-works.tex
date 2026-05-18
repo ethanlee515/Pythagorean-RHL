@@ -1,0 +1,11 @@
+\section{Future Works}
+
+One of our next steps is certainly to verify the soundness of our program logic.
+Another direction is to treat the adversary's factorization formally as discussed in \Cref{sec:query-bound}.
+
+On the cryptography application side, there is also a lot more to verify for the CKKS approximate homomorphic encryption.
+For example, one could simply fill in the construction and show that the scheme is indeed IND-CPA and approximately correct.
+
+Finally, we can attempt to apply our program logic to the floating point computation setting as described by \cite{mw17}.
+For instance, one can consider the Falcon post-quantum digital signature which was selected by NIST,
+which has resisted formal verification partially due to its use of floating point numbers as opposed to finite fields.

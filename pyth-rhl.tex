@@ -1,0 +1,259 @@
+\section{RHL with Pythagorean Errors}
+
+We now present our program logic.
+In particular, we reuse the constructions of SSProve \cite{ssprove} where possible, and simply extend the logic in a compatible way to what already exists.
+
+\Ethan{TODO maybe we don't formally verify the soundness for now...?}
+
+\subsection{Programs and their Semantics}
+
+Our language matches that of the SSProve framework;
+for completeness, we sketch its syntax and semantics here.
+SSProve encodes cryptographic code using a combination of its computational monad and Rocq Prover's ambient language Gallina.
+The monad is defined by \Cref{fig:ssprove-monad}, and an example program is given in \Cref{fig:ssprove-example-program}.
+In particular, sequences of sampling operations are encoded using the \texttt{sampler} and \texttt{ret} probability monad, much like how one writes \texttt{dlet} and \texttt{dunit} in MathComp and EasyCrypt.
+Memory accesses are encoded monadically as well through the \texttt{getr} and \texttt{putr} operations, while pure computations (including if-else control flow) are expressed in Gallina.
+Finally, to model cryptographic games, the \texttt{opr} instruction allows invoking subroutines throughout the computation.
+This can be used to express \emph{memory restrictions} --- for example, to enforce that an adversary cannot simply read the secret key from the internal memory of the challenger.
+
+\begin{figure}
+\caption{The Monad}
+\label{fig:ssprove-monad}
+\begin{minted}{coq}
+  Inductive raw_code (A : choiceType) : Type :=
+  | ret (x : A)
+  | sampler (op : Op) (k : Arit op → raw_code A)
+  | getr (l : Location) (k : l → raw_code A)
+  | putr (l : Location) (v : l) (k : raw_code A)
+  | opr (o : opsig) (x : src o) (k : tgt o → raw_code A).
+\end{minted}    
+\end{figure}
+
+\begin{figure}
+\caption{Example Program}
+\label{fig:ssprove-example-program}
+\begin{minted}{coq}
+#import {sig #[0] : 'nat → 'bool × 'nat } as f ;;
+#import {sig #[1] : 'bool → 'unit } as g ;;
+'(b,k) ← f 0 ;;
+if b then (
+  g false ;;
+  m ← sample uniform 2 ;;
+  ret 0
+)
+else (
+  o ← get l;;
+  #assert (isSome o) as oSome ;;
+  let n := getSome o oSome in
+  put n := Some (2 + n) ;;
+  ret n
+)
+\end{minted}    
+\end{figure}
+
+As with many other languages for cryptography, SSProve does not consider unbounded loops.
+Finally, as SSProve supports sampling from arbitrary distributions,
+no extensions are needed to support discrete Gaussians.
+Instead, we simply include the discrete Gaussian $\DG{\mu}{\sigma^2}$ as a possible parameter to the \texttt{sampler} instruction.
+For technical details involving semantics of SSProve, we refer the interested reader to the paper \cite{ssprove} and its associated GitHub repository.
+
+\subsection{Judgments and Validity}
+
+We formalize two relational judgments.
+Intuitively, the first judgment states that two programs are close in KL-divergence in the way required by the Pythagorean preservation.
+The second judgment says two programs are close in TVD.
+Similary to SSProve, we state both as semantic judgments that corresponds to a Rocq proposition.
+Each inference rule is then encoded as one lemma in the prover.
+
+We start with a relational judgment that encodes the right-hand side of \Cref{def:pythagorean-probability-preservation}.
+That is, given two programs $c_1$ and $c_2$, we record a list of their mismatches based on the KL-divergence of each mismatch.
+Moreover, we keep the usual pre/post-conditions as a way to track the properties and invariants of the programs themselves.
+
+\begin{definition}[Pythagorean Judgment]
+Let $\ell>0$ and $\mathcal{E}=(\varepsilon_1,\ldots, \varepsilon_\ell)\in\bbR^\ell$.
+Let $\Phi:(X_1\times \cM)\times (X_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of initial memories and inputs, and $\Psi:Y\times \cM\rightarrow\set{0, 1}$ be a predicate on output and final memory.
+For two programs $c_1:X_1\rightarrow\code(Y)$ and $c_2:X_2\rightarrow\code(Y)$, we write
+\begin{equation}
+    \vDash\Pyth \set{\Phi} c_1\approx_{\mathcal{E}} c_2\set{\Psi}
+\end{equation}
+if for any initial memories $m_1, m_2\in\cM$ and inputs $x_1\in X_1$ and $x_2\in X_2$ satisfying $\Phi(x_1, m_1, x_2, m_2)$,
+we have the following:
+\begin{itemize}
+    \item There exist two distributions $\cP, \cQ\in\distr(\set{Y_i\times M}_{i=1}^\ell)$ where $Y_\ell=Y$ such that:
+    \begin{itemize}
+        \item $\cP_\ell = \semantic{c_1(x_1)}(m_1)$ and $\cQ_\ell = \semantic{c_2(x_2)}(m_2)$.
+        \item For all $t<\ell$ and $a\in \set{Y_i\times M}_{i=1}^{t-1}$,
+        let $\cP_{t|a}$ denote $\cP_t$ conditioned on $\cP_{<t}=a$, and similarly for $\cQ_{t|a}$.
+        We then have
+        $$\KL{\cP_{t|a}}{\cQ_{t|a}} < \varepsilon_t.$$
+    \end{itemize}
+    \item For all $(y, m')\in \supp\semantic{c_1(x_1)}(m_1)\cup\supp\semantic{c_2(x_2)}(m_2)$, we have $\Psi(y, m')$.
+\end{itemize}
+\end{definition}
+
+We also formalize a relational judgment encoding the standard hybrid argument as a first-class object.
+This allows the left-hand side of \Cref{eq:pyth-preserv} in Pythagorean probability preservation to be stated cleanly.
+In particular, it removes the need for explicitly defining a low-probability ``bad event" which is common in existing frameworks today.
+In \Cref{sec:up-to-bad-event}, we will discuss the existing ``up-to-bad argument" proof strategies in more details.
+
+\begin{definition}[Hybrid Judgment]
+    \label{def:hybrid-judgment}
+    Let $\delta > 0$.
+    Let $\Phi:(X_1\times \cM)\times (X_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of initial memories and inputs,
+    and let $\Psi:(Y_1\times \cM)\times (Y_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of final memories and outputs.
+    For two programs $c_1:X_1\rightarrow\code(Y_1)$ and $c_2:X_2\rightarrow\code(Y_2)$, we write
+    \begin{equation}
+    \vDash\UTB \set{\Phi} c_1\sim_{\delta} c_2\set{\Psi}
+    \end{equation}
+    if for all initial memories and inputs satisfying $\Phi(x_1, m_1, x_2, m_2)$, there exists a coupling $\cP\in\distr(Y_1\times\cM_1\times Y_2\times\cM_2)$ over final memories and outputs such that
+    \[\Pr_{(y_1, m_1', y_2, m_2')\gets \cP}[\Psi(y_1, m_1', y_2, m_2')]\geq 1 - \delta.\]
+\end{definition}
+
+Finally, we give a simple lemma connecting our ``up-to-bad judgment" to the standard hybrid argument of pen-and-paper cryptography.
+
+\begin{lemma}
+    Suppose we have
+    \begin{equation}
+    \vDash\UTB \set{\Phi} c_1\sim_{\delta} c_2\set{y_1=y_2}
+    \end{equation}
+    for pre-condition $\Phi$, real $\delta>0$, and programs $c_i:X_i\rightarrow \code Y$.
+    For all inputs $(x_1, x_2)$ and initial memories $(m_1, m_2)$ satisfying $\Phi(x_1, m_1, x_2, m_2)$ then, the outputs $(y_1, y_2)$ of the programs satisfy
+    \begin{equation}
+        \Delta(\llbracket c_1(x_1)\rrbracket(m_1), \llbracket c_2(x_2)\rrbracket(m_2)) \leq \delta
+    \end{equation}
+\end{lemma}
+
+\subsection{Inference Rules}
+
+We next present our inference rules.
+We begin with our encoding of Pythagorean probability preservation from \Cref{def:pythagorean-probability-preservation}:
+\begin{mathpar}
+\inferrule[Micciancio-Walter]
+  {
+  c_1:X_1\rightarrow\code Y \\
+  c_2:X_2\rightarrow\code Y \\
+  \Phi:X_1\times\cM\times X_2\times\cM\rightarrow\set{0, 1} \\
+  \Psi:Y\times\cM\rightarrow\set{0, 1}\\
+  \mathcal{E}\in\mathbb{R}^\ell
+  \\
+  \vDash\Pyth\set{\Phi} c_1\approx_{\mathcal{E}}c_2\set{\Psi} \\ \delta = \norm{\mathcal{E}}_2}
+  {\vDash\UTB \set{\Phi} c_1\sim_\delta c_2 \set{\Psi(y_1, m_1') \wedge (y_1, m_1') = (y_2, m_2')}}
+\end{mathpar}
+where $y_i$ denote the outputs and $m_i'$ denote the final memories of the programs.
+As another bridge between our two judgments,
+we next highlight our sequence rule.
+\begin{mathpar}
+\inferrule[Hyb-Pyth-Seq]{
+    c_i:X_i\rightarrow\code X_i' \\
+    c_i':X_i'\rightarrow \code Y \\
+    \vDash\UTB\set{P}c_1\sim_{0}c_2\set{Q}\\
+    \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi}
+}{
+    \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}}c_2;c_2'\set{\Phi}
+}
+\end{mathpar}
+The two judgments each support their own sequence rules as well.
+We state the Pythagorean judgment version to show how we handle the mismatch in arities of the pre/post-conditions.
+\begin{mathpar}
+\inferrule[Pyth-Seq]{
+    c_i:X_i\rightarrow\code X' \\
+    c_i':X'\rightarrow\code Y' \\
+    \forall a, \Phi(a)\Rightarrow Q(a, a)\\
+    \vDash\Pyth\set{P}c_1\approx_{\mathcal{E}}c_2\set{\Phi}\\
+    \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi'}
+}{
+    \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}\doubleplus\mathcal{E}'}c_2;c_2'\set{\Phi'}
+}
+\end{mathpar}
+The hybrid judgment's sequence rule is rather standard:
+\begin{mathpar}
+\inferrule[Hyb-Seq]{
+    c_i:X_i\rightarrow\code X'_i \\
+    c_i':X'_i\rightarrow\code Y_i \\
+    \vDash\UTB\set{P}c_1\sim_{\delta}c_2\set{P'}\\
+    \vDash\UTB\set{P'}c_1'\sim_{\delta'}c_2'\set{Q}
+}{
+    \vDash\UTB\set{P}c_1;c_1'\sim_{\delta+\delta'}c_2;c_2'\set{Q}
+}
+\end{mathpar}
+
+Next we present the ``base case" in instantiating these judgments.
+As one may expect, Pythagorean judgments can be built by sampling from two distributions close in KL-divergence as follows:
+\begin{mathpar}
+\inferrule[KL-Samp]
+  {
+  \Phi:X_1\times\cM\times X_2\times\cM\rightarrow\set{0, 1} \\
+  \cD_i:X_i\rightarrow \distr(Y) \\
+  \Psi:\cM\rightarrow\set{0, 1} \\ \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \Psi(m_1) \\ 
+  \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies\KL{\cD_1(\lambda_1)}{\cD_2(\lambda_2)}\leq\varepsilon}
+  {\vDash\Pyth \set{m_1=m_2\wedge \Phi(m_1, m_2, \lambda_1, \lambda_2)}y\gets \cD_1(\lambda_1)\approx_{\set{\varepsilon}}y\gets\cD_2(\lambda_2) \set{\Psi}}
+\end{mathpar}
+Note that our \LabTirName{KL-Samp} rule includes pre/post-conditions for generality,
+while leaving machineries such as \emph{separation logic} and \emph{frame rule} settings for future work.
+Our \LabTirName{KL-Samp} rule allows arbitrary distributions, thanks to the embedding of the monads in the Rocq Prover's Gallina ambient language.
+One could simply write down any pairs of MathComp distributions and verify that they're close in KL divergence, before embedding them into the computational monads.
+Many inference rules in SSProve such as \LabTirName{dead-sample} and \LabTirName{sample-irrelevant} are treated similarly. 
+For lattice cryptography, we specialize our \LabTirName{KL-Samp} rule to the discrete Gaussian setting:
+\begin{mathpar}
+\inferrule[KL-DG]
+  {\Psi:\cM\rightarrow\set{0, 1} \\ \Phi((\mu_1, \sigma_1), m_1, (\mu_2, \sigma_2), m_2)\implies m_1=m_2\wedge \sigma_1=\sigma_2\wedge \frac{\abs{\mu_1-\mu_2}^2}{2\sigma^2}<\varepsilon}
+  {\vDash\Pyth \set{\Phi}x\gets \DG{\mu_1}{\sigma_1}\approx_{\set{\varepsilon}}x\gets\DG{\mu_2}{\sigma_2} \set{\Psi}}
+\end{mathpar}
+For certain applications, one may also wish to consider ``truncated" discrete Gaussians, such as to achieve $\varepsilon=0$ in approximate correctness.
+In that case, care must be taken as the KL divergence is not symmetric, and the ordering of parameters indeed affects the final bounds.
+
+We now turn our attentions to sampling operations in our hybrid judgment.
+Of course, instances of this judgment can be constructed directly from \Cref{def:hybrid-judgment} by providing the corresponding coupling.
+\begin{mathpar}
+\inferrule[Hyb-Couple]
+    {
+    \cD(\lambda_1, \lambda_2)\in\distr(Y_1\times Y_2) \\
+    \cD_1(\lambda_1)= \sum_{\lambda_2}\cD(\lambda_1, \lambda_2)\\
+    \cD_1(\lambda_2)= \sum_{\lambda_1}\cD(\lambda_1, \lambda_2)\\
+    \Phi:X_1\times\cM\times X_2\times \cM\rightarrow\set{0, 1} \\
+    \Psi:Y_1\cM\times Y_2\cM\rightarrow\set{0, 1} \\
+    \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies
+    \Pr_{(y_1, y_2)\gets\cD(\lambda_1, \lambda_2)}[\Psi(y_1, m_1, y_2, m_2)] \geq 1 - \delta
+    }
+    {\vDash\UTB \set{\Phi}x\gets \cD_1(\lambda_2)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+\end{mathpar}
+As it is tedious and unwieldy to manually construct couplings, we specialize the above rule to a TVD setting:
+\begin{mathpar}
+\inferrule[Hyb-TVD]
+    {\Phi:X_1\times\cM\times X_2\times \cM\rightarrow\set{0, 1} \\
+    \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \Psi(m_1, m_2) \\
+    \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \TVD(\cD_1(\lambda_1), \cD_2(\lambda_2)) \leq \delta}
+    {\vDash\UTB \set{\Phi}x\gets \cD_1(\lambda_1)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+\end{mathpar}
+Finally, in the case of sampling from \emph{the same} distribution, we further specialize the above judgment to the $\delta=0$ case.
+\begin{mathpar}
+\inferrule[Hyb-Sym]
+    {\Phi:X\times\cM\times X\times \cM\rightarrow\set{0, 1} \\
+    \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda, m, \lambda, m)\implies \Psi(m, m)}
+    {\vDash\UTB \set{\Phi}x\gets \cD(\lambda)\sim_{0}x\gets\cD(\lambda) \set{\Psi}}
+\end{mathpar}
+
+Finally, the two judgments each support standard ``conseq" rules too.
+\begin{mathpar}
+\inferrule[Hyb-Conseq] {
+    c_i:X_i\rightarrow\code Y_i \\
+    P'\implies P \\
+    Q\implies Q' \\
+    \delta' \geq \delta \\
+    \vDash\UTB\set{P}c_1\sim_{\delta}c_2\set{Q}\\
+}{
+    \vDash\UTB\set{P'}c_1\sim_{\delta'}c_2\set{Q'}
+}
+\end{mathpar}
+\begin{mathpar}
+\inferrule[Pyth-Conseq] {
+    c_i:X_i\rightarrow\code Y_i \\
+    P'\implies P \\
+    Q\implies Q' \\
+    \varepsilon'_j \geq \varepsilon_j \\
+    \vDash\Pyth\set{P}c_1\approx_{\mathcal{E}}c_2\set{Q}\\
+}{
+    \vDash\Pyth\set{P'}c_1\approx_{\mathcal{E}'}c_2\set{Q'}
+}
+\end{mathpar}
+Finally, we remark that the KL judgment does \emph{not} admit a symmetry rule, since the KL divergence itself is neither symmetric nor a metric.

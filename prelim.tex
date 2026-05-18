@@ -1,0 +1,83 @@
+\section{Preliminaries}
+
+Here we describe the preliminary mathematical and cryptographic background.
+
+\subsection{Notations}
+
+We write $$\Delta(\cD_1, \cD_2)=\frac{1}{2}\sum_x \abs{\cD_1(x)-\cD_2(x)}$$ for statistical distance,
+and $$\KL{\cD_1}{\cD_2}=\sum_x \cD_1(x)\ln\parens{\frac{\cD_1(x)}{\cD_2(x)}}$$ for Kullback-Leibler divergence.
+For $x\in\bbR^n$, we write $\norm{x}_2=\sqrt{\sum x_i^2}$ for its $\ell_2$-norm.
+
+\subsection{Basic Real Analysis}
+
+We consider encryption schemes that acts on any metric spaces.
+We recall the textbook definition of a metric space.
+
+\begin{definition}[Metric Space]
+    \label{def:metric-space}
+    Let $S$ be any set, and $d:S\times S\rightarrow \bbR$ be a function.
+    We call $(S, d)$ a \emph{metric space} if the following holds:
+    \begin{itemize}
+        \item For all $x_1, x_2\in S$, $d(x_1, x_2)=0\Leftrightarrow x_1=x_2$.
+        \item For all $x_1, x_2\in S$, $d(x_1, x_2)\geq 0$.
+        \item For all $x_1, x_2\in S$, $d(x_1, x_2)=d(x_2, x_1)$.
+        \item For all $x_1, x_2, x_3\in S$,
+        $d(x_1, x_3)\leq d(x_1, x_2) + d(x_2, x_3)$.
+    \end{itemize}
+\end{definition}
+
+A function between two metric spaces that respects the notion of the distance is called an \emph{isometry}.
+We define a weaker notion for any metric space that's \emph{locally isometric} to the space $\bbZ^n$.
+
+\begin{definition}[local isometry to $\bbZ^n$]
+\label{def:local-isometry}
+Let $n\in\bbN$.
+A metric space $(S, d)$ is said to be \emph{locally isometric} to $\bbZ^n$ with uniform radius $r$ if:
+\begin{itemize}
+    \item For any $x\in S$, there exists a left-invertible chart $\phi_x:S\rightarrow \bbZ^n$ satisfying $\phi_x(x)=\vec{0}$.
+    \item For any $x, y\in S$, if $d(x, y)\leq r$, then $d(x, y) = \norm{\phi_x(y)}_\infty$.
+\end{itemize}
+\end{definition}
+
+\subsection{Cryptography Background}
+
+We first recall the formal definition of \emph{Pythagorean Probability Preservation} as given in the work \cite{mw17}.
+
+\begin{definition}
+    \label{def:pythagorean-probability-preservation}
+    Suppose $\delta(\cD, \cD')$ is a function on two distributions.
+    For a parameter $\lambda>0$, we say $\delta$ is $\lambda$-Pythagorean if the following holds:
+    
+    For all integer $n\in\bbN$ and joint distributions $\set{\cP_i}_{i=1}^n$ and $\set{\cQ_i}_{i=1}^n$ with the same supports $\set{X_i}_{i=1}^n$ such that
+    $\delta(\cP_i | a_i, \cQ_i | a_i)\leq \lambda$
+    for all $i\in \bbN$ and $a_i\in \set{X_j}_{j=1}^{i-1}$,
+    we have
+    \begin{equation}
+        \label{eq:pyth-preserv}
+        \Delta(\set{\cP_i}, \set{\cQ_i})\leq \norm{\max_{a_i} \delta(\cP_i | a_i, \cQ_i | a_i)}_2
+    \end{equation}
+\end{definition}
+
+Restated in terms of Pythagorean probability preservation then,
+the work \cite{kl-queries} gives the following theorem:
+\begin{theorem}
+    \label{thm:kl-is-pythagorean}
+    The function $\delta=\sqrt{\dKL}$ is $\lambda$-Pythagorean for all $\lambda\geq 0$.
+    \Ethan{Need to double check if there is in fact a constraint on $\lambda$.}
+\end{theorem}
+
+\subsection{Discrete Gaussian Distributions}
+
+We denote by $\mathcal{G}_{\mu, \sigma^2}(x)=e^{(x-\mu)^2/\sigma^2}$ the Gaussian function, and its weight as $W_{\mu, \sigma}=\sum_{x=-\infty}^\infty e^{(x-\mu)^2/\sigma^2}$.
+We denote the discrete Gaussian distribution as $\mathcal{DG}_{\mu, \sigma^2}$, which satisfies the following probability distribution function:
+$$\Pr_{x\gets \mathcal{DG}_{\mu, \sigma^2}}[x=x_0]=\frac{1}{W_{\mu, \sigma^2}}e^{(x_0-\mu)^2/\sigma^2}.$$
+
+Suppose two discrete Gaussian have the same variance and close centers,
+then we can then bound the KL-divergence between them.
+\begin{lemma}
+    \label{thm:discrete-gaussian-kl}
+    For all $\mu, \nu\in\bbZ$ and $\sigma\in\bbR$, we have
+	\begin{equation}
+		\KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}} = \frac{\parens{\nu - \mu}^2}{2\sigma^2}
+	\end{equation}
+\end{lemma}

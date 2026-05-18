@@ -1,0 +1,47 @@
+\section{Introduction}
+
+In program analysis, pairs of programs are often compared with each other.
+For example, we may show that an optimized program implements its specification faithfully, or is equivalent to a reference implementation.
+Cryptography researchers often also prove that certain sub-protocols are indistinguishable from idealized building blocks that are (by definition) composable and secure.
+Machinery for these analyses falls under the \emph{relational Hoare Logic} (RHL) framework.
+In this work, we present a variant of RHL that considers \emph{Pythagorean probability preservation} in lattice cryptography.
+
+The term \emph{Pythagorean probability preservation} is coined by the work \cite{mw17}, which generalizes an analysis involving Kullback-Leibler divergence in the work \cite{kl-queries}.
+Pythagorean probability preservation is used today to argue the security of the ``CKKS" fully homomorphic encryption, as well as to bound the security loss due to floating-point precision limitations.
+Roughly speaking, suppose two distributions $\mathcal{D}$ and $\mathcal{D}'$ are $\varepsilon$-close, and a program $c$ takes $n$ samples from either $\mathcal{D}$ or $\mathcal{D}'$ before outputting $y$ or $y'$ respectively.
+By \emph{data processing inequality} or \emph{up-to-bad arguments} then, we would conclude that $y$ and $y'$ are $(n\cdot\varepsilon)$-close.
+This standard analysis would however make use of only that $\mathcal{D}$ and $\mathcal{D}'$ are close in total variation distance.
+On the other hand, Pythagorean probability preservation achieves an $O(\sqrt{n})$ bound instead, if $\mathcal{D}$ and $\mathcal{D}'$ are additionally also close in KL-divergence.
+
+The Pythagorean probability preservation property is a cryptographic one;
+in other words, it corresponds to analysis at the semantics level.
+Much like data-processing inequality is packaged in program logic terms using RHL and up-to-bad arguments then, we present \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply Pythagorean probability preservation directly at the syntactic level.
+We compare our logic with other existing logics for cryptography and differential privacy in \Cref{sec:related-works}.
+
+\Ethan{TODO Motivate noise flooding: Both in the CKKS IND-CPA+ case, and the threshold case...
+Maybe need to say what is threshold FHEs too.}
+
+\Ethan{TODO Briefly mention somewhere another non-FHE potential application - floating point Gaussian stuff: \url{https://eprint.iacr.org/2017/259}}
+
+
+
+Fully Homomorphic Encryption (FHE) enables arbitrary computation on encrypted data, ensuring that privacy is preserved even during processing, and making it a key enabler of secure cloud analytics, outsourced ML, and multiparty computation. With recent advances reducing the cost of homomorphic operations, FHE is becoming increasingly practical for real-world confidential computation.
+
+
+%A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently leaked during computation. To address this, schemes often add carefully controlled extra “noise” to encrypted data, which strengthens the security guarantees even in complex computation scenarios. This technique, known as noise flooding, is especially useful in settings where multiple parties jointly process encrypted data, as in \emph{threshold FHE}, ensuring that no intermediate information is revealed to participants. Similar noise-management techniques also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader importance for safe and reliable computation on sensitive data.
+
+
+A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently revealed during computation. To address this, schemes often apply a controlled “noise flooding” step after decryption at the plaintext level, which strengthens security guarantees. This technique is particularly important in settings where multiple parties jointly process encrypted data, as in threshold FHE, ensuring that no intermediate information is leaked to participants. Similar noise-management ideas also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader relevance for safe and reliable computation on sensitive data.
+
+
+%\paragraph{Contributions}
+
+
+% A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently revealed during computation. For example, certain approximate arithmetic schemes such as CKKS are vulnerable to attacks like the LM attack, which can exploit small errors to extract information from decrypted results. To mitigate such risks, schemes often apply a controlled “noise flooding” step after decryption at the plaintext level, which restores strong security guarantees even in complex computation scenarios. This technique is particularly important in settings where multiple parties jointly process encrypted data, as in threshold FHE, ensuring that no intermediate information is leaked to participants. Similar noise-management ideas also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader relevance for safe and reliable computation on sensitive data.
+
+
+
+\subsection{Our Results}
+
+
+\Ethan{TODO}
