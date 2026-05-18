@@ -144,8 +144,8 @@ As another bridge between our two judgments,
 we next highlight our sequence rule.
 \begin{mathpar}
 \inferrule[AE-Pyth-Seq]{
-    c_i:X_i\rightarrow\code X_i' \\
-    c_i':X_i'\rightarrow \code Y \\
+    c_i:X_i\rightarrow\code X' \\
+    c_i':X'\rightarrow \code Y \\
     \vDash\AEJ\set{P}c_1\sim_{0}c_2\set{Q}\\
     \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi}
 }{
@@ -157,10 +157,10 @@ We state the Pythagorean judgment version to show how we handle the mismatch in 
 \begin{mathpar}
 \inferrule[Pyth-Seq]{
     c_i:X_i\rightarrow\code X' \\
-    c_i':X'\rightarrow\code Y' \\
-    \forall a, \Phi(a)\Rightarrow Q(a, a)\\
+    c_i':X'\rightarrow\code Y \\
+    \forall a_L\ a_R, \Phi(a_L)\Rightarrow\Phi(a_R)\Rightarrow Q(a_L, a_R)\\
     \vDash\Pyth\set{P}c_1\approx_{\mathcal{E}}c_2\set{\Phi}\\
-    \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi'}
+    \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}'}c_2'\set{\Phi'}
 }{
     \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}\doubleplus\mathcal{E}'}c_2;c_2'\set{\Phi'}
 }
