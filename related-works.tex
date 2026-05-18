@@ -76,7 +76,7 @@ apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
     For all $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, suppose we have
     $$\vDash\aprhl\set{\Phi} c_1\sim_{\langle 0, \delta\rangle} c_2\set{\Psi}$$
     then have
-    $$\vDash\AE \set{\Phi} c_1\sim_\delta c_2\set{\Psi}$$
+    $$\vDash\AEJ \set{\Phi} c_1\sim_\delta c_2\set{\Psi}$$
     \Ethan{Maybe missing a factor of 2 on one of the $\delta$'s?}
 \end{lemma}
 \begin{proof}
@@ -94,7 +94,7 @@ apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
     \Ethan{Just proof sketch for now.}
     By construction.
     We have
-    $$\vDash\AE\set{\top}x_1\gets\Bern(1-\delta)\sim_{\delta}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
+    $$\vDash\AEJ\set{\top}x_1\gets\Bern(1-\delta)\sim_{\delta}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
     by taking the trivial matching coupling.
     We however have also
     $$\not\vDash\aprhl\set{\top}x_1\gets\Bern(1-\delta)\sim_{\langle\varepsilon, \delta\rangle}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$

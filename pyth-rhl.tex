@@ -103,7 +103,7 @@ In \Cref{sec:up-to-bad-event}, we will discuss the existing ``up-to-bad argument
     and let $\Psi:(Y_1\times \cM)\times (Y_2\times \cM)\rightarrow\set{0, 1}$ be a predicate on pairs of final memories and outputs.
     For two programs $c_1:X_1\rightarrow\code(Y_1)$ and $c_2:X_2\rightarrow\code(Y_2)$, we write
     \begin{equation}
-    \vDash\AE \set{\Phi} c_1\sim_{\delta} c_2\set{\Psi}
+    \vDash\AEJ \set{\Phi} c_1\sim_{\delta} c_2\set{\Psi}
     \end{equation}
     if for all initial memories and inputs satisfying $\Phi(x_1, m_1, x_2, m_2)$, there exists a coupling $\cP\in\distr(Y_1\times\cM_1\times Y_2\times\cM_2)$ over final memories and outputs such that
     \[\Pr_{(y_1, m_1', y_2, m_2')\gets \cP}[\Psi(y_1, m_1', y_2, m_2')]\geq 1 - \delta.\]
@@ -114,7 +114,7 @@ Finally, we give a simple lemma connecting our additive-error judgment to the st
 \begin{lemma}
     Suppose we have
     \begin{equation}
-    \vDash\AE \set{\Phi} c_1\sim_{\delta} c_2\set{y_1=y_2}
+    \vDash\AEJ \set{\Phi} c_1\sim_{\delta} c_2\set{y_1=y_2}
     \end{equation}
     for pre-condition $\Phi$, real $\delta>0$, and programs $c_i:X_i\rightarrow \code Y$.
     For all inputs $(x_1, x_2)$ and initial memories $(m_1, m_2)$ satisfying $\Phi(x_1, m_1, x_2, m_2)$ then, the outputs $(y_1, y_2)$ of the programs satisfy
@@ -137,7 +137,7 @@ We begin with our encoding of Pythagorean probability preservation from \Cref{de
   \mathcal{E}\in\mathbb{R}^\ell
   \\
   \vDash\Pyth\set{\Phi} c_1\approx_{\mathcal{E}}c_2\set{\Psi} \\ \delta = \norm{\mathcal{E}}_2}
-  {\vDash\AE \set{\Phi} c_1\sim_\delta c_2 \set{\Psi(y_1, m_1') \wedge (y_1, m_1') = (y_2, m_2')}}
+  {\vDash\AEJ \set{\Phi} c_1\sim_\delta c_2 \set{\Psi(y_1, m_1') \wedge (y_1, m_1') = (y_2, m_2')}}
 \end{mathpar}
 where $y_i$ denote the outputs and $m_i'$ denote the final memories of the programs.
 As another bridge between our two judgments,
@@ -146,7 +146,7 @@ we next highlight our sequence rule.
 \inferrule[AE-Pyth-Seq]{
     c_i:X_i\rightarrow\code X_i' \\
     c_i':X_i'\rightarrow \code Y \\
-    \vDash\AE\set{P}c_1\sim_{0}c_2\set{Q}\\
+    \vDash\AEJ\set{P}c_1\sim_{0}c_2\set{Q}\\
     \vDash\Pyth\set{Q}c_1'\approx_{\mathcal{E}}c_2'\set{\Phi}
 }{
     \vDash\Pyth\set{P}c_1;c_1'\approx_{\mathcal{E}}c_2;c_2'\set{\Phi}
@@ -170,10 +170,10 @@ The additive-error judgment's sequence rule is rather standard:
 \inferrule[AE-Seq]{
     c_i:X_i\rightarrow\code X'_i \\
     c_i':X'_i\rightarrow\code Y_i \\
-    \vDash\AE\set{P}c_1\sim_{\delta}c_2\set{P'}\\
-    \vDash\AE\set{P'}c_1'\sim_{\delta'}c_2'\set{Q}
+    \vDash\AEJ\set{P}c_1\sim_{\delta}c_2\set{P'}\\
+    \vDash\AEJ\set{P'}c_1'\sim_{\delta'}c_2'\set{Q}
 }{
-    \vDash\AE\set{P}c_1;c_1'\sim_{\delta+\delta'}c_2;c_2'\set{Q}
+    \vDash\AEJ\set{P}c_1;c_1'\sim_{\delta+\delta'}c_2;c_2'\set{Q}
 }
 \end{mathpar}
 
@@ -215,7 +215,7 @@ Of course, instances of this judgment can be constructed directly from \Cref{def
     \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies
     \Pr_{(y_1, y_2)\gets\cD(\lambda_1, \lambda_2)}[\Psi(y_1, m_1, y_2, m_2)] \geq 1 - \delta
     }
-    {\vDash\AE \set{\Phi}x\gets \cD_1(\lambda_2)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+    {\vDash\AEJ \set{\Phi}x\gets \cD_1(\lambda_2)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
 \end{mathpar}
 As it is tedious and unwieldy to manually construct couplings, we specialize the above rule to a TVD setting:
 \begin{mathpar}
@@ -223,14 +223,14 @@ As it is tedious and unwieldy to manually construct couplings, we specialize the
     {\Phi:X_1\times\cM\times X_2\times \cM\rightarrow\set{0, 1} \\
     \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \Psi(m_1, m_2) \\
     \Phi(\lambda_1, m_1, \lambda_2, m_2)\implies \TVD(\cD_1(\lambda_1), \cD_2(\lambda_2)) \leq \delta}
-    {\vDash\AE \set{\Phi}x\gets \cD_1(\lambda_1)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
+    {\vDash\AEJ \set{\Phi}x\gets \cD_1(\lambda_1)\sim_{\delta}x\gets\cD_2(\lambda_2) \set{\Psi}}
 \end{mathpar}
 Finally, in the case of sampling from \emph{the same} distribution, we further specialize the above judgment to the $\delta=0$ case.
 \begin{mathpar}
 \inferrule[AE-Sym]
     {\Phi:X\times\cM\times X\times \cM\rightarrow\set{0, 1} \\
     \Psi:\cM\times\cM\rightarrow\set{0, 1} \\ \Phi(\lambda, m, \lambda, m)\implies \Psi(m, m)}
-    {\vDash\AE \set{\Phi}x\gets \cD(\lambda)\sim_{0}x\gets\cD(\lambda) \set{\Psi}}
+    {\vDash\AEJ \set{\Phi}x\gets \cD(\lambda)\sim_{0}x\gets\cD(\lambda) \set{\Psi}}
 \end{mathpar}
 
 Finally, the two judgments each support standard ``conseq" rules too.
@@ -240,9 +240,9 @@ Finally, the two judgments each support standard ``conseq" rules too.
     P'\implies P \\
     Q\implies Q' \\
     \delta' \geq \delta \\
-    \vDash\AE\set{P}c_1\sim_{\delta}c_2\set{Q}\\
+    \vDash\AEJ\set{P}c_1\sim_{\delta}c_2\set{Q}\\
 }{
-    \vDash\AE\set{P'}c_1\sim_{\delta'}c_2\set{Q'}
+    \vDash\AEJ\set{P'}c_1\sim_{\delta'}c_2\set{Q'}
 }
 \end{mathpar}
 \begin{mathpar}

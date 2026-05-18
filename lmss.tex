@@ -190,13 +190,13 @@ Subroutines:
 We now present a top-down sketch for the main steps in the security proof of \Cref{thm:noise-flooding-secure}.
 Our goal then is to prove
 \begin{equation}
-    \vDash\AE\set{\top}G_L\sim_{\delta} G_R \set{w_L = w_R}
+    \vDash\AEJ\set{\top}G_L\sim_{\delta} G_R \set{w_L = w_R}
 \end{equation}
 for all possible adversaries $\cA$.
 Using standard sequence rules, it suffices to analyze the loop containing the $q$ queries:
 \newcommand{\tableempty}{table\_empty}
 \begin{align*}
-    \vDash&\AE\set{m_L=m_R\wedge keys\_valid\wedge\tableempty} \\
+    \vDash&\AEJ\set{m_L=m_R\wedge keys\_valid\wedge\tableempty} \\
     &loop_L\sim_{\delta} loop_R \\
     &\set{m_L=m_R\wedge keys\_valid}
 \end{align*}
@@ -218,12 +218,12 @@ To prove \Cref{eq:loop-body-triple},
 we unfold the loop body and write down the properties satisfied by each of the three instructures inside.
 First we have that
 \begin{equation}
-    \vDash\AE\set{\Phi\wedge m_L=m_R} A.query\sim_{0} A.query\set{\Phi\wedge i_L=i_R\wedge m_L=m_R}
+    \vDash\AEJ\set{\Phi\wedge m_L=m_R} A.query\sim_{0} A.query\set{\Phi\wedge i_L=i_R\wedge m_L=m_R}
 \end{equation}
 by symmetry, with the same invariant $\Phi$ as before on validity of keys and tables.
 We have also that
 \begin{align*}
-    \vDash&\AE\set{\Phi\wedge i_L=i_R\wedge m_L=m_R}\\
+    \vDash&\AEJ\set{\Phi\wedge i_L=i_R\wedge m_L=m_R}\\
     &\qquad y_L\gets Dec(D_i(c))\sim_0 y_R\gets D_i(m_b)\\
     &\set{\Phi\wedge\abs{y_L-y_R}<\delta_{corr}\wedge m_L=m_R}
 \end{align*}
