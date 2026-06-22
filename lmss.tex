@@ -42,8 +42,10 @@ Intuitively, an attacker against an encryption scheme aims to decrypt some targe
 such an adversary would be given an encryption oracle that generates target ciphertexts.
 
 In the noise flooding analysis, as we will see in \Cref{sec:games}, the adversary is allowed to make at most $q\in\bbN$ queries to an oracle.
-As a technical caveat of our efforts, we assume the attacker is factorized into $q$ subroutines, one corresponding to each oracle query.
-This is due to a limitation of our program logic.
+An earlier version of the development assumed the attacker was factorized into $q$ subroutines, one corresponding to each oracle query.
+The current trace-compilation formalism described in the previous section is intended to remove this as a semantic assumption for concrete SSProve adversaries: one can compile the first $q$ calls to a selected operation identifier and reason about the resulting code.
+\Codex{The game sketches below still use the older factored-adversary presentation.  They should be rewritten to either invoke the trace compiler $\operatorname{compileCalls}$ explicitly or explain that the displayed factored game is a presentation of the compiled code.}
+There remains a smaller limitation of our current Pythagorean judgment:
 For example, consider the two procedures in \Cref{alg:sample-with-half-prob}.
 There is no consistent way of writing down a Pythagorean judgment relating these two programs, as our judgment is parameterized by a fixed number of sampling operations,
 and does not capture the case where the number of samples itself is also random.
@@ -84,10 +86,9 @@ As the adversaries are concrete programs in SSProve, to the best of our knowledg
 If we were to write down an adversarial call rule for our setting, this would only be pushing these factorization challenges one layer down,
 where now the soundness of the rule needs to be verified.
 
-If one wishes to consider the general oracle setting,
-one strategy forward is to construct explicitly this factorization of the adversary, and verify the correctness of this factorization.
-This can potentially be done by generalizing the reflection technique \cite{reflection} in such a way that records the adversary's oracles queries in addition to its outputs to the challenger.
-Alternatively (and possibly equivalently), one simply steps through the semantic function of the programming language in order to read out the first $q$ oracle queries of the adversary.
+For the general oracle setting,
+our current strategy is precisely to construct this factorization as code and verify its correctness.
+The trace machinery steps through the SSProve syntax to read out the first $q$ selected oracle queries, records enough of the surrounding computation to resume the program, and proves that linking the compiled program with the same package preserves the original semantics.
 
 \subsubsection{Security Games}
 \label{sec:games}
@@ -234,5 +235,3 @@ Finally, using the \LabTirName{KL-DG} rule, we have
     &y'\gets\DG{y_L}{\sigma}\approx_{\set{\varepsilon}} y'\gets\DG{y_R}{\sigma}\set{\Phi}
 \end{align*}
 By combining the loop body through \LabTirName{AE-Seq} and \LabTirName{AE-Pyth-Seq} then, we arrive at \Cref{eq:loop-body-triple}.
-
-

@@ -68,15 +68,23 @@ the work \cite{kl-queries} gives the following theorem:
 
 \subsection{Discrete Gaussian Distributions}
 
-We denote by $\mathcal{G}_{\mu, \sigma^2}(x)=e^{(x-\mu)^2/\sigma^2}$ the Gaussian function, and its weight as $W_{\mu, \sigma}=\sum_{x=-\infty}^\infty e^{(x-\mu)^2/\sigma^2}$.
+We denote by
+\[
+  \mathcal{G}_{\mu,\sigma^2}(x)
+  =
+  \exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+\]
+the Gaussian weight function, and write
+$W_{\mu,\sigma}=\sum_{x=-\infty}^{\infty}\mathcal{G}_{\mu,\sigma^2}(x)$
+for its total weight.
 We denote the discrete Gaussian distribution as $\mathcal{DG}_{\mu, \sigma^2}$, which satisfies the following probability distribution function:
-$$\Pr_{x\gets \mathcal{DG}_{\mu, \sigma^2}}[x=x_0]=\frac{1}{W_{\mu, \sigma^2}}e^{(x_0-\mu)^2/\sigma^2}.$$
+$$\Pr_{x\gets \mathcal{DG}_{\mu, \sigma^2}}[x=x_0]=\frac{\mathcal{G}_{\mu,\sigma^2}(x_0)}{W_{\mu,\sigma}}.$$
 
-Suppose two discrete Gaussian have the same variance and close centers,
-then we can then bound the KL-divergence between them.
+Suppose two discrete Gaussians have the same variance and close centers.
+Then we can bound the KL-divergence between them.
 \begin{lemma}
     \label{thm:discrete-gaussian-kl}
-    For all $\mu, \nu\in\bbZ$ and $\sigma\in\bbR$, we have
+    For all $\mu, \nu\in\bbZ$ and $\sigma>0$, we have
 	\begin{equation}
 		\KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}} = \frac{\parens{\nu - \mu}^2}{2\sigma^2}
 	\end{equation}
