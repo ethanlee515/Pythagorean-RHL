@@ -13,6 +13,17 @@ We display program-logic rules using the standard inference-rule notation
 \]
 For readers from cryptography, this notation may be read simply as the implication
 $P_1\wedge P_2\Rightarrow Q$: if all premises above the line hold, then the conclusion below the line follows.
+Rules are often displayed with labels, for example
+\[
+\inferrule*[right=\textsc{Rule-Name}]
+  {P_1 \quad P_2}
+  {Q}
+\qquad\text{or}\qquad
+\inferrule[\textsc{Rule-Name}]
+  {P_1 \quad P_2}
+  {Q}.
+\]
+The label is the name of the proof principle, much as mathematical lemmas are named ``triangle inequality'' or ``data processing inequality''; it is not an additional premise.
 
 \subsection{Basic Real Analysis}
 
