@@ -420,6 +420,19 @@ Linked back to the same package, the compiler is semantics-preserving.
 Linked to a KL-close replacement package, it gives the quantitative
 oracle-replacement theorem used in the noise-flooding proof.
 
+Conceptually, the object we would like is a next-message function for the
+adversary.
+Such a function would run the adversary until the next selected oracle call,
+return the query, and also return a suspended continuation saying how to resume
+after the oracle answer is supplied.
+For SSProve code, however, the continuation lives inside a monad as a Rocq
+function.
+Serializing that suspended continuation would amount to serializing arbitrary
+Rocq functions, which is not a proof-engineering path we want to take.
+The trace compiler therefore uses a more concrete representation: it records
+the observable effects that led to the selected call and later replays those
+effects against the original program to recover the residual computation.
+
 \begin{definition}[Trace]
 A trace $\tau$ is a finite list of effect entries
 \[
