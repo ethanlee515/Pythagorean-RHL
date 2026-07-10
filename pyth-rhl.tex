@@ -448,8 +448,24 @@ This is the point where the formalization realizes Pythagorean probability prese
 
 \subsection{Trace Compilation and Oracle Replacement}
 
-The oracle-replacement story is not an EasyCrypt-style rule for opaque adversaries.
-Instead, the formalization defines an explicit compilation pass over concrete SSProve code.
+The Pythagorean rules above explain how to compose a fixed sequence of
+KL-budgeted program fragments without losing the $O(\sqrt q)$ bound.
+They do not, by themselves, solve the adversarial-oracle problem: an IND-CPAD
+adversary decides adaptively when to call the decryption oracle, and the
+source program is not presented as a list of $q$ decryption subroutines.
+The compiler is the adapter from arbitrary adversary syntax to the fixed-call
+schedule expected by the logic.
+
+The oracle-replacement story is therefore not an EasyCrypt-style rule for
+opaque adversaries.
+Instead, the formalization defines an explicit compilation pass over concrete
+SSProve code.
+It exposes the first $q$ calls to a selected operation, runs the replacement
+proof at those call sites, and replays the residual computation from recorded
+traces.
+Linked back to the same package, the compiler is semantics-preserving.
+Linked to a KL-close replacement package, it gives the quantitative
+oracle-replacement theorem used in the noise-flooding proof.
 
 \begin{definition}[Trace compiler]
 Fix an operation identifier $fn$ and a package $P$ implementing that operation.
@@ -669,3 +685,5 @@ Compared with EasyCrypt, the difference is mostly where the abstraction boundary
 EasyCrypt's adversarial call rules reason about opaque adversary modules.
 Here the adversary is executable syntax, so the proof factors the adversary by a verified trace compiler.
 Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\lVert s\rVert_1/2}$.
+
+\input{related-works}

@@ -43,35 +43,36 @@ the usual IND-CPA reduction and proves the bound
   \qquad
   \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2}.
 \]
-Here $q$ is the number of non-failing decryption queries exposed by the
-compiler, $n$ is the metric-chart dimension, and $\gamma$ is the Gaussian-width
-multiplier.
+Here $q$ is the decryption-query bound, $n$ is the metric-chart dimension, and
+$\gamma$ is the Gaussian-width multiplier.
 The theorem is exposed in the artifact as
 \texttt{NoiseFloodingSecure.is\_secure}.
 
 \subsection{Why a Program Logic?}
 
-The noise-flooding proof is not hard because the final reduction is exotic.
-On paper, the reduction is the conventional one: answer encryption queries
-using the IND-CPA challenge oracle, maintain the homomorphic-evaluation table,
-and answer decryption queries with a flooded sample centered at the table
-plaintext when the stored labels agree.
-The difficulty is that the paid step has to replace the first $q$ adaptive
-decryption calls made by an arbitrary SSProve adversary, while preserving all
-the heap invariants needed by the game.
+The central proof-engineering problem is preserving the
+$O(\sqrt q)$ bound.
+Standard approximate relational logics are built around sequencing rules that
+add the error of the first command to the error of the continuation.
+This is exactly right for ordinary statistical-distance or failure-probability
+arguments, but it is too weak for noise flooding: composing $q$ decryption
+replacements with such a rule would pay at least a linear $O(q)$ loss.
+The cryptographic proof gets a sharper result because it does not pay
+statistical distance at each call.
+Instead, it records a KL cost for each conditional sampling step and converts
+the whole tuple of costs to statistical distance only once, using the
+Pythagorean preservation theorem.
 
-For this reason, we build proof infrastructure rather than a new programming
-language.
-The programs, packages, heaps, and linking semantics are SSProve's.
-On top of them we define semantic judgments for completed-output
-additive-error reasoning and for Pythagorean KL bookkeeping.
-The additive-error judgment is the ordinary cryptographic notion used to
-compose game hops.
-The Pythagorean judgment records a tuple of conditional KL costs and pays the
-square-root loss only when converted back to additive error.
-A trace compiler exposes the first $q$ calls to a selected oracle operation,
-so a one-call Pythagorean replacement lemma can be lifted to an adversarial
-oracle replacement theorem.
+Our program logic is designed to expose that accounting discipline at the
+level of SSProve syntax.
+The additive-error judgment is the ordinary cryptographic judgment used for
+game hops.
+The Pythagorean judgment is the nonstandard part: its sequencing rules
+concatenate KL-budget tuples instead of immediately adding statistical-distance
+errors, and the Micciancio--Walter bridge later turns a budget $s$ into the
+single loss $\sqrt{\lVert s\rVert_1/2}$.
+Thus the logic is what makes the formal proof express the same
+``pay once at the end'' idea as the paper cryptographic argument.
 
 \subsection{Contributions}
 
@@ -106,7 +107,9 @@ The rules are semantic theorems, not axioms.
 SSProve adversaries are concrete programs, not opaque modules.
 We exploit this by verifying a trace compiler that exposes the first $q$ calls
 to a selected oracle and records the residual computation as replayable traces.
-The main compiler theorem lifts a one-call Pythagorean replacement proof to a
+The compiler puts adaptive adversaries into the fixed-call-schedule form
+expected by the Pythagorean logic.
+The main compiler theorem then lifts a one-call Pythagorean replacement proof to a
 whole-adversary additive-error bound of
 $\sqrt{q\lVert s\rVert_1/2}$.
 This is the mechanism that turns the one-decryption Gaussian calculation into

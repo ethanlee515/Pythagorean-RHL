@@ -1,7 +1,7 @@
-\section{Comparison with Other Program Logics}
+\subsection{Comparison with Other Program Logics}
 \label{sec:related-works}
 
-This section situates the verified logic against nearby relational program
+This subsection situates the verified logic against nearby relational program
 logics.
 The short version is that our additive-error layer is close in spirit to
 standard up-to-bad reasoning, while the Pythagorean layer and trace compiler
@@ -10,7 +10,7 @@ They let us package a one-call KL argument as a whole-game theorem with
 loss $\sqrt{q\lVert s\rVert_1/2}$ for a concrete SSProve adversary
 making up to $q$ selected oracle calls.
 
-\subsection{Additive Error and Up-to-bad Reasoning}
+\subsubsection{Additive Error and Up-to-bad Reasoning}
 \label{sec:up-to-bad-event}
 
 The most familiar cryptographic comparison principle is the up-to-bad
@@ -42,7 +42,7 @@ It is not where the sublinear bound is created.
 It provides the completed-output notion of closeness, exact bridge rules, and
 triangle rules used to compose the hybrid chain in \Cref{sec:games}.
 
-\subsection{Where Sublinear Error Enters}
+\subsubsection{Where Sublinear Error Enters}
 
 Standard relational logics compose approximate judgments linearly.
 If a sequence rule is applied to two fragments with losses $\varepsilon$ and
@@ -69,7 +69,7 @@ compiled adversary, with loss
 This is the proof boundary used by the paid hop $H_2\to H_3$ in
 \Cref{sec:paid-hop}.
 
-\subsection{Concrete Adversaries and Trace Compilation}
+\subsubsection{Concrete Adversaries and Trace Compilation}
 
 EasyCrypt-style developments often reason about adversaries through module
 interfaces and adversarial call rules.
@@ -96,7 +96,7 @@ It accounts for invalid replay traces, heap-region invariants, residual
 operation calls, and the fact that an ordinary adversary may decide when to
 query decryption in a data-dependent way.
 
-\subsection{Comparison with apRHL}
+\subsubsection{Comparison with apRHL}
 
 Approximate relational Hoare logic and its approximate-coupling extensions
 were designed primarily for differential privacy
