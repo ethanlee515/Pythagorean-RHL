@@ -68,6 +68,12 @@ $\Omega=(Y\times\cM)\cup\{\bot\}$ be the completed output/heap space.
 If $\mathcal{T}$ is a distribution over an $n$-tuple transcript space, write
 $\mathsf{marg}_n(\mathcal{T})$ for its final-coordinate marginal.
 For a prefix $a\in\Omega^{i-1}$, write $\mathcal{T}_i\mid a$ for the conditional distribution of the $i$th coordinate given prefix $a$, using the same conditional-coordinate convention as in \Cref{sec:verified-kl-analysis}.
+Following the cryptographic literature, we sometimes present such a transcript
+law as a correlated family $\{\mathcal{T}_i\}_{i=1}^n$.
+This does not mean the coordinates are independent: formally it is a single
+joint law on $\Omega^n$, with notation $\mathcal{T}_i\mid a$ for its
+conditional coordinate distributions.
+The Rocq formalization uses this joint-law representation directly.
 
 \paragraph{Unary Hoare judgment.}
 SSProve has exact relational Hoare logic.
@@ -133,33 +139,30 @@ We write
     \vDash\Pyth\set{P}\ c_L \approx_s c_R\ \set{Q},
 \end{equation}
 if all entries of $s$ are nonnegative and, for every pair of initial configurations
-$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there exist weight-one transcript distributions
+$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$,
+there exist weight-one correlated transcript families
 \[
-  \cP_{\rho_L,\rho_R},\cQ_{\rho_L,\rho_R}
-  \in \distr(\Omega^n)
+  \{\cP_i(\rho_L,\rho_R)\}_{i=1}^n,
+  \{\cQ_i(\rho_L,\rho_R)\}_{i=1}^n
 \]
-over tuples of completed output/heap values such that:
+over completed output/heap values such that:
 \[
 \begin{aligned}
-&\mathsf{marg}_n(\cP_{\rho_L,\rho_R})
-  =
-  \csemantic{c_L}_{\rho_L},
+&\cP_n(\rho_L,\rho_R)=\csemantic{c_L}_{\rho_L},
 \qquad
-\mathsf{marg}_n(\cQ_{\rho_L,\rho_R})
-  =
-  \csemantic{c_R}_{\rho_R},
+\cQ_n(\rho_L,\rho_R)=\csemantic{c_R}_{\rho_R},
 \\
 &\forall i\in\{1,\ldots,n\},\ 
   \forall a\in\Omega^{i-1}.\
   \mathsf{finiteKL}\!\left(
-    (\cP_{\rho_L,\rho_R})_i\mid a,
-    (\cQ_{\rho_L,\rho_R})_i\mid a
+    \cP_i(\rho_L,\rho_R)\mid a,
+    \cQ_i(\rho_L,\rho_R)\mid a
   \right),
 \\
 &\forall i\in\{1,\ldots,n\},\ 
   \forall a\in\Omega^{i-1}.\
-  \KL{(\cP_{\rho_L,\rho_R})_i\mid a}
-     {(\cQ_{\rho_L,\rho_R})_i\mid a}
+  \KL{\cP_i(\rho_L,\rho_R)\mid a}
+     {\cQ_i(\rho_L,\rho_R)\mid a}
   \leq s_i,
 \\
 &\forall z\in\supp\semantic{c_L(x_L)}(m_L).\ Q(z),
@@ -169,7 +172,11 @@ over tuples of completed output/heap values such that:
 \]
 \end{definition}
 
-Rather than merely listing syntactic sampling sites, the judgment records a full transcript distribution over completed outputs.
+Rather than merely listing syntactic sampling sites, the judgment records a
+correlated transcript family over completed outputs.
+Equivalently, and this is how the artifact represents it, it records the
+underlying joint transcript distribution and derives the coordinate
+conditionals from that joint law.
 That transcript is then handed to the probability-level theorem.
 The underlying distribution predicate is the Pythagorean distribution predicate described in \Cref{sec:verified-kl-analysis}.
 
