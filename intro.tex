@@ -1,48 +1,123 @@
 \section{Introduction}
 
-In program analysis, pairs of programs are often compared with each other.
-For example, we may show that an optimized program implements its specification faithfully, or is equivalent to a reference implementation.
-Cryptography researchers often also prove that certain sub-protocols are indistinguishable from idealized building blocks that are (by definition) composable and secure.
-Machinery for these analyses falls under the \emph{relational Hoare Logic} (RHL) framework.
-In this work, we present a variant of RHL that includes \emph{Pythagorean probability preservation} in lattice cryptography.
+Fully homomorphic encryption (FHE) lets a server compute on encrypted data
+without decrypting it.
+Approximate schemes such as CKKS \cite{ckks} make this idea practical for
+real-valued arithmetic, but they also make security statements more delicate:
+decryption returns an approximate value, and the approximation error itself can
+become a source of information.
+The Li--Micciancio attack \cite{lm} showed that this issue is not merely
+cosmetic.
+Li, Micciancio, Schultz-Wu, and Sorrell \cite{lmss} proposed a noise-flooding
+defense and proved that, under suitable parameters, the resulting scheme
+satisfies a stronger decryption-query security notion.
 
-The term \emph{Pythagorean probability preservation} is coined by theory cryptography work \cite{mw17}, which generalizes an analysis \cite{kl-queries} involving Kullback-Leibler divergence.
-Today, Pythagorean probability preservation is used to argue the security of the ``CKKS" fully homomorphic encryption, as well as to bound the security loss due to floating-point precision limitations.
-Roughly speaking, suppose two distributions $\mathcal{D}$ and $\mathcal{D}'$ are $\varepsilon$-close, and a program $c$ takes $n$ samples from either $\mathcal{D}$ or $\mathcal{D}'$ before outputting $y$ or $y'$ respectively.
-By \emph{data processing inequality} or \emph{up-to-bad arguments} then, we would conclude that $y$ and $y'$ are $(n\cdot\varepsilon)$-close.
-This standard analysis would however make use of only that $\mathcal{D}$ and $\mathcal{D}'$ are close in total variation distance.
-On the other hand, Pythagorean probability preservation achieves a sharper $O(\sqrt{n})$ bound instead, in the cases where $\mathcal{D}$ and $\mathcal{D}'$ are additionally also close in KL-divergence.
+This proof is exactly the kind of cryptographic argument that should benefit
+from mechanization.
+It combines game-hopping, oracle reductions, approximate correctness,
+discrete-Gaussian calculations, and a sharp accounting of many related random
+samples.
+The last point is important.
+A naive hybrid argument would pay linearly for $q$ decryption queries.
+The cryptographic analysis instead uses the Micciancio--Walter
+``Pythagorean'' phenomenon \cite{mw17}: when each step has a bounded
+conditional KL divergence, the final statistical distance is controlled by the
+square root of the sum of the KL costs.
+This is the difference between a linear loss and the expected
+$O(\sqrt q)$ noise-flooding loss.
 
-The Pythagorean probability preservation property is a cryptographic one;
-in terms of programming languages, it corresponds to analysis at the \emph{semantics} level.
-Much like data-processing inequality is packaged in program logic terms using RHL and up-to-bad arguments then, we present \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply Pythagorean probability preservation directly at the \emph{syntactic} level.
-We compare our logic with other existing logics for cryptography and differential privacy in \Cref{sec:related-works}.
-The accompanying Rocq formalization is open source at \url{https://github.com/ethanlee515/mending}.
+We formalize this proof in Rocq using SSProve \cite{ssprove}.
+Our theorem is deliberately stated for an abstract approximate-FHE interface
+rather than for a concrete CKKS implementation.
+The interface supplies the IND-CPA assumption for the underlying scheme, a
+support-level correctness assumption, and origin-centered integer-vector
+metric charts that connect plaintext distance to discrete-Gaussian sampling.
+For every adversary in the IND-CPAD game, the formal development constructs
+the usual IND-CPA reduction and proves the bound
+\[
+  \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}(\cA)=1]
+  \leq
+  \Pr[\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})=1]
+  +
+  2\sqrt{q\epsilon_{\mathsf{nf}}/2},
+  \qquad
+  \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2}.
+\]
+Here $q$ is the number of non-failing decryption queries exposed by the
+compiler, $n$ is the metric-chart dimension, and $\gamma$ is the Gaussian-width
+multiplier.
+The theorem is exposed in the artifact as
+\texttt{NoiseFloodingSecure.is\_secure}.
 
-\Ethan{TODO Motivate noise flooding: Both in the CKKS IND-CPA+ case, and the threshold case...
-Maybe need to say what is threshold FHEs too.}
+\subsection{Why a Program Logic?}
 
-\Ethan{TODO Briefly mention somewhere another non-FHE potential application - floating point Gaussian stuff: \url{https://eprint.iacr.org/2017/259}}
+The noise-flooding proof is not hard because the final reduction is exotic.
+On paper, the reduction is the conventional one: answer encryption queries
+using the IND-CPA challenge oracle, maintain the homomorphic-evaluation table,
+and answer decryption queries with a flooded sample centered at the table
+plaintext when the stored labels agree.
+The difficulty is that the paid step has to replace the first $q$ adaptive
+decryption calls made by an arbitrary SSProve adversary, while preserving all
+the heap invariants needed by the game.
 
+For this reason, we build proof infrastructure rather than a new programming
+language.
+The programs, packages, heaps, and linking semantics are SSProve's.
+On top of them we define semantic judgments for completed-output
+additive-error reasoning and for Pythagorean KL bookkeeping.
+The additive-error judgment is the ordinary cryptographic notion used to
+compose game hops.
+The Pythagorean judgment records a tuple of conditional KL costs and pays the
+square-root loss only when converted back to additive error.
+A trace compiler exposes the first $q$ calls to a selected oracle operation,
+so a one-call Pythagorean replacement lemma can be lifted to an adversarial
+oracle replacement theorem.
 
+\subsection{Contributions}
 
-Fully Homomorphic Encryption (FHE) enables arbitrary computation on encrypted data, ensuring that privacy is preserved even during processing, and making it a key enabler of secure cloud analytics, outsourced ML, and multiparty computation. With recent advances reducing the cost of homomorphic operations, FHE is becoming increasingly practical for real-world confidential computation.
+\paragraph{Verified probability analysis.}
+We formalize the probability facts needed by the program logic over MathComp
+distributions, including KL divergence for countable distributions, absolute
+continuity and finite-KL side conditions, Pinsker's inequality, and a
+conditional-coordinate chain theorem that realizes Pythagorean probability
+preservation.
+We also prove the equal-variance KL formula for discrete Gaussians over the
+integers,
+\[
+  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
+  =
+  \frac{(\nu-\mu)^2}{2\sigma^2},
+\]
+including the summability and moment facts needed by the formal proof.
+Some reusable real-summation lemmas developed for this part were also
+submitted upstream to MathComp Analysis.
 
+\paragraph{Relational reasoning for Pythagorean errors.}
+We define additive-error and Pythagorean relational judgments directly over
+SSProve semantics.
+The judgments use completed output distributions, so missing subdistribution
+mass is represented by an explicit failure point instead of an informal side
+condition.
+We prove the core structural, sampling, sequencing, and
+Micciancio--Walter bridge rules in Rocq.
+The rules are semantic theorems, not axioms.
 
-%A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently leaked during computation. To address this, schemes often add carefully controlled extra “noise” to encrypted data, which strengthens the security guarantees even in complex computation scenarios. This technique, known as noise flooding, is especially useful in settings where multiple parties jointly process encrypted data, as in \emph{threshold FHE}, ensuring that no intermediate information is revealed to participants. Similar noise-management techniques also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader importance for safe and reliable computation on sensitive data.
+\paragraph{Trace compilation for oracle replacement.}
+SSProve adversaries are concrete programs, not opaque modules.
+We exploit this by verifying a trace compiler that exposes the first $q$ calls
+to a selected oracle and records the residual computation as replayable traces.
+The main compiler theorem lifts a one-call Pythagorean replacement proof to a
+whole-adversary additive-error bound of
+$\sqrt{q\lVert s\rVert_1/2}$.
+This is the mechanism that turns the one-decryption Gaussian calculation into
+the $q$-query noise-flooding bound.
 
-
-A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently revealed during computation. To address this, schemes often apply a controlled “noise flooding” step after decryption at the plaintext level, which strengthens security guarantees. This technique is particularly important in settings where multiple parties jointly process encrypted data, as in threshold FHE, ensuring that no intermediate information is leaked to participants. Similar noise-management ideas also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader relevance for safe and reliable computation on sensitive data.
-
-
-%\paragraph{Contributions}
-
-
-% A key challenge in using FHE in practice is ensuring that sensitive information is not inadvertently revealed during computation. For example, certain approximate arithmetic schemes such as CKKS are vulnerable to attacks like the LM attack, which can exploit small errors to extract information from decrypted results. To mitigate such risks, schemes often apply a controlled “noise flooding” step after decryption at the plaintext level, which restores strong security guarantees even in complex computation scenarios. This technique is particularly important in settings where multiple parties jointly process encrypted data, as in threshold FHE, ensuring that no intermediate information is leaked to participants. Similar noise-management ideas also appear in other cryptographic and privacy-preserving contexts, such as floating-point Gaussian sampling, highlighting their broader relevance for safe and reliable computation on sensitive data.
-
-
-
-\subsection{Our Results}
-
-
-\Ethan{TODO}
+\paragraph{Verified LMSS-style noise flooding.}
+Combining the probability library, program logic, and trace compiler, we prove
+the noise-flooding security theorem for an abstract approximate-FHE scheme.
+The final statement is an inequality about SSProve winning probabilities, not
+about derivability in our logic.
+Thus the program logic organizes the proof, while the exported theorem remains
+anchored in the standard SSProve game semantics.
+The accompanying Rocq development is available at
+\url{https://github.com/ethanlee515/mending}.

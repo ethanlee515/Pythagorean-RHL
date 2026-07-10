@@ -16,13 +16,25 @@ Placeholder Authors List
 \maketitle
 
 \begin{abstract}
-    \iffalse
-    We propose \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply the cryptographic \emph{Pythagorean probability preservation} property to pairs of probabilistic programs.
-    Our program logic allows sharper security analysis by allowing errors to accumulate sublinearly in the size of the considered programs.
-    Using our logic then, we verify the security of the \emph{noise flooding} construction for homomorphic encryption schemes using the SSProve \cite{ssprove} framework.
-    \fi
-    TODO once we verify LMSS
+Approximate homomorphic encryption schemes such as CKKS support encrypted
+approximate arithmetic, but their decryption interfaces require care: small
+approximation errors can become attack surfaces, and standard mitigations such
+as noise flooding rely on quantitative probabilistic arguments.
+We present a Rocq/SSProve formalization of the Li--Micciancio--Schultz-Wu--
+Sorrell noise-flooding proof for an abstract approximate-FHE interface.
+The verified theorem shows that the IND-CPAD advantage of the noise-flooded
+scheme is bounded by the IND-CPA advantage of the underlying scheme plus the
+expected Pythagorean loss.
+The proof rests on three reusable components: a verified KL-divergence and
+discrete-Gaussian analysis over countable MathComp distributions, semantic
+additive-error and Pythagorean relational judgments for SSProve programs, and
+a trace compiler that lifts one-call oracle replacement to the first $q$
+selected adversary calls.
+The main theorem is stated directly in terms of SSProve game semantics, so the
+program logic is proof infrastructure rather than an additional trusted axiom.
 \end{abstract}
+
+\tableofcontents
 
 \input{intro}
 
