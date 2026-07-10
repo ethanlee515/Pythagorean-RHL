@@ -1,0 +1,252 @@
+\section{Independent Verification}
+\label{sec:independent-verification}
+
+The formal theorem is useful only if its statement is the theorem one intended
+to prove.
+For this reason, one should distinguish the size of the artifact from the part
+that a human reader needs to audit.
+The development has three main technical layers: a probability layer for KL,
+Pinsker, Pythagorean preservation, and discrete Gaussians; a program-logic
+layer for additive-error and Pythagorean reasoning over SSProve programs; and
+an LMSS/noise-flooding layer that encodes the games, reduction, metric
+interface, and final security proof.
+A reader must trust that the formal statement faithfully represents the
+cryptographic objects, that the probability and program-logic theorems have
+the advertised mathematical content, and that Rocq has checked the proof of
+the final theorem from SSProve's semantics and the listed assumptions.
+
+\subsection{Artifact Accounting}
+\label{sec:artifact-accounting}
+
+\Cref{tab:artifact-accounting} gives a coarse line-count map of the current
+Rocq artifact.
+The counts are source lines in the named files, rounded only by the grouping
+choices in the table.
+They are useful for orientation, but they should not be read as a traditional
+measure of verification effort.
+This development was substantially AI-assisted.
+As a result, the code is less proof-golfed than a fully hand-written artifact,
+and it carries more local technical debt than a fully hand-written development
+would usually tolerate before refactoring.
+At the same time, AI assistance changes development speed enough that
+person-month estimates would be especially misleading.
+We therefore report line counts as a map of the artifact, not as a claim about
+human effort or proof elegance.
+
+\begin{table}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrl}
+\hline
+Layer & Lines & Representative files \\
+\hline
+KL, Pinsker, Pythagorean probability, discrete Gaussians
+  & 6861
+  & \texttt{Probability/KL/}, \texttt{Probability/DiscreteGaussians/} \\
+Program logics and trace infrastructure
+  & 8637
+  & \texttt{ProgramLogics/}, \texttt{Probability/\{DletTuple,OutputHeap,PythSeq\}.v}, \texttt{NextMessage/Trace.v} \\
+LMSS/noise-flooding games and security proof
+  & 15185
+  & \texttt{Schemes/\{ApproxFHE,Indcpa,Indcpad\}.v}, \texttt{Constructions/NoiseFlooding.v}, \texttt{NoiseFloodingSecurity/} \\
+\hline
+Three main technical layers & 30683 & \\
+Full Rocq development & 35330 & includes local MathComp/SSProve adapters \\
+\hline
+\end{tabular}
+}
+\caption{Coarse source-line map of the formal artifact.  These counts are
+orientation data rather than effort metrics.}
+\label{tab:artifact-accounting}
+\end{table}
+
+\subsection{What a Cryptographer Should Audit}
+\label{sec:crypto-audit-surface}
+
+The main theorem is exposed as
+\texttt{NoiseFloodingSecure.is\_secure}.
+It is not stated in terms of our program logic.
+Rather, it is a theorem about the SSProve games' own winning probabilities:
+for every adversary package accepted by the IND-CPAD interface, the
+noise-flooded winning probability is bounded by the IND-CPA winning probability
+of the constructed reduction plus the verified noise-flooding loss.
+Thus a cryptographic reviewer does not need to trust the inference rules as
+axioms.
+The rules are internal lemmas used to prove the theorem.
+There is no additional trusted soundness theorem for these rules: each rule
+must itself typecheck as a Rocq theorem about the SSProve semantics, and the
+final theorem still talks about ordinary SSProve package semantics.
+
+The crypto-facing audit surface is therefore small compared with the proof
+body.
+\Cref{tab:crypto-audit-surface} lists the files whose definitions and
+assumptions determine what the theorem means.
+The line counts are current source-line counts, included to give a sense of
+scale rather than as a stable metric.
+
+\begin{table}
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrl}
+\hline
+File & Lines & What to audit \\
+\hline
+\texttt{Schemes/ApproxFHE.v} & 311
+  & scheme interface, correctness assumptions, metric charts \\
+\texttt{Schemes/Indcpa.v} & 113
+  & IND-CPA game and assumed IND-CPA bound \\
+\texttt{Schemes/Indcpad.v} & 194
+  & IND-CPAD game, oracle table, decrypt-query behavior \\
+\texttt{Constructions/NoiseFlooding.v} & 333
+  & transformed scheme and Gaussian-width parameter \\
+\texttt{NoiseFloodingSecurity/Prelude.v} & 59
+  & public loss formula and functor glue \\
+\hline
+Total & 1010 & crypto-facing specification layer \\
+\hline
+\end{tabular}
+}
+\caption{Primary cryptographic audit surface.  The files are under
+\texttt{theories/}; the rest of the development proves consequences of these
+definitions and assumptions.}
+\label{tab:crypto-audit-surface}
+\end{table}
+
+The most natural appendix material is not the whole proof script, but this
+specification layer or selected excerpts from it.
+In particular, the two game encodings together are about 300 lines of Rocq
+code, and the metric axioms are a handful of lines inside
+\texttt{ApproxFHE.v}.
+Including these definitions in an appendix is realistic if space permits.
+Including the entire proof is not: the full development is about 35,000 lines,
+with roughly 14,000 lines in the split noise-flooding security proof alone.
+The artifact is the appropriate medium for that part.
+
+The assumptions that should receive the most cryptographic attention are the
+following.
+The IND-CPA assumption in \texttt{Indcpa.v} is the standard black-box security
+hypothesis for the underlying scheme, stated against the SSProve IND-CPA game.
+The IND-CPAD game in \texttt{Indcpad.v} is not assumed secure; it is the game
+proved secure after applying noise flooding.
+The final theorem currently uses the support-level perfect-correctness
+interface in \texttt{ApproxFHE.v}; approximate correctness with explicit
+correctness-error accounting is kept as a separate interface.
+The metric interface in \texttt{ApproxFHE.v} assumes origin-centered integer
+charts:
+\[
+  I_a(a)=0,\qquad
+  d(a,b)=\lVert I_a(b)\rVert,\qquad
+  I_b^{-1}(x)=I_a^{-1}(x+I_a(b)).
+\]
+These are the assumptions connecting the abstract message metric to the
+integer-vector Gaussian analysis.
+Finally, the noise-flooding parameter module assumes only that the Gaussian
+width multiplier is positive.
+
+\subsection{Probability and Discrete-Gaussian Review}
+\label{sec:probability-review}
+
+The probability layer is the part of the artifact that a mathematically minded
+reader should audit as ordinary analysis.
+The relevant human-facing statements are the definitions of KL divergence and
+finite KL, Pinsker's inequality for MathComp distributions, the conditional
+coordinate chain bound used for Pythagorean preservation, and the
+equal-variance KL formula for discrete Gaussians over the integers.
+These are stated in \Cref{sec:verified-kl-analysis}; their Rocq proofs live
+primarily in \texttt{Probability/KL/} and
+\texttt{Probability/DiscreteGaussians/}.
+
+As with the program logic, the full proof scripts are not the intended reading
+order.
+The paper should give pen-and-paper proofs of the mathematical facts that are
+not immediate, especially the chain-rule/summability argument and the
+discrete-Gaussian KL calculation.
+The formal development then checks the details that are easy to lose in an
+informal proof over countable distributions: absolute continuity,
+positive/negative-part summability, interchange of countable sums, and the
+normalization and moment facts for the integer Gaussian.
+
+This part of the project also produced some library-adjacent ``community
+service'' for MathComp Analysis.
+The local \texttt{RealSumExtras.v} file factors out reusable facts about
+MathComp's experimental \texttt{sum}/\texttt{summable} interface, including the
+proved Fubini-style interchange lemma
+\[
+  \texttt{interchange\_psum\_proved}.
+\]
+Those facts were developed while discharging the summability obligations for
+the KL analysis.
+A version of this material was also submitted upstream to MathComp Analysis,
+where it helps reduce reliance on admitted real-summation infrastructure.
+
+\subsection{What Typechecking Buys}
+\label{sec:typechecking-buys}
+
+Once the above definitions are accepted, the large body of game transformations
+is not a further trusted argument.
+It is checked proof.
+The theorem is proved by composing SSProve package equivalences, exact
+heap-invariant bridges, the trace compiler theorem, and the verified
+Micciancio-Walter/Pinsker analysis.
+After instantiating the security functor with a concrete scheme and assumptions,
+the command
+\[
+  \texttt{Print Assumptions Secure.is\_secure}
+\]
+is the machine-checkable summary of what remains outside the proof.
+In the current development there are no \texttt{Admitted} proofs in the Rocq
+sources.
+The remaining non-logical assumptions are the scheme/correctness/metric
+interfaces just described, the assumed IND-CPA bound, the positivity of the
+Gaussian-width multiplier, and the ordinary library/classical assumptions
+inherited from MathComp, SSProve, and Rocq's real-number infrastructure.
+
+This is the sense in which the program logic is not part of the trusted
+cryptographic statement.
+The additive-error and Pythagorean judgments are defined semantically over
+SSProve programs.
+Their rules are then proved as ordinary Rocq lemmas from those definitions.
+The final security theorem does not say ``there exists a derivation in our
+logic''; it says that two SSProve-defined winning probabilities satisfy an
+inequality.
+The logic is proof engineering: it factors a long proof into reusable,
+reviewable lemmas, but it does not replace the semantics of the games.
+
+\subsection{Program-Logic Review}
+\label{sec:program-logic-review}
+
+For a PL or verification reader, the audit story is the standard soundness
+story.
+The development defines semantic judgments for support-style Hoare reasoning,
+completed-output additive error, and Pythagorean KL bookkeeping.
+Each inference rule is a theorem about those semantic definitions.
+A human reader should not be expected to step through the corresponding Rocq
+proof scripts line by line.
+The human-facing artifact is the selected collection of semantic definitions
+and rule statements, together with mathematical explanations for the few rules
+whose soundness is not immediate.
+
+The rule statements themselves are compact.
+\Cref{sec:program-logic} displays the core rules used by the security proof:
+completed additive-error rules, Pythagorean sampling and sequencing rules, the
+Micciancio--Walter bridge, and the trace-compiler replacement principles.
+Even conservatively counting around twenty externally meaningful rules at ten
+to twenty lines each, the surface to inspect is on the order of a few hundred
+lines, not thousands of lines of proof script.
+
+The proof scripts remain important, but as the machine-checking substrate.
+For routine rules, soundness is a direct unfolding of the semantic judgment
+plus standard distribution facts.
+For the nontrivial rules---completed-output sequencing, the trace compiler,
+and the Pythagorean final-marginal theorem behind the Micciancio--Walter
+bridge---the paper should provide pen-and-paper arguments at the level of
+mathematics and proof structure.
+The Rocq proofs then check that those arguments have no hidden side conditions.
+
+For cryptographers, this part should look familiar at a high level.
+We define judgments by their intended semantics, prove inference rules sound,
+and then use those rules to structure the game-hopping proof.
+The unusual feature is not the soundness methodology itself, but the
+Pythagorean bookkeeping: instead of composing statistical-distance errors
+linearly at each program step, the proof records conditional KL costs and pays
+the square-root loss once at the end.
