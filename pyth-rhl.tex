@@ -60,7 +60,8 @@ No language extension is needed for discrete Gaussians: they are MathComp distri
 \subsection{Judgments and Basic Rules}
 
 \paragraph{Unary Hoare judgment.}
-The formalization includes a support-style unary Hoare judgment:
+SSProve has exact relational Hoare logic.
+For the Pythagorean rules, we use the corresponding one-sided support-style judgment:
 \[
     \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}.
 \]
@@ -76,8 +77,7 @@ It means that for every input and heap satisfying $P$, every element in the supp
     \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
   }.
 \]
-This judgment is intentionally small.
-It supplies invariant-preservation facts for shared code, package calls, and trace residuals used by the relational rules.
+It supplies the invariant-preservation facts for shared code, package calls, and trace residuals used by the Pythagorean sequencing rules.
 
 \paragraph{Additive-error judgment.}
 The completed additive-error judgment is
