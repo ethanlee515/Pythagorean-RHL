@@ -43,41 +43,24 @@ such an adversary would be given an encryption oracle that generates target ciph
 
 In the noise flooding analysis, as we will see in \Cref{sec:games}, the adversary is allowed to make at most $q\in\bbN$ queries to an oracle.
 An earlier version of the development assumed the attacker was factorized into $q$ subroutines, one corresponding to each oracle query.
-The current trace-compilation formalism described in the previous section is intended to remove this as a semantic assumption for concrete SSProve adversaries: one can compile the first $q$ calls to a selected operation identifier and reason about the resulting code.
+The current trace-compilation formalism described in the previous section removes this as a semantic assumption for concrete SSProve adversaries: one can compile the first $q$ calls to a selected operation identifier and reason about the resulting code.
 In the Coq development, this is paired with an explicit decryption-query counter in both the real and simulated oracles.
 Calls beyond the bound assert-fail on both sides, so compiling the first $q$ calls to the decryption identifier is enough to cover every non-failing decryption response.
 The games below therefore use a factored presentation only as notation for the code produced by the trace compiler:
 the adversary in the formal development is still an ordinary SSProve package, and the separate query routines should be read as the continuation pieces exposed by $\operatorname{compileCalls}$.
-There remains a smaller limitation of our current Pythagorean judgment:
-For example, consider the two procedures in \Cref{alg:sample-with-half-prob}.
-There is no consistent way of writing down a Pythagorean judgment relating these two programs, as our judgment is parameterized by a fixed number of sampling operations,
-and does not capture the case where the number of samples itself is also random.
+The point is worth separating from a lower-level design choice in the raw Pythagorean judgment.
+That judgment carries a fixed tuple of KL coordinates, so it is not intended as a general reflection principle for arbitrary source programs whose distinguished effects occur a data-dependent number of times.
+The trace compiler is the verified interface for the oracle setting:
+it searches for up to $q$ selected calls, records and replays the surrounding trace, exposes each selected call as a one-call obligation, and leaves any unused budget silent when the adversary returns early.
+Malformed replay paths are mapped to null code, which is why the compiler proof is semantic rather than merely syntactic.
+Thus data-dependent query patterns are handled by the compiler theorem, not by assuming that the adversary was already written as $q$ separate procedures.
 
-\begin{algorithm}
-    \caption{Limitation of our program logic}
-    \label{alg:sample-with-half-prob}
-    \begin{algorithmic}
-        \Procedure{Left}{}
-        \State $b\gets\set{0, 1}$
-        \If{$b$}
-        \State $x\gets D_x$
-        \EndIf
-        \EndProcedure
-        \Procedure{Right}{}
-        \State $b\gets\set{0, 1}$
-        \If{$b$}
-        \State $x\gets D_x'$
-        \EndIf
-        \EndProcedure
-    \end{algorithmic}
-\end{algorithm}
-
-On pen-and-paper proofs, this is handled implicitly by a generalization of what the Easycrypt community refers to as \emph{reflection} \cite{reflection}.
+On pen-and-paper proofs, the corresponding move is usually handled implicitly by a generalization of what the Easycrypt community refers to as \emph{reflection} \cite{reflection}.
 That is, all code snippets and procedures are synonymous and interchangeable with their respective output distributions.
 For instance, Pythagorean probability preservation (\Cref{def:pythagorean-probability-preservation}) is applied directly to the distribution of the entire transcript of the protocol as if the adversary is already a distribution over its oracle query inputs and its eventual response to the challenger.
 
 In existing literature,
-this issue is typically handled using \emph{call invariants} and \emph{adversarial call rules} in the union bound context.
+the same abstraction-boundary problem is typically handled using \emph{call invariants} and \emph{adversarial call rules} in the union bound context.
 For call invariants, one intuitively write down a sub-coupling that holds up to some \emph{bad event};
 for example, given two distributions $D_x$ and $D_{x'}$ such that $\Delta(D_x, D_{x'})<\varepsilon$,
 one can write down a coupling $D_{x, x'}$ so that $\Pr[x=x']=1-\varepsilon$.

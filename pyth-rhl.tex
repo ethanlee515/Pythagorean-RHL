@@ -6,7 +6,12 @@ Instead, it defines semantic judgments over SSProve \cite{ssprove} programs and 
 The central design choice is to keep SSProve's concrete package/linking model, while adding two relational layers: an additive-error judgment for statistical distance arguments and a Pythagorean judgment for conditional KL-divergence bookkeeping.
 The probability facts summarized in \Cref{sec:verified-kl-analysis} provide the distribution-level theorems consumed by these rules.
 
-\Codex{This section now tracks the implemented rules.  The core Pythagorean and trace-compilation rules discussed below are proved, but several general-purpose convenience lemmas in the additive-error layer are still admitted; those are marked where relevant rather than presented as finished paper rules.}
+The rules listed in \Cref{fig:implemented-program-logic-rules} are the current paper-facing surface of the formalization, grouped by proof role.
+Base rules are proved directly against the SSProve semantics and the distribution library.
+Derived rules are still fully verified theorems, but their Coq proofs mainly compose earlier judgment rules.
+The compiler theorems are separated because they are not ordinary structural rules: their soundness rests on an explicit semantic induction over the trace compiler.
+Some older additive-error convenience lemmas remain in the Coq files as compatibility scaffolding, but the noise-flooding proof uses the completed and total variants described below.
+\Codex{Before submission, decide whether to remove the legacy admitted additive-error helpers from the repository, or to leave them clearly marked as unused compatibility statements.}
 
 \subsection{Programs and Completed Semantics}
 
@@ -135,7 +140,8 @@ The finished additive-error rules most relevant to the Pythagorean development a
   }
 \end{mathpar}
 There is also an option-valued consequence rule with the same shape.
-\Codex{The additive-error development currently also states broader non-option coupling, TVD, reflexivity, sequencing, and marginal-output TVD lemmas.  Some of those remain admitted, so this section avoids using them as headline rules.}
+The Coq development also contains older non-option coupling, TVD, and reflexivity statements.
+Those are not the paper-facing interface: the current proof route uses the completed-output or total rules in \Cref{fig:implemented-program-logic-rules}.
 
 Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad event already internalized into the coupling success probability.
 Compared with SSProve out of the box, we reuse SSProve's distributions, couplings, heaps, packages, and linking semantics, but add a reusable approximate judgment over program fragments.
@@ -154,6 +160,32 @@ This differs slightly from the older paper sketch.
 The implemented judgment does not merely list syntactic sampling sites.
 It records a full transcript distribution over completed outputs, which is then handed to the probability-level theorem.
 The underlying distribution predicate is the Pythagorean distribution predicate described in \Cref{sec:verified-kl-analysis}.
+
+\begin{figure}
+\centering
+\footnotesize
+\begin{tabular}{@{}p{0.18\linewidth}p{0.36\linewidth}p{0.38\linewidth}@{}}
+\textbf{Proof role} & \textbf{Rules} & \textbf{Soundness burden}\\
+\hline
+Semantic base: Hoare &
+\textsc{Hoare-Ret}, \textsc{Hoare-Bind}, \textsc{Hoare-Get}, \textsc{Hoare-Put}, \textsc{Hoare-Sample}, \textsc{Hoare-Assert} &
+Direct support reasoning over return, bind, heap, sampling, and assertion semantics.\\[0.4em]
+Semantic base: additive error &
+\textsc{AE-Opt-Couple}, \textsc{AE-TVD-Total}, \textsc{AE-Opt-TVD}, \textsc{AE-Completed-TVD}, \textsc{AE-Post-TVD-Total}, \textsc{AE-Conseq}, \textsc{AE-Opt-Conseq}, \textsc{AE-Seq}, \textsc{AE-Opt-Seq} &
+Completed-output couplings, maximal-coupling/TVD conversion, consequence, and bind-coupling composition.\\[0.4em]
+Semantic base: Pythagorean &
+\textsc{KL-Samp}, \textsc{Pyth-Refl}, \textsc{Pyth-Conseq}, \textsc{Pyth-Seq}, \textsc{Micciancio-Walter} &
+Transcript distributions, conditional-KL budgets, final-marginal TVD, and the bridge into additive error.\\[0.4em]
+Derived rules &
+\textsc{KL-DG}, \textsc{KL-DG-Closed}, \textsc{AE-Refl-Total}, \textsc{AE-Triangle}, \textsc{Pyth-Hoare-Seq}, \textsc{Pyth-Shared-Cont}, \textsc{Pyth-Closed-Hoare-Seq}, \textsc{Compile-Replace}, \textsc{Compile-Replace-Tuple} &
+Mostly obtained by composing the semantic rules above with discrete-Gaussian KL facts, zero-distance/TVD facts, Hoare premises, or the compiler theorem.\\[0.4em]
+Compiler theorems &
+\textsc{Compile-Same-Package}, \textsc{Pyth-Call-At}, \textsc{Pyth-Compile-Trace}, \textsc{Pyth-Compile-Calls}, \textsc{Pyth-Compile-Calls-Tuple} &
+Separate semantic proof over concrete adversary syntax: trace replay, invalid traces, heap-region preservation, call-bound induction, and tuple budgets.\\
+\end{tabular}
+\caption{Implemented program-logic rule surface, grouped by proof role.  The names are paper-level aliases for the corresponding Rocq lemmas in \texttt{ProgramLogics/Hoare.v}, \texttt{ProgramLogics/Ae.v}, \texttt{ProgramLogics/Pyth.v}, and \texttt{ProgramLogics/PythCompile.v}.}
+\label{fig:implemented-program-logic-rules}
+\end{figure}
 
 \subsection{Pythagorean Error Budgets}
 
@@ -467,7 +499,8 @@ The local assumption is a one-call Pythagorean judgment for the selected operati
       \mathcal{O}_{P'} \approx_\varepsilon \mathcal{O}_{P''}
       \set{I(m')}.
 \]
-The next two rules are schematic only in the SSProve packaging parameters.
+The displayed rules below are the scalar forms, schematic only in the SSProve packaging parameters.
+The Coq development also proves tuple variants for oracle bodies with several budget coordinates.
 First define the heap-region and package-preservation predicates
 \[
 \begin{aligned}
@@ -536,6 +569,7 @@ The intermediate Pythagorean compiler rule is:
 Here $P_I$ abbreviates $x_L=x_R\wedge m_L=m_R\wedge I(m_L)$.
 The proof is by induction over the call bound.
 Each inductive step spends one $\varepsilon$ entry for the selected package call and uses Hoare rules for the shared search/resume code around it.
+\Codex{The soundness proof of this compiler family is the heaviest program-logic proof: it combines the call-bound induction with residual/replay correctness, invalid-trace cases, heap-region preservation, and tuple-budget bookkeeping.  We should decide later how much of that belongs here versus in the discrete-Gaussian/proof-engineering section.}
 
 Composing this with \LabTirName{Micciancio-Walter} yields the final implemented oracle-replacement rule:
 \begin{mathpar}
@@ -554,6 +588,7 @@ Composing this with \LabTirName{Micciancio-Walter} yields the final implemented 
       \set{o_L=o_R}
   }.
 \end{mathpar}
+The tuple form, \LabTirName{Compile-Replace-Tuple}, is the one used by the current noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
 Informally, this is the oracle rule
 \[
     O_i\sim_\varepsilon O_i'

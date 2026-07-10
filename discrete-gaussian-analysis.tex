@@ -70,6 +70,9 @@ For distributions $\cP,\cQ$ on $n$-tuples, the theorem has the following shape:
 \]
 The proof is the technical heart of the probability development:
 it decomposes the KL integrand pointwise over tuple prefixes, controls both positive and negative parts of the resulting series, and then reassembles the bound.
+The value-level inequality and the summability obligation are proved in parallel.
+Both use the same grouping step: for each coordinate, traces are grouped by their prefix and current coordinate value, while the suffix is summed away.
+For the value theorem this produces an expectation of conditional KL divergences; for summability the same grouping is applied to finite positive-part sums, with one negative-part slack term per coordinate.
 
 Combining this chain bound with Pinsker gives the main preservation theorem.
 \begin{lemma}[Pythagorean probability preservation]
