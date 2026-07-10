@@ -25,7 +25,7 @@ The conclusion is a statistical-distance or distinguishing-advantage bound.
 Our additive-error judgment internalizes this final step.
 The judgment
 \[
-  \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+  \vDash\AEJ\set{P}\ c_L
     \approx_\varepsilon c_R\ \set{Q}
 \]
 directly asserts a coupling of the completed output distributions satisfying
@@ -61,7 +61,7 @@ Pythagorean preservation theorem, yielding the final-marginal bound
 \]
 For the oracle setting, \LabTirName{Compile-Replace} combines this with the
 trace compiler: from a one-call Pythagorean judgment for a selected oracle
-operation, it derives a completed additive-error judgment for the whole
+operation, it derives a additive-error judgment for the whole
 compiled adversary, with loss
 \[
   \sqrt{q\lVert s\rVert_1/2}.
@@ -167,7 +167,7 @@ The next two lemmas make this distinction precise at $\varepsilon=0$.
   \]
   then
   \[
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \vDash\AEJ\set{P}\ c_L
       \approx_\delta c_R\ \set{Q}.
   \]
 \end{lemma}
@@ -194,7 +194,7 @@ The next two lemmas make this distinction precise at $\varepsilon=0$.
   Moreover, whenever $z_L=z_R$, the returned pair is exactly that common
   witness pair, which lies in $Q$ because both witnesses are supported in $Q$.
   Hence $\Pr_\gamma[Q]\geq 1-\delta$, as required by
-  $\AEJ_{\mathsf{opt}}$.
+  $\AEJ$.
 \end{proof}
 
 Thus the old intuition that ``apRHL at $\varepsilon=0$ implies additive
@@ -207,7 +207,7 @@ distributions.
   $x$, and let $Q(x_L,x_R)$ mean $x_L=x_R=\mathsf{true}$.
   Then
   \[
-    \vDash\AEJ_{\mathsf{opt}}\set{\top}\ c_\delta
+    \vDash\AEJ\set{\top}\ c_\delta
       \approx_\delta c_\delta\ \set{Q},
   \]
   but for every $\delta'$,

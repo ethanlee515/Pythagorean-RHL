@@ -11,7 +11,6 @@ The rules in \Cref{fig:program-logic-core-rules} show the main proof principles 
 Base rules are proved directly against the SSProve semantics or the distribution library.
 Derived rules are still fully verified theorems, but their Rocq proofs mainly compose earlier judgment rules.
 The compiler theorems are separated because they are not ordinary structural rules: their soundness rests on an explicit semantic induction over the trace compiler.
-\Codex{Before submission, clean up or clearly quarantine the old non-completed additive-error helpers in \texttt{ProgramLogics/Ae.v}.  The main noise-flooding proof uses the completed-output rules, but the file still contains admitted legacy helpers such as \texttt{additiveErrorCoupleRule}, \texttt{additiveErrorTvdEqRule}, \texttt{additiveErrorTvdEqPostRule}, and \texttt{additiveErrorReflRule}.}
 
 \subsection{Programs and Completed Semantics}
 
@@ -95,11 +94,11 @@ It supplies the invariant-preservation facts for shared code, package calls, and
 \paragraph{Additive-error judgment.}
 Write $\mathsf{Cpl}(d;\mu,\nu)$ to mean that $d$ is a coupling of $\mu$ and $\nu$.
 
-\begin{definition}[Completed additive-error judgment]
+\begin{definition}[Additive-error judgment]
 We write
 \begin{equation}
 \label{eq:ae-judgment}
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}
+    \vDash\AEJ\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}
 \end{equation}
 if $0\leq\varepsilon$ and, for every pair of initial configurations
 $\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there exists a coupling $d_{\rho_L,\rho_R}$ of the completed output distributions such that $Q$ fails with probability at most $\varepsilon$:
@@ -116,10 +115,10 @@ $\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there e
 \]
 \end{definition}
 
-The ordinary judgment $\vDash\AEJ$ is a specialization where $Q$ is a postcondition on successful output/heap pairs, lifted through completion.
-We use $\vDash\AEJ_{\mathsf{opt}}$ as the primary judgment because the explicit failure point is needed for trace compilation and completed-output TVD bounds.
+This is the canonical additive-error judgment in the paper and in the main Rocq development.
+Postconditions on successful output/heap pairs are treated as lifted predicates on completed outputs when needed.
 \Cref{fig:program-logic-core-rules} shows the two main ways to prove an additive-error judgment.
-\LabTirName{AE-Couple} constructs the coupling directly, while \LabTirName{AE-Completed-TVD-Eq} derives the judgment from a TVD bound on completed outputs.
+\LabTirName{AE-Couple} constructs the coupling directly, while \LabTirName{AE-TVD-Eq} derives the judgment from a TVD bound on completed outputs.
 The formalization also includes consequence, sequencing, and total-output variants.
 
 Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad event already internalized into the coupling success probability.
@@ -181,9 +180,9 @@ The underlying distribution predicate is the Pythagorean distribution predicate 
 \begin{array}{rcll}
 J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
   & \text{support-style unary correctness}\\
-  &\mid& \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+  &\mid& \vDash\AEJ\set{P}\ c_L
     \approx_\varepsilon c_R\ \set{Q}
-  & \text{completed additive error}\\
+  & \text{additive error}\\
   &\mid& \vDash\Pyth\set{P}\ c_L
     \approx_s c_R\ \set{Q}
   & \text{Pythagorean KL budget}
@@ -201,11 +200,11 @@ J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
       \Pr_{d_{\rho_L,\rho_R}}[Q]\geq 1-\varepsilon
   }
   {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \vDash\AEJ\set{P}\ c_L
       \approx_\varepsilon c_R\ \set{Q}
   }
 
-\inferrule*[right=\textsc{AE-Completed-TVD-Eq}]
+\inferrule*[right=\textsc{AE-TVD-Eq}]
   {
     0\leq\varepsilon\\
     P(\rho_L,\rho_R)\Rightarrow
@@ -213,7 +212,7 @@ J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
              \csemantic{c_R}_{\rho_R})\leq\varepsilon
   }
   {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \vDash\AEJ\set{P}\ c_L
       \approx_\varepsilon c_R\ \set{o_L=o_R}
   }
 
@@ -238,7 +237,7 @@ J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
     \delta=\sqrt{\sum_i s_i/2}
   }
   {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \vDash\AEJ\set{P}\ c_L
       \approx_\delta c_R\ \set{o_L=o_R}
   }
 \end{mathpar}
@@ -438,14 +437,14 @@ The rule that turns a Pythagorean judgment into an additive-error judgment is:
     \delta=\sqrt{\frac{\sum_i s_i}{2}}
   }
   {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \vDash\AEJ\set{P}\ c_L
       \approx_\delta c_R\ \set{o_L=o_R}
   }.
 \end{mathpar}
 The conclusion is intentionally about equality of completed outputs.
 The postcondition $Q$ is part of the Pythagorean judgment and is used by sequencing rules, but the bridge theorem extracts the statistical-distance/equality consequence needed for cryptographic indistinguishability.
 
-This is the point where the formalization realizes Pythagorean probability preservation: the final-marginal TVD theorem bounds the TVD of completed outputs, and \LabTirName{AE-Completed-TVD-Eq} turns that TVD bound into the completed additive-error judgment.
+This is the point where the formalization realizes Pythagorean probability preservation: the final-marginal TVD theorem bounds the TVD of completed outputs, and \LabTirName{AE-TVD-Eq} turns that TVD bound into the additive-error judgment.
 
 \subsection{Trace Compilation and Oracle Replacement}
 
@@ -647,7 +646,7 @@ Composing this with \LabTirName{Micciancio-Walter} yields the oracle-replacement
       \approx_s \mathcal{O}_{P''}\ \set{I(m')}
   }
   {
-    \vDash\AEJ_{\mathsf{opt}}
+    \vDash\AEJ
       \set{P_I}
       \ A_{P'}^{(q)}
       \approx_{\sqrt{q\lVert s\rVert_1/2}}

@@ -145,9 +145,10 @@ where
 \]
 Here $n$ is the chart dimension and $\gamma$ is the Gaussian-width multiplier.
 Only the arrow $H_2\to H_3$ spends statistical distance.
-The semantic relation between neighboring closed games is the completed-output
-additive-error judgment from \Cref{sec:program-logic}; the Pythagorean judgment
-is used only inside the proof of the paid hop.
+The semantic relation between neighboring closed games is the canonical
+additive-error judgment from \Cref{sec:program-logic}, interpreted over
+completed outputs; the Pythagorean judgment is used only inside the proof of
+the paid hop.
 The Coq development refines the last exact arrow through an auxiliary linked
 presentation, but this is package-linking bookkeeping rather than an additional
 cryptographic endpoint.
@@ -165,7 +166,7 @@ The hop $H_2 \to H_3$ is the only place where the noise-flooding analysis
 pays loss.
 In Coq this is one closed-game additive-error theorem:
 \[
-  \vDash\AEJ_{\mathsf{opt}}\set{\Phi_0}\ 
+  \vDash\AEJ\set{\Phi_0}\ 
     H_2 \approx_{\Delta_{\mathsf{comp}}} H_3
     \set{o_L=o_R}.
 \]
@@ -294,6 +295,6 @@ scheme,
 
 This is the theorem exposed in Coq as \texttt{NoiseFloodingSecure.is\_secure}.
 The intermediate additive-error theorem is the direct formal counterpart of
-the hybrid chain above: it relates $H_0$ to $H_6$ by completed-output additive
+the hybrid chain above: it relates $H_0$ to $H_6$ by additive
 error $\sqrt{q\epsilon_{\mathsf{nf}}/2}$ at the returned-bit postcondition, and
 the final theorem packages this into the winning-probability bound.
