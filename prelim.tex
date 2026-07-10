@@ -87,6 +87,44 @@ The label is the name of the proof principle, much as mathematical lemmas are
 named ``triangle inequality'' or ``data processing inequality''; it is not an
 additional premise.
 
+\subsection{SSProve Programs and Semantics}
+\label{sec:prelim-ssprove-semantics}
+
+SSProve programs are written in the \texttt{raw\_code} monad shown in
+\Cref{fig:ssprove-monad}.
+The constructors cover pure return, sampling, heap reads and writes, and calls
+to imported operations.
+As usual in SSProve, cryptographic games are assembled by linking such code
+with packages.
+
+\begin{figure}
+\caption{SSProve command language used by the formalization}
+\label{fig:ssprove-monad}
+\begin{minted}{coq}
+Inductive raw_code (A : choiceType) : Type :=
+| ret (x : A)
+| sampler (op : Op) (k : Arit op -> raw_code A)
+| getr (l : Location) (k : l -> raw_code A)
+| putr (l : Location) (v : l) (k : raw_code A)
+| opr (o : opsig) (x : src o) (k : tgt o -> raw_code A).
+\end{minted}
+\end{figure}
+
+The semantic function is SSProve's \texttt{Pr\_code}.
+For an input \(x\) and heap \(m\), a program \(c:X\to\code(Y)\) denotes a
+subdistribution
+\[
+    \semantic{c(x)}(m) \in \distr(Y\times\cM).
+\]
+Because SSProve semantics may be subprobabilistic, the judgments below use
+completed distributions.
+For SSProve programs, output/heap pairs are first packed into a uniform choice
+type and then completed.
+This explicit failure mass is what lets the rules account for failed traces
+and other loss of mass without an informal side condition.
+No language extension is needed for discrete Gaussians: they are MathComp
+distributions embedded into SSProve sampling code by a small sampling wrapper.
+
 When a program is run from input \(x\) and heap \(m\), write
 \(\rho=(x,m)\) for the corresponding configuration.
 For a program semantics \(\semantic{c(x)}(m)\), we abbreviate its completion

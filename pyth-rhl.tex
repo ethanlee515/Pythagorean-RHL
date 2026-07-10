@@ -12,43 +12,10 @@ Base rules are proved directly against the SSProve semantics or the distribution
 Derived rules are still fully verified theorems, but their Rocq proofs mainly compose earlier judgment rules.
 The compiler theorems are separated because they are not ordinary structural rules: their soundness rests on an explicit semantic induction over the trace compiler.
 
-\subsection{Programs and Completed Semantics}
-
-SSProve programs are written in the \texttt{raw\_code} monad shown in \Cref{fig:ssprove-monad}.
-The constructors cover pure return, sampling, heap reads and writes, and calls to imported operations.
-As usual in SSProve, cryptographic games are assembled by linking such code with packages.
-This is important for the oracle-replacement theorem below: adversaries are not opaque objects, but concrete syntax that can be traversed and transformed.
-
-\begin{figure}
-\caption{SSProve command language used by the formalization}
-\label{fig:ssprove-monad}
-\begin{minted}{coq}
-Inductive raw_code (A : choiceType) : Type :=
-| ret (x : A)
-| sampler (op : Op) (k : Arit op -> raw_code A)
-| getr (l : Location) (k : l -> raw_code A)
-| putr (l : Location) (v : l) (k : raw_code A)
-| opr (o : opsig) (x : src o) (k : tgt o -> raw_code A).
-\end{minted}
-\end{figure}
-
-The semantic function is SSProve's \texttt{Pr\_code}.
-For an input $x$ and heap $m$, a program $c:X\rightarrow\code(Y)$ denotes a subdistribution
-\[
-    \semantic{c(x)}(m) \in \distr(Y\times\cM).
-\]
-Because SSProve semantics may be subprobabilistic, the judgments below use
-the completed distribution notation from
-\Cref{sec:prelim-probability-notation}.
-For SSProve programs, output/heap pairs are first packed into a uniform choice type and then completed.
-This explicit failure mass is what lets the rules account for failed traces and other loss of mass without an informal side condition.
-
-No language extension is needed for discrete Gaussians: they are MathComp distributions embedded into SSProve sampling code by a small sampling wrapper.
-
 \subsection{Judgments and Basic Rules}
 
-We use the configuration, completed-output, and correlated-transcript notation
-from \Cref{sec:prelim-probability-notation}.
+We use the SSProve syntax, completed semantics, configuration notation, and
+correlated-transcript notation from \Cref{sec:prelim-ssprove-semantics}.
 The Rocq formalization represents correlated transcript families directly as
 joint laws.
 
