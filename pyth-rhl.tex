@@ -1,4 +1,5 @@
 \section{RHL with Pythagorean Errors}
+\label{sec:program-logic}
 
 We now describe the program logic as it is currently formalized.
 The development does not introduce a new programming language.
@@ -177,7 +178,7 @@ Semantic base: Pythagorean &
 \textsc{KL-Samp}, \textsc{Pyth-Refl}, \textsc{Pyth-Conseq}, \textsc{Pyth-Seq}, \textsc{Micciancio-Walter} &
 Transcript distributions, conditional-KL budgets, final-marginal TVD, and the bridge into additive error.\\[0.4em]
 Derived rules &
-\textsc{KL-DG}, \textsc{KL-DG-Closed}, \textsc{AE-Refl-Total}, \textsc{AE-Triangle}, \textsc{Pyth-Hoare-Seq}, \textsc{Pyth-Shared-Cont}, \textsc{Pyth-Closed-Hoare-Seq}, \textsc{Compile-Replace}, \textsc{Compile-Replace-Tuple} &
+\textsc{KL-DG}, \textsc{KL-DG-Closed}, \textsc{AE-Refl-Total}, \textsc{AE-Triangle}, \textsc{Pyth-Hoare-Seq}, \textsc{Pyth-Shared-Cont}, \textsc{Pyth-Closed-Hoare-Seq}, \textsc{Compile-Replace} &
 Mostly obtained by composing the semantic rules above with discrete-Gaussian KL facts, zero-distance/TVD facts, Hoare premises, or the compiler theorem.\\[0.4em]
 Compiler theorems &
 \textsc{Compile-Same-Package}, \textsc{Pyth-Call-At}, \textsc{Pyth-Compile-Trace}, \textsc{Pyth-Compile-Calls}, \textsc{Pyth-Compile-Calls-Tuple} &
@@ -492,15 +493,16 @@ The formalization proves the quantitative replacement theorem for this compiled 
 Write $\mathcal{O}_{P'}(x)$ for $\mathsf{resolve}(P',fn,x)$, and write
 $A_{P'}^{(q)}$ for the linked adversary obtained by compiling the first $q$
 selected calls through $P'$.
-The local assumption is a one-call Pythagorean judgment for the selected operation:
+The local assumption is a one-call Pythagorean judgment for the selected operation.
+The public replacement rule is stated in its tuple-budget form:
 \[
-    \vDash\Pyth_1
+    \vDash\Pyth
       \set{x_L=x_R\wedge m_L=m_R\wedge I(m_L)}
-      \mathcal{O}_{P'} \approx_\varepsilon \mathcal{O}_{P''}
+      \mathcal{O}_{P'} \approx_s \mathcal{O}_{P''}
       \set{I(m')}.
 \]
-The displayed rules below are the scalar forms, schematic only in the SSProve packaging parameters.
-The Coq development also proves tuple variants for oracle bodies with several budget coordinates.
+The singleton tuple $s=(\varepsilon)$ recovers the scalar one-call rule.
+The displayed rules are schematic only in the SSProve packaging parameters.
 First define the heap-region and package-preservation predicates
 \[
 \begin{aligned}
@@ -550,7 +552,9 @@ Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
 \]
 The fully quantified theorem keeps the SSProve location, interface, and package-validity parameters explicit.
 
-The intermediate Pythagorean compiler rule is:
+For readability, the intermediate Pythagorean compiler rule is shown in scalar
+form; the Coq proof also has the tuple-budget variant used by
+\LabTirName{Compile-Replace}.
 \begin{mathpar}
 \inferrule[Pyth-Compile-Calls]
   {
@@ -576,25 +580,25 @@ Composing this with \LabTirName{Micciancio-Walter} yields the final implemented 
 \inferrule[Compile-Replace]
   {
     \mathcal{H}_{\mathsf{cmp}}\\
-    \vDash\Pyth_1\set{P_I}\ \mathcal{O}_{P'}
-      \approx_\varepsilon \mathcal{O}_{P''}\ \set{I(m')}
+    \vDash\Pyth\set{P_I}\ \mathcal{O}_{P'}
+      \approx_s \mathcal{O}_{P''}\ \set{I(m')}
   }
   {
     \vDash\AEJ_{\mathsf{opt}}
       \set{P_I}
       \ A_{P'}^{(q)}
-      \approx_{\sqrt{q\varepsilon/2}}
+      \approx_{\sqrt{q\operatorname{tupleSum}(s)/2}}
       \ A_{P''}^{(q)}
       \set{o_L=o_R}
   }.
 \end{mathpar}
-The tuple form, \LabTirName{Compile-Replace-Tuple}, is the one used by the current noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
+This tuple form is the one used by the current noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
 Informally, this is the oracle rule
 \[
-    O_i\sim_\varepsilon O_i'
+    O_i\sim_s O_i'
     \quad\Longrightarrow\quad
     A^{O_1,\ldots,O_i,\ldots}
-    \sim_{\sqrt{q\varepsilon/2}}
+    \sim_{\sqrt{q\operatorname{tupleSum}(s)/2}}
     A^{O_1,\ldots,O_i',\ldots}
 \]
 for concrete SSProve adversaries after compiling the first $q$ calls to the selected operation.
@@ -602,4 +606,4 @@ for concrete SSProve adversaries after compiling the first $q$ calls to the sele
 Compared with EasyCrypt, the difference is mostly where the abstraction boundary sits.
 EasyCrypt's adversarial call rules reason about opaque adversary modules.
 Here the adversary is executable syntax, so the proof factors the adversary by a verified trace compiler.
-Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\varepsilon/2}$.
+Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\operatorname{tupleSum}(s)/2}$.

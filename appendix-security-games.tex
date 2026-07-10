@@ -1,0 +1,130 @@
+\section{IND-CPAD Game Details}
+\label{app:ind-cpad-game}
+
+This appendix records the game syntax suppressed in
+\Cref{sec:games}.
+It is not meant to be a second proof outline; the main text reasons about the
+named Coq games and their hybrid relations.
+
+\begin{algorithm}
+\caption{IND-CPAD Challenger Skeleton}
+\label{alg:ind-cpad-game}
+Ingredients:
+\begin{itemize}
+  \item An approximate homomorphic encryption scheme
+    $S=(KeyGen,Enc,Eval,Dec)$.
+  \item A decrypt-query bound $q\in\bbN$.
+\end{itemize}
+Global challenger state:
+\begin{itemize}
+  \item keys $pk,evk,sk$;
+  \item hidden challenge bit $b\in\{0,1\}$;
+  \item table $T\in(M\times M\times C)^*$ of challenge plaintext pairs and
+    produced ciphertexts;
+  \item decrypt counter $d$.
+\end{itemize}
+\begin{algorithmic}
+  \Procedure{Game}{$\cA$}
+    \State $(pk,evk,sk) \gets KeyGen()$
+    \State $b \gets \{0,1\}$
+    \State $T \gets [\,]$
+    \State $d \gets 0$
+    \State $b^* \gets \cA^{OEnc,OEval,ODec}(pk,evk)$
+    \State \Return $(b^*=b)$
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{IND-CPAD Oracles}
+\label{alg:ind-cpad-oracles}
+The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
+\begin{algorithmic}
+  \Procedure{OEnc}{$m_0,m_1$}
+    \State $c \gets Enc(pk,m_b)$
+    \State $T \gets T \doubleplus [(m_0,m_1,c)]$
+    \State \Return $c$
+  \EndProcedure
+  \State
+  \Procedure{OEval}{$f,\mathcal{I}$}
+    \State $m_0' \gets f((T_i.m_0)_{i\in\mathcal{I}})$
+    \State $m_1' \gets f((T_i.m_1)_{i\in\mathcal{I}})$
+    \State $c' \gets Eval(f,(T_i.c)_{i\in\mathcal{I}})$
+    \State $T \gets T \doubleplus [(m_0',m_1',c')]$
+    \State \Return $c'$
+  \EndProcedure
+  \State
+  \Procedure{ODec}{$i$}
+    \State \textbf{assert} $d<q$
+    \State $d \gets d+1$
+    \State \textbf{assert} $i<|T|$
+    \If{$T_i.m_0\ne T_i.m_1$}
+      \State \Return $\bot$
+    \Else
+      \State \Return a flooded plaintext sample according to the current game
+    \EndIf
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The real game returns a noise-flooded sample centered at
+$Dec(sk,T_i.c)$.
+The simulated-decrypt game returns a noise-flooded sample centered at the
+stored plaintext $T_i.m_b$.
+The formal proof factors the deterministic prefix of \textsc{ODec} from this
+last noisy continuation, which is why the one-call replacement theorem can
+focus only on the two Gaussian centers.
+
+\begin{algorithm}
+\caption{IND-CPA reduction adversary $\mathcal{B}_{\cA}$}
+\label{alg:ind-cpa-reduction}
+This is the conventional reduction endpoint used in the main proof.
+It stores the same logical table as the IND-CPAD challenger, but obtains
+challenge encryptions from the outer IND-CPA encryption oracle.
+\begin{algorithmic}[1]
+  \Procedure{$\mathsf{Flood}$}{$m,e$}
+    \State $\eta \gets D_{\bbZ^n,(e^2+1)\gamma}$
+    \State \Return $I_m^{-1}(\eta+I_m(m))$
+  \EndProcedure
+  \Statex
+  \Procedure{$\mathcal{B}_{\cA}$}{$pk,evk$}
+    \State $T \gets [\,]$
+    \State $d \gets 0$
+    \State $b^* \gets
+      \cA^{OEnc_{\mathcal{B}},OEval_{\mathcal{B}},ODec_{\mathcal{B}}}(pk,evk)$
+    \State \Return $b^*$
+  \EndProcedure
+  \Statex
+  \Procedure{$OEnc_{\mathcal{B}}$}{$m_0,m_1$}
+    \State $c \gets OEnc_b(m_0,m_1)$
+      \Comment{outer IND-CPA encryption oracle}
+    \State $T \gets T \doubleplus [(m_0,m_1,c)]$
+    \State \Return $c$
+  \EndProcedure
+  \Statex
+  \Procedure{$OEval_{\mathcal{B}}$}{$f,\mathcal{I}$}
+    \State Compute $m_0',m_1'$ from the rows indexed by $\mathcal{I}$.
+    \State $c' \gets Eval(f,(T_i.c)_{i\in\mathcal{I}})$
+    \State $T \gets T \doubleplus [(m_0',m_1',c')]$
+    \State \Return $c'$
+  \EndProcedure
+  \Statex
+  \Procedure{$ODec_{\mathcal{B}}$}{$i$}
+    \State \textbf{assert} $d<q$
+    \State $d \gets d+1$
+    \State \textbf{assert} $i<|T|$
+    \State $(m_0,m_1,c) \gets T_i$
+    \If{$m_0\ne m_1$}
+      \State \Return $\mathsf{None}$
+    \EndIf
+    \State \textbf{assert} $c=\mathsf{Some}(\_,e)$
+    \State $y \gets \mathsf{Flood}(m_0,e)$
+    \State \Return $\mathsf{Some}(y)$
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The reduction does not know the IND-CPA challenge bit.
+This is harmless for decryption queries that return a value: the simulator
+only returns a flooded plaintext when the stored labels agree, $m_0=m_1$, so
+there is no bit-dependent plaintext choice left to make.
