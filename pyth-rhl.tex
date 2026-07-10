@@ -37,20 +37,9 @@ For an input $x$ and heap $m$, a program $c:X\rightarrow\code(Y)$ denotes a subd
 \[
     \semantic{c(x)}(m) \in \distr(Y\times\cM).
 \]
-Because SSProve semantics may be subprobabilistic, the judgments below use a completed distribution.
-
-\begin{definition}[Completed distribution]
-Let $\mu$ be a subdistribution over a set $A$.
-The completed distribution $\completed{\mu}$ is the full distribution over $A\cup\{\bot\}$ defined by
-\[
-  \completed{\mu}(a)=\mu(a)
-  \quad(a\in A),
-  \qquad
-  \completed{\mu}(\bot)=1-\sum_{a\in A}\mu(a).
-\]
-\end{definition}
-
-For programs, we abbreviate $\completed{\semantic{c(x)}(m)}$ as $\csemantic{c(x)}(m)$.
+Because SSProve semantics may be subprobabilistic, the judgments below use
+the completed distribution notation from
+\Cref{sec:prelim-probability-notation}.
 For SSProve programs, output/heap pairs are first packed into a uniform choice type and then completed.
 This explicit failure mass is what lets the rules account for failed traces and other loss of mass without an informal side condition.
 
@@ -58,26 +47,15 @@ No language extension is needed for discrete Gaussians: they are MathComp distri
 
 \subsection{Judgments and Basic Rules}
 
-\noindent
-For a configuration $\rho=(x,m)$, write
-\[
-  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
-\]
-For programs with output type $Y$, let
-$\Omega=(Y\times\cM)\cup\{\bot\}$ be the completed output/heap space.
-If $\mathcal{T}$ is a distribution over an $n$-tuple transcript space, write
-$\mathsf{marg}_n(\mathcal{T})$ for its final-coordinate marginal.
-For a prefix $a\in\Omega^{i-1}$, write $\mathcal{T}_i\mid a$ for the conditional distribution of the $i$th coordinate given prefix $a$, using the same conditional-coordinate convention as in \Cref{sec:verified-kl-analysis}.
-Following the cryptographic literature, we sometimes present such a transcript
-law as a correlated family $\{\mathcal{T}_i\}_{i=1}^n$.
-This does not mean the coordinates are independent: formally it is a single
-joint law on $\Omega^n$, with notation $\mathcal{T}_i\mid a$ for its
-conditional coordinate distributions.
-The Rocq formalization uses this joint-law representation directly.
+We use the configuration, completed-output, and correlated-transcript notation
+from \Cref{sec:prelim-probability-notation}.
+The Rocq formalization represents correlated transcript families directly as
+joint laws.
 
-\paragraph{Unary Hoare judgment.}
 SSProve has exact relational Hoare logic.
-For the Pythagorean rules, we use the corresponding one-sided support-style judgment:
+For the Pythagorean rules, we use the corresponding one-sided support-style
+judgment to supply invariant-preservation facts for shared code, package
+calls, and trace residuals.
 
 \begin{definition}[Hoare judgment]
 We write
@@ -95,10 +73,13 @@ if, for every input $x$ and initial heap $m$ satisfying $P(x,m)$, every output/h
 \]
 \end{definition}
 
-It supplies the invariant-preservation facts for shared code, package calls, and trace residuals used by the Pythagorean sequencing rules.
-
-\paragraph{Additive-error judgment.}
-Write $\mathsf{Cpl}(d;\mu,\nu)$ to mean that $d$ is a coupling of $\mu$ and $\nu$.
+The additive-error judgment is the canonical approximate-equivalence judgment
+used for game hops in the paper and in the main Rocq development.
+It treats postconditions on successful output/heap pairs as lifted predicates
+on completed outputs when needed.
+Informally, it says that from any related initial configurations, the two
+completed output distributions can be coupled so that the desired relation
+fails with probability at most $\varepsilon$.
 
 \begin{definition}[Additive-error judgment]
 We write
@@ -121,8 +102,6 @@ $\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there e
 \]
 \end{definition}
 
-This is the canonical additive-error judgment in the paper and in the main Rocq development.
-Postconditions on successful output/heap pairs are treated as lifted predicates on completed outputs when needed.
 \Cref{fig:program-logic-core-rules} shows the two main ways to prove an additive-error judgment.
 \LabTirName{AE-Couple} constructs the coupling directly, while \LabTirName{AE-TVD-Eq} derives the judgment from a TVD bound on completed outputs.
 The formalization also includes consequence, sequencing, and total-output variants.
@@ -130,7 +109,15 @@ The formalization also includes consequence, sequencing, and total-output varian
 Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad event already internalized into the coupling success probability.
 Compared with SSProve out of the box, we reuse SSProve's distributions, couplings, heaps, packages, and linking semantics, but add a reusable approximate judgment over program fragments.
 
-\paragraph{Pythagorean judgment.}
+The Pythagorean judgment records a correlated transcript family over completed
+outputs rather than merely listing syntactic sampling sites.
+Equivalently, and this is how the artifact represents it, it records the
+underlying joint transcript distribution and derives the coordinate
+conditionals from that joint law.
+The transcript is then handed to the probability-level theorem.
+The underlying distribution predicate is the Pythagorean distribution predicate
+described in \Cref{sec:verified-kl-analysis}.
+
 \begin{definition}[Pythagorean judgment]
 Let $s=(s_1,\ldots,s_n)$ be a tuple of real numbers.
 We write
@@ -171,14 +158,6 @@ over completed output/heap values such that:
 \end{aligned}
 \]
 \end{definition}
-
-Rather than merely listing syntactic sampling sites, the judgment records a
-correlated transcript family over completed outputs.
-Equivalently, and this is how the artifact represents it, it records the
-underlying joint transcript distribution and derives the coordinate
-conditionals from that joint law.
-That transcript is then handed to the probability-level theorem.
-The underlying distribution predicate is the Pythagorean distribution predicate described in \Cref{sec:verified-kl-analysis}.
 
 \begin{figure}
 \centering

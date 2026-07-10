@@ -7,18 +7,9 @@ Its role is deliberately supporting: here we explain the mathematical facts that
 
 \subsection{KL Infrastructure}
 
-The formalization defines KL divergence for MathComp distributions,
-absolute continuity, and a finite-KL predicate used throughout the development:
-\[
-  \mathsf{finiteKL}(\cP,\cQ)
-  \quad\Longleftrightarrow\quad
-  \mathsf{absCont}(\cP,\cQ)
-  \wedge
-  \mathsf{summable}\!\left(
-    x\mapsto
-    \cP(x)\ln\!\left(\frac{\cP(x)}{\cQ(x)}\right)
-  \right).
-\]
+The formalization defines KL divergence, absolute continuity, and the
+\(\mathsf{finiteKL}\) predicate from \Cref{sec:prelim-probability-notation}
+for MathComp distributions.
 The summability component matters in Rocq because many of the distributions in the development are countable rather than finite.
 The core library also proves the log-sum inequality, KL preservation under injective pushforwards, and the summability facts used by the chain-rule proof.
 

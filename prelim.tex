@@ -6,6 +6,7 @@ The detailed verified analysis appears in later sections; here we record only
 the pieces that determine the shape of the security statement.
 
 \subsection{Notation}
+\label{sec:prelim-probability-notation}
 
 All distributions in the paper are discrete.
 We write
@@ -22,9 +23,38 @@ for statistical distance, and
     \ln\!\left(\frac{\cD_1(x)}{\cD_2(x)}\right)
 \]
 for KL divergence, when the series is well defined.
-In the Rocq development, this well-definedness is tracked by a predicate
-\(\mathsf{finiteKL}(\cD_1,\cD_2)\), which packages absolute continuity together
-with summability of the KL integrand.
+For distributions \(\cD_1,\cD_2\), write
+\(\mathsf{AbsCont}(\cD_1,\cD_2)\) for absolute continuity:
+\[
+  \forall x.\ \cD_2(x)=0 \Rightarrow \cD_1(x)=0 .
+\]
+In the Rocq development, well-definedness of KL is tracked by
+\(\mathsf{finiteKL}(\cD_1,\cD_2)\), the predicate
+\[
+  \begin{aligned}
+  \mathsf{finiteKL}(\cD_1,\cD_2)
+  \quad\Longleftrightarrow\quad&
+  \mathsf{AbsCont}(\cD_1,\cD_2)
+  \\
+  &{}\wedge
+  \mathsf{summable}\!\left(
+    x\mapsto
+    \cD_1(x)\ln\!\left(\frac{\cD_1(x)}{\cD_2(x)}\right)
+  \right).
+  \end{aligned}
+\]
+For a joint distribution \(d\) on \(A\times B\), write
+\(\mathsf{Cpl}(d;\mu,\nu)\) to mean that \(d\) is a coupling of \(\mu\) and
+\(\nu\), i.e. its first and second marginals are \(\mu\) and \(\nu\).
+For a subdistribution \(\mu\) over a set \(A\), write
+\(\completed{\mu}\) for the completed distribution over \(A\cup\{\bot\}\):
+\[
+  \completed{\mu}(a)=\mu(a)
+  \quad(a\in A),
+  \qquad
+  \completed{\mu}(\bot)=1-\sum_{a\in A}\mu(a).
+\]
+The point mass at \(\bot\) accounts for the missing mass of \(\mu\).
 For \(x\in\bbR^n\), we write
 \(\norm{x}_2=(\sum_i x_i^2)^{1/2}\).
 For \(v\in\bbZ^n\), write
@@ -56,6 +86,34 @@ Rules are often displayed with labels, for example
 The label is the name of the proof principle, much as mathematical lemmas are
 named ``triangle inequality'' or ``data processing inequality''; it is not an
 additional premise.
+
+When a program is run from input \(x\) and heap \(m\), write
+\(\rho=(x,m)\) for the corresponding configuration.
+For a program semantics \(\semantic{c(x)}(m)\), we abbreviate its completion
+by
+\[
+  \csemantic{c(x)}(m)\triangleq\completed{\semantic{c(x)}(m)},
+\]
+and write
+\[
+  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
+\]
+For programs with output type \(Y\), write
+\[
+  \Omega_Y=(Y\times\cM)\cup\{\bot\}
+\]
+for the completed output/heap space, and omit the subscript when the output
+type is clear.
+If \(\mathcal{T}\) is a distribution over an \(n\)-tuple transcript space,
+write \(\mathsf{marg}_n(\mathcal{T})\) for its final-coordinate marginal.
+For a prefix \(a\in\Omega^{i-1}\), write \(\mathcal{T}_i\mid a\) for the
+conditional distribution of the \(i\)th coordinate given prefix \(a\), using
+the conditional-coordinate convention from \Cref{sec:verified-kl-analysis}.
+Following the cryptographic literature, we sometimes present such a transcript
+law as a correlated family \(\{\mathcal{T}_i\}_{i=1}^n\).
+This does not mean the coordinates are independent: formally it is a single
+joint law on \(\Omega^n\), with notation \(\mathcal{T}_i\mid a\) for its
+conditional coordinate distributions.
 
 \subsection{Metric Charts for Approximate Messages}
 \label{sec:prelim-metric-charts}
