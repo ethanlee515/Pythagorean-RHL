@@ -60,6 +60,33 @@ orientation data rather than effort metrics.}
 \label{tab:artifact-accounting}
 \end{table}
 
+\subsection{Trusted Computing Base}
+\label{sec:tcb}
+
+The trusted computing base is the usual one for a Rocq/SSProve development,
+plus the mathematical libraries needed to talk about countable probability.
+At the bottom is the Rocq kernel and standard library infrastructure,
+including the construction of real numbers, classical reasoning principles used
+by the imported libraries, and the typeclass/canonical-structure machinery on
+which the scripts rely.
+MathComp and MathComp Analysis provide the algebraic hierarchy, choice types,
+finite tuples, real analysis, infinite sums, summability, logarithms,
+exponentials, and the distribution interface used for KL divergence and
+discrete Gaussians.
+SSProve provides the concrete syntax and semantics of probabilistic programs,
+packages, oracle linking, heaps, subdistributions, and cryptographic games.
+
+If a reader does not accept Rocq, MathComp/Analysis, or SSProve as a
+foundation, this paper cannot remove that concern; many textbooks' worth of
+mathematics and programming-language semantics live below our development.
+Our claim starts above that foundation.
+Given SSProve's semantics for pseudocode and games, and MathComp's semantics
+for distributions and real analysis, the formal artifact checks that the
+noise-flooding theorem follows from the stated scheme, correctness, metric,
+and IND-CPA assumptions.
+The program-logic rules, trace compiler, KL lemmas, and game hops are not part
+of the TCB: they are Rocq theorems proved from those underlying semantics.
+
 \subsection{What a Cryptographer Should Audit}
 \label{sec:crypto-audit-surface}
 
