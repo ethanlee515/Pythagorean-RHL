@@ -4,18 +4,18 @@ In program analysis, pairs of programs are often compared with each other.
 For example, we may show that an optimized program implements its specification faithfully, or is equivalent to a reference implementation.
 Cryptography researchers often also prove that certain sub-protocols are indistinguishable from idealized building blocks that are (by definition) composable and secure.
 Machinery for these analyses falls under the \emph{relational Hoare Logic} (RHL) framework.
-In this work, we present a variant of RHL that considers \emph{Pythagorean probability preservation} in lattice cryptography.
+In this work, we present a variant of RHL that includes \emph{Pythagorean probability preservation} in lattice cryptography.
 
-The term \emph{Pythagorean probability preservation} is coined by the work \cite{mw17}, which generalizes an analysis involving Kullback-Leibler divergence in the work \cite{kl-queries}.
-Pythagorean probability preservation is used today to argue the security of the ``CKKS" fully homomorphic encryption, as well as to bound the security loss due to floating-point precision limitations.
+The term \emph{Pythagorean probability preservation} is coined by theory cryptography work \cite{mw17}, which generalizes an analysis \cite{kl-queries} involving Kullback-Leibler divergence.
+Today, Pythagorean probability preservation is used to argue the security of the ``CKKS" fully homomorphic encryption, as well as to bound the security loss due to floating-point precision limitations.
 Roughly speaking, suppose two distributions $\mathcal{D}$ and $\mathcal{D}'$ are $\varepsilon$-close, and a program $c$ takes $n$ samples from either $\mathcal{D}$ or $\mathcal{D}'$ before outputting $y$ or $y'$ respectively.
 By \emph{data processing inequality} or \emph{up-to-bad arguments} then, we would conclude that $y$ and $y'$ are $(n\cdot\varepsilon)$-close.
 This standard analysis would however make use of only that $\mathcal{D}$ and $\mathcal{D}'$ are close in total variation distance.
-On the other hand, Pythagorean probability preservation achieves an $O(\sqrt{n})$ bound instead, if $\mathcal{D}$ and $\mathcal{D}'$ are additionally also close in KL-divergence.
+On the other hand, Pythagorean probability preservation achieves a sharper $O(\sqrt{n})$ bound instead, in the cases where $\mathcal{D}$ and $\mathcal{D}'$ are additionally also close in KL-divergence.
 
 The Pythagorean probability preservation property is a cryptographic one;
-in other words, it corresponds to analysis at the semantics level.
-Much like data-processing inequality is packaged in program logic terms using RHL and up-to-bad arguments then, we present \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply Pythagorean probability preservation directly at the syntactic level.
+in terms of programming languages, it corresponds to analysis at the \emph{semantics} level.
+Much like data-processing inequality is packaged in program logic terms using RHL and up-to-bad arguments then, we present \emph{Relational Hoare Logic with Pythagorean Errors} in order to apply Pythagorean probability preservation directly at the \emph{syntactic} level.
 We compare our logic with other existing logics for cryptography and differential privacy in \Cref{sec:related-works}.
 The accompanying Rocq formalization is open source at \url{https://github.com/ethanlee515/mending}.
 
