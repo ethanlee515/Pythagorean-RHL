@@ -59,47 +59,63 @@ No language extension is needed for discrete Gaussians: they are MathComp distri
 
 \subsection{Judgments and Basic Rules}
 
+\noindent
+For a configuration $\rho=(x,m)$, write
+\[
+  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
+\]
+For programs with output type $Y$, let
+$\Omega=(Y\times\cM)\cup\{\bot\}$ be the completed output/heap space.
+If $\mathcal{T}$ is a distribution over an $n$-tuple transcript space, write
+$\mathsf{marg}_n(\mathcal{T})$ for its final-coordinate marginal.
+For a prefix $a\in\Omega^{i-1}$, write $\mathcal{T}_i\mid a$ for the conditional distribution of the $i$th coordinate given prefix $a$, using the same conditional-coordinate convention as in \Cref{sec:verified-kl-analysis}.
+
 \paragraph{Unary Hoare judgment.}
 SSProve has exact relational Hoare logic.
 For the Pythagorean rules, we use the corresponding one-sided support-style judgment:
-\[
-    \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}.
-\]
-It means that for every input and heap satisfying $P$, every element in the support of the SSProve semantics satisfies $Q$:
-\[
-\inferrule*[right=Hoare-Def]
-  {
-    \forall x,m.\ P(x,m)\Rightarrow
-    \forall y,m'.\ (y,m')\in\supp\semantic{c(x)}(m)
-      \Rightarrow Q(y,m')
-  }
-  {
+
+\begin{definition}[Hoare judgment]
+We write
+\begin{equation}
+\label{eq:hoare-judgment}
     \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
-  }.
+\end{equation}
+if, for every input $x$ and initial heap $m$ satisfying $P(x,m)$, every output/heap pair in the support of the SSProve semantics of $c(x)$ from $m$ satisfies $Q$:
+\[
+  \forall x,m.\ 
+  P(x,m)\Rightarrow
+  \forall y,m'.\
+  (y,m')\in\supp\semantic{c(x)}(m)
+  \Rightarrow Q(y,m').
 \]
+\end{definition}
+
 It supplies the invariant-preservation facts for shared code, package calls, and trace residuals used by the Pythagorean sequencing rules.
 
 \paragraph{Additive-error judgment.}
-The completed additive-error judgment is
-\[
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}.
-\]
 Write $\mathsf{Cpl}(d;\mu,\nu)$ to mean that $d$ is a coupling of $\mu$ and $\nu$.
-It means $0\leq\varepsilon$ and, for every related initial configuration, there is a coupling of the completed output distributions that satisfies $Q$ with probability at least $1-\varepsilon$:
+
+\begin{definition}[Completed additive-error judgment]
+We write
+\begin{equation}
+\label{eq:ae-judgment}
+    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}
+\end{equation}
+if $0\leq\varepsilon$ and, for every pair of initial configurations
+$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there exists a coupling $d_{\rho_L,\rho_R}$ of the completed output distributions such that $Q$ fails with probability at most $\varepsilon$:
 \[
 \begin{aligned}
-&\vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}
+&\mathsf{Cpl}\!\left(
+  d_{\rho_L,\rho_R};
+  \csemantic{c_L}_{\rho_L},
+  \csemantic{c_R}_{\rho_R}
+\right),
 \\
-&\quad\Longleftrightarrow\quad
-0\leq\varepsilon\ \wedge\
-\forall x_L,x_R,m_L,m_R.\ P((x_L,m_L),(x_R,m_R))\Rightarrow
-\\
-&\qquad\exists d.\ 
-\mathsf{Cpl}\!\left(d;\csemantic{c_L(x_L)}(m_L),
-\csemantic{c_R(x_R)}(m_R)\right)
-\ \wedge\ \Pr_{d}[Q]\geq 1-\varepsilon .
+&\Pr_{d_{\rho_L,\rho_R}}[Q]\geq 1-\varepsilon .
 \end{aligned}
 \]
+\end{definition}
+
 The ordinary judgment $\vDash\AEJ$ is a specialization where $Q$ is a postcondition on successful output/heap pairs, lifted through completion.
 We use $\vDash\AEJ_{\mathsf{opt}}$ as the primary judgment because the explicit failure point is needed for trace compilation and completed-output TVD bounds.
 \Cref{fig:program-logic-core-rules} shows the two main ways to prove an additive-error judgment.
@@ -110,14 +126,49 @@ Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad ev
 Compared with SSProve out of the box, we reuse SSProve's distributions, couplings, heaps, packages, and linking semantics, but add a reusable approximate judgment over program fragments.
 
 \paragraph{Pythagorean judgment.}
-The Pythagorean judgment is
-\[
+\begin{definition}[Pythagorean judgment]
+Let $s=(s_1,\ldots,s_n)$ be a tuple of real numbers.
+We write
+\begin{equation}
+\label{eq:pyth-judgment}
     \vDash\Pyth\set{P}\ c_L \approx_s c_R\ \set{Q},
+\end{equation}
+if all entries of $s$ are nonnegative and, for every pair of initial configurations
+$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there exist weight-one transcript distributions
+\[
+  \cP_{\rho_L,\rho_R},\cQ_{\rho_L,\rho_R}
+  \in \distr(\Omega^n)
 \]
-where $s$ is a tuple of nonnegative KL budgets.
-For every related initial configuration, the judgment existentially produces two trace distributions $\cP,\cQ$ over tuples of completed output/heap values.
-The final coordinate of $\cP$ and $\cQ$ must marginalize to the completed semantics of $c_L$ and $c_R$, and every conditional coordinate distribution must satisfy the KL bound recorded by $s$.
-The postcondition $Q$ is checked on the successful support of each concrete program output.
+over tuples of completed output/heap values such that:
+\[
+\begin{aligned}
+&\mathsf{marg}_n(\cP_{\rho_L,\rho_R})
+  =
+  \csemantic{c_L}_{\rho_L},
+\qquad
+\mathsf{marg}_n(\cQ_{\rho_L,\rho_R})
+  =
+  \csemantic{c_R}_{\rho_R},
+\\
+&\forall i\in\{1,\ldots,n\},\ 
+  \forall a\in\Omega^{i-1}.\
+  \mathsf{finiteKL}\!\left(
+    (\cP_{\rho_L,\rho_R})_i\mid a,
+    (\cQ_{\rho_L,\rho_R})_i\mid a
+  \right),
+\\
+&\forall i\in\{1,\ldots,n\},\ 
+  \forall a\in\Omega^{i-1}.\
+  \KL{(\cP_{\rho_L,\rho_R})_i\mid a}
+     {(\cQ_{\rho_L,\rho_R})_i\mid a}
+  \leq s_i,
+\\
+&\forall z\in\supp\semantic{c_L(x_L)}(m_L).\ Q(z),
+\qquad
+\forall z\in\supp\semantic{c_R(x_R)}(m_R).\ Q(z).
+\end{aligned}
+\]
+\end{definition}
 
 Rather than merely listing syntactic sampling sites, the judgment records a full transcript distribution over completed outputs.
 That transcript is then handed to the probability-level theorem.
@@ -137,12 +188,6 @@ J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
     \approx_s c_R\ \set{Q}
   & \text{Pythagorean KL budget}
 \end{array}
-\]
-\[
-\begin{gathered}
-\text{For a configuration }\rho=(x,m),\quad
-  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
-\end{gathered}
 \]
 \begin{mathpar}
 \inferrule*[right=\textsc{AE-Couple}]
