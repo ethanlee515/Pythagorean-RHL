@@ -1,18 +1,17 @@
 \section{RHL with Pythagorean Errors}
 \label{sec:program-logic}
 
-We now describe the program logic as it is currently formalized.
+We now describe the program logic used by the formalized noise-flooding proof.
 The development does not introduce a new programming language.
 Instead, it defines semantic judgments over SSProve \cite{ssprove} programs and proves the inference rules in Rocq.
 The central design choice is to keep SSProve's concrete package/linking model, while adding two relational layers: an additive-error judgment for statistical distance arguments and a Pythagorean judgment for conditional KL-divergence bookkeeping.
 The probability facts summarized in \Cref{sec:verified-kl-analysis} provide the distribution-level theorems consumed by these rules.
 
-The rules listed in \Cref{fig:implemented-program-logic-rules} are the current paper-facing surface of the formalization, grouped by proof role.
-Base rules are proved directly against the SSProve semantics and the distribution library.
-Derived rules are still fully verified theorems, but their Coq proofs mainly compose earlier judgment rules.
+The rules in \Cref{fig:program-logic-core-rules} show the main proof principles used below.
+Base rules are proved directly against the SSProve semantics or the distribution library.
+Derived rules are still fully verified theorems, but their Rocq proofs mainly compose earlier judgment rules.
 The compiler theorems are separated because they are not ordinary structural rules: their soundness rests on an explicit semantic induction over the trace compiler.
-Some older additive-error convenience lemmas remain in the Coq files as compatibility scaffolding, but the noise-flooding proof uses the completed and total variants described below.
-\Codex{Before submission, decide whether to remove the legacy admitted additive-error helpers from the repository, or to leave them clearly marked as unused compatibility statements.}
+\Codex{Before submission, clean up or clearly quarantine the old non-completed additive-error helpers in \texttt{ProgramLogics/Ae.v}.  The main noise-flooding proof uses the completed-output rules, but the file still contains admitted legacy helpers such as \texttt{additiveErrorCoupleRule}, \texttt{additiveErrorTvdEqRule}, \texttt{additiveErrorTvdEqPostRule}, and \texttt{additiveErrorReflRule}.}
 
 \subsection{Programs and Completed Semantics}
 
@@ -39,15 +38,26 @@ For an input $x$ and heap $m$, a program $c:X\rightarrow\code(Y)$ denotes a subd
 \[
     \semantic{c(x)}(m) \in \distr(Y\times\cM).
 \]
-Because SSProve semantics may be subprobabilistic, the implemented judgments frequently use a completed distribution.
-Let $\completed{\mu}$ denote the distribution obtained from a subdistribution $\mu$ by adding an explicit failure point.
+Because SSProve semantics may be subprobabilistic, the judgments below use a completed distribution.
+
+\begin{definition}[Completed distribution]
+Let $\mu$ be a subdistribution over a set $A$.
+The completed distribution $\completed{\mu}$ is the full distribution over $A\cup\{\bot\}$ defined by
+\[
+  \completed{\mu}(a)=\mu(a)
+  \quad(a\in A),
+  \qquad
+  \completed{\mu}(\bot)=1-\sum_{a\in A}\mu(a).
+\]
+\end{definition}
+
 For programs, we abbreviate $\completed{\semantic{c(x)}(m)}$ as $\csemantic{c(x)}(m)$.
 For SSProve programs, output/heap pairs are first packed into a uniform choice type and then completed.
 This explicit failure mass is what lets the rules account for failed traces and other loss of mass without an informal side condition.
 
-No extension is needed for discrete Gaussians: they are MathComp distributions embedded into SSProve sampling code by a small sampling wrapper.
+No language extension is needed for discrete Gaussians: they are MathComp distributions embedded into SSProve sampling code by a small sampling wrapper.
 
-\subsection{Semantic Judgments}
+\subsection{Judgments and Basic Rules}
 
 \paragraph{Unary Hoare judgment.}
 The formalization includes a support-style unary Hoare judgment:
@@ -91,58 +101,10 @@ It means $0\leq\varepsilon$ and, for every related initial configuration, there 
 \end{aligned}
 \]
 The ordinary judgment $\vDash\AEJ$ is a specialization where $Q$ is a postcondition on successful output/heap pairs, lifted through completion.
-Thus $\vDash\AEJ_{\mathsf{opt}}$ is the primitive judgment in the current implementation.
-
-The finished additive-error rules most relevant to the Pythagorean development are:
-\begin{mathpar}
-\inferrule[AE-Opt-Couple]
-  {
-    0\leq\varepsilon\\
-    \forall x_L,x_R,m_L,m_R.\
-    P((x_L,m_L),(x_R,m_R))\Rightarrow
-      \mathsf{Cpl}\!\left(
-        d_{x_L,x_R,m_L,m_R};
-        \csemantic{c_L(x_L)}(m_L),
-        \csemantic{c_R(x_R)}(m_R)
-      \right)\\
-    \forall x_L,x_R,m_L,m_R.\
-    P((x_L,m_L),(x_R,m_R))\Rightarrow
-      \Pr_{d_{x_L,x_R,m_L,m_R}}[Q]\geq 1-\varepsilon
-  }
-  {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
-      \approx_\varepsilon c_R\ \set{Q}
-  }
-
-\inferrule[AE-Completed-TVD-Eq]
-  {
-    0\leq\varepsilon\\
-    \forall x_L,x_R,m_L,m_R.\
-    P((x_L,m_L),(x_R,m_R))\Rightarrow
-    \Delta\!\left(
-      \csemantic{c_L(x_L)}(m_L),
-      \csemantic{c_R(x_R)}(m_R)
-    \right)\leq\varepsilon
-  }
-  {
-    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
-      \approx_\varepsilon c_R\ \set{o_L=o_R}
-  }
-
-\inferrule[AE-Conseq]
-  {
-    P'\Rightarrow P\\
-    Q\Rightarrow Q'\\
-    \varepsilon\leq\varepsilon'\\
-    \vDash\AEJ\set{P}\ c_L\approx_\varepsilon c_R\ \set{Q}
-  }
-  {
-    \vDash\AEJ\set{P'}\ c_L\approx_{\varepsilon'} c_R\ \set{Q'}
-  }
-\end{mathpar}
-There is also an option-valued consequence rule with the same shape.
-The Coq development also contains older non-option coupling, TVD, and reflexivity statements.
-Those are not the paper-facing interface: the current proof route uses the completed-output or total rules in \Cref{fig:implemented-program-logic-rules}.
+We use $\vDash\AEJ_{\mathsf{opt}}$ as the primary judgment because the explicit failure point is needed for trace compilation and completed-output TVD bounds.
+\Cref{fig:program-logic-core-rules} shows the two main ways to prove an additive-error judgment.
+\LabTirName{AE-Couple} constructs the coupling directly, while \LabTirName{AE-Completed-TVD-Eq} derives the judgment from a TVD bound on completed outputs.
+The formalization also includes consequence, sequencing, and total-output variants.
 
 Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad event already internalized into the coupling success probability.
 Compared with SSProve out of the box, we reuse SSProve's distributions, couplings, heaps, packages, and linking semantics, but add a reusable approximate judgment over program fragments.
@@ -157,35 +119,86 @@ For every related initial configuration, the judgment existentially produces two
 The final coordinate of $\cP$ and $\cQ$ must marginalize to the completed semantics of $c_L$ and $c_R$, and every conditional coordinate distribution must satisfy the KL bound recorded by $s$.
 The postcondition $Q$ is checked on the successful support of each concrete program output.
 
-This differs slightly from the older paper sketch.
-The implemented judgment does not merely list syntactic sampling sites.
-It records a full transcript distribution over completed outputs, which is then handed to the probability-level theorem.
+Rather than merely listing syntactic sampling sites, the judgment records a full transcript distribution over completed outputs.
+That transcript is then handed to the probability-level theorem.
 The underlying distribution predicate is the Pythagorean distribution predicate described in \Cref{sec:verified-kl-analysis}.
 
 \begin{figure}
 \centering
-\footnotesize
-\begin{tabular}{@{}p{0.18\linewidth}p{0.36\linewidth}p{0.38\linewidth}@{}}
-\textbf{Proof role} & \textbf{Rules} & \textbf{Soundness burden}\\
-\hline
-Semantic base: Hoare &
-\textsc{Hoare-Ret}, \textsc{Hoare-Bind}, \textsc{Hoare-Get}, \textsc{Hoare-Put}, \textsc{Hoare-Sample}, \textsc{Hoare-Assert} &
-Direct support reasoning over return, bind, heap, sampling, and assertion semantics.\\[0.4em]
-Semantic base: additive error &
-\textsc{AE-Opt-Couple}, \textsc{AE-TVD-Total}, \textsc{AE-Opt-TVD}, \textsc{AE-Completed-TVD}, \textsc{AE-Post-TVD-Total}, \textsc{AE-Conseq}, \textsc{AE-Opt-Conseq}, \textsc{AE-Seq}, \textsc{AE-Opt-Seq} &
-Completed-output couplings, maximal-coupling/TVD conversion, consequence, and bind-coupling composition.\\[0.4em]
-Semantic base: Pythagorean &
-\textsc{KL-Samp}, \textsc{Pyth-Refl}, \textsc{Pyth-Conseq}, \textsc{Pyth-Seq}, \textsc{Micciancio-Walter} &
-Transcript distributions, conditional-KL budgets, final-marginal TVD, and the bridge into additive error.\\[0.4em]
-Derived rules &
-\textsc{KL-DG}, \textsc{KL-DG-Closed}, \textsc{AE-Refl-Total}, \textsc{AE-Triangle}, \textsc{Pyth-Hoare-Seq}, \textsc{Pyth-Shared-Cont}, \textsc{Pyth-Closed-Hoare-Seq}, \textsc{Compile-Replace} &
-Mostly obtained by composing the semantic rules above with discrete-Gaussian KL facts, zero-distance/TVD facts, Hoare premises, or the compiler theorem.\\[0.4em]
-Compiler theorems &
-\textsc{Compile-Same-Package}, \textsc{Pyth-Call-At}, \textsc{Pyth-Compile-Trace}, \textsc{Pyth-Compile-Calls}, \textsc{Pyth-Compile-Calls-Tuple} &
-Separate semantic proof over concrete adversary syntax: trace replay, invalid traces, heap-region preservation, call-bound induction, and tuple budgets.\\
-\end{tabular}
-\caption{Implemented program-logic rule surface, grouped by proof role.  The names are paper-level aliases for the corresponding Rocq lemmas in \texttt{ProgramLogics/Hoare.v}, \texttt{ProgramLogics/Ae.v}, \texttt{ProgramLogics/Pyth.v}, and \texttt{ProgramLogics/PythCompile.v}.}
-\label{fig:implemented-program-logic-rules}
+\small
+\[
+\begin{array}{rcll}
+J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
+  & \text{support-style unary correctness}\\
+  &\mid& \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \approx_\varepsilon c_R\ \set{Q}
+  & \text{completed additive error}\\
+  &\mid& \vDash\Pyth\set{P}\ c_L
+    \approx_s c_R\ \set{Q}
+  & \text{Pythagorean KL budget}
+\end{array}
+\]
+\[
+\begin{gathered}
+\text{For a configuration }\rho=(x,m),\quad
+  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
+\end{gathered}
+\]
+\begin{mathpar}
+\inferrule*[right=\textsc{AE-Couple}]
+  {
+    0\leq\varepsilon\\
+    P(\rho_L,\rho_R)\Rightarrow
+      \mathsf{Cpl}(d_{\rho_L,\rho_R};
+        \csemantic{c_L}_{\rho_L},
+        \csemantic{c_R}_{\rho_R})\\
+    P(\rho_L,\rho_R)\Rightarrow
+      \Pr_{d_{\rho_L,\rho_R}}[Q]\geq 1-\varepsilon
+  }
+  {
+    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+      \approx_\varepsilon c_R\ \set{Q}
+  }
+
+\inferrule*[right=\textsc{AE-Completed-TVD-Eq}]
+  {
+    0\leq\varepsilon\\
+    P(\rho_L,\rho_R)\Rightarrow
+      \Delta(\csemantic{c_L}_{\rho_L},
+             \csemantic{c_R}_{\rho_R})\leq\varepsilon
+  }
+  {
+    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+      \approx_\varepsilon c_R\ \set{o_L=o_R}
+  }
+
+\inferrule*[right=\textsc{Pyth-Seq}]
+  {
+    \vDash\Pyth\set{P}\ c_L\approx_{s_1} c_R\ \set{M}\\
+    \vDash\Pyth
+      \set{y_L=y_R\wedge m_L=m_R\wedge M(y_L,m_L)}
+      k_L\approx_{s_2} k_R\ \set{Q}
+  }
+  {
+    \vDash\Pyth\set{P}
+      (y\gets c_L;\ k_L(y))
+      \approx_{s_1\mathbin{+\!\!+}s_2}
+      (y\gets c_R;\ k_R(y))
+      \set{Q}
+  }
+
+\inferrule*[right=\textsc{Micciancio-Walter}]
+  {
+    \vDash\Pyth\set{P}\ c_L\approx_s c_R\ \set{Q}\\
+    \delta=\sqrt{\sum_i s_i/2}
+  }
+  {
+    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+      \approx_\delta c_R\ \set{o_L=o_R}
+  }
+\end{mathpar}
+\caption{Core judgment forms and representative rules.  The displayed rules are schematic versions of the Rocq lemmas in \texttt{ProgramLogics/Ae.v} and \texttt{ProgramLogics/Pyth.v}; later rules specialize these principles to discrete Gaussians and compiled oracle calls.}
+\label{fig:program-logic-core-rules}
 \end{figure}
 
 \subsection{Pythagorean Error Budgets}
@@ -197,6 +210,11 @@ The program logic uses that lemma through a final-marginal TVD theorem: once a P
   \sqrt{\frac{\sum_i s_i}{2}}
 \]
 in total variation.
+For a Pythagorean budget tuple $s$, we write
+\[
+  \lVert s\rVert_1 \triangleq \sum_i s_i .
+\]
+This is the ordinary $\ell_1$ norm because the judgment requires every coordinate of $s$ to be nonnegative.
 
 For the compiler theorem, we use a call-budget tuple $\operatorname{callErr}_q(\varepsilon)$ defined by
 \[
@@ -215,9 +233,9 @@ Thus $\operatorname{callErr}_q(\varepsilon)$ contains $q+1$ copies of $\varepsil
     =
     \sqrt{\frac{(q+1)\varepsilon}{2}}.
 \]
-The final public oracle-replacement theorem below phrases the bound with a direct call budget $q$, hence $\sqrt{q\varepsilon/2}$.
+The oracle-replacement theorem below phrases the bound with a direct call budget $q$, hence $\sqrt{q\varepsilon/2}$.
 
-\subsection{Implemented Pythagorean Rules}
+\subsection{Pythagorean Proof Rules}
 
 \paragraph{Sampling rules.}
 The primitive sampling rule embeds an ordinary distribution-level KL fact into a one-coordinate Pythagorean judgment:
@@ -282,7 +300,7 @@ The formal rule uses integer centers and the verified KL bound for discrete Gaus
 There is also a closed-program variant.
 
 \paragraph{Structural rules.}
-The reflexivity and consequence rules are exactly semantic:
+The reflexivity and consequence rules are proved directly from the transcript semantics:
 \begin{mathpar}
 \inferrule[Pyth-Refl]
   {
@@ -329,10 +347,10 @@ The main sequencing rule concatenates error tuples:
   }.
 \end{mathpar}
 The second premise is written pointwise: for every intermediate value and heap satisfying $M$, the two continuations are related when run from the same value and heap.
-This is how the implemented lemma avoids a separate syntactic rule for every command constructor.
+This pointwise formulation avoids a separate syntactic rule for every command constructor.
 
-The mixed Hoare/Pythagorean sequencing rules are also implemented.
-They are used repeatedly in the compiler proof to run shared code without spending a KL budget:
+The mixed Hoare/Pythagorean sequencing rules let the proof run shared code without spending a KL budget.
+They are used repeatedly in the compiler proof:
 \begin{mathpar}
 \inferrule[Pyth-Hoare-Seq]
   {
@@ -380,13 +398,13 @@ The rule that turns a Pythagorean judgment into an additive-error judgment is:
   }.
 \end{mathpar}
 The conclusion is intentionally about equality of completed outputs.
-The postcondition $Q$ is part of the Pythagorean judgment and is used by sequencing rules, but the current bridge theorem extracts the statistical-distance/equality consequence needed for cryptographic indistinguishability.
+The postcondition $Q$ is part of the Pythagorean judgment and is used by sequencing rules, but the bridge theorem extracts the statistical-distance/equality consequence needed for cryptographic indistinguishability.
 
 This is the point where the formalization realizes Pythagorean probability preservation: the final-marginal TVD theorem bounds the TVD of completed outputs, and \LabTirName{AE-Completed-TVD-Eq} turns that TVD bound into the completed additive-error judgment.
 
 \subsection{Trace Compilation and Oracle Replacement}
 
-The implemented oracle story is not an EasyCrypt-style rule for opaque adversaries.
+The oracle-replacement story is not an EasyCrypt-style rule for opaque adversaries.
 Instead, the formalization defines an explicit compilation pass over concrete SSProve code.
 
 \begin{definition}[Trace compiler]
@@ -470,7 +488,7 @@ Finally, the compiled program is
 \]
 \end{definition}
 
-The formal definitions pack traces and call inputs into SSProve choice types, but the mathematical control flow is exactly the one above.
+The formal definitions pack traces and call inputs into SSProve choice types, but the mathematical control flow is the one above.
 
 The same-package correctness theorem is:
 \begin{mathpar}
@@ -552,8 +570,8 @@ Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
 \]
 The fully quantified theorem keeps the SSProve location, interface, and package-validity parameters explicit.
 
-For readability, the intermediate Pythagorean compiler rule is shown in scalar
-form; the Coq proof also has the tuple-budget variant used by
+For readability, the intermediate Pythagorean compiler rule is shown as a
+scalar instance of the tuple-budget theorem used by
 \LabTirName{Compile-Replace}.
 \begin{mathpar}
 \inferrule[Pyth-Compile-Calls]
@@ -573,9 +591,9 @@ form; the Coq proof also has the tuple-budget variant used by
 Here $P_I$ abbreviates $x_L=x_R\wedge m_L=m_R\wedge I(m_L)$.
 The proof is by induction over the call bound.
 Each inductive step spends one $\varepsilon$ entry for the selected package call and uses Hoare rules for the shared search/resume code around it.
-\Codex{The soundness proof of this compiler family is the heaviest program-logic proof: it combines the call-bound induction with residual/replay correctness, invalid-trace cases, heap-region preservation, and tuple-budget bookkeeping.  We should decide later how much of that belongs here versus in the discrete-Gaussian/proof-engineering section.}
+This compiler family is the most involved program-logic proof in the development: it combines the call-bound induction with residual/replay correctness, invalid-trace cases, heap-region preservation, and tuple-budget bookkeeping.
 
-Composing this with \LabTirName{Micciancio-Walter} yields the final implemented oracle-replacement rule:
+Composing this with \LabTirName{Micciancio-Walter} yields the oracle-replacement rule:
 \begin{mathpar}
 \inferrule[Compile-Replace]
   {
@@ -587,18 +605,18 @@ Composing this with \LabTirName{Micciancio-Walter} yields the final implemented 
     \vDash\AEJ_{\mathsf{opt}}
       \set{P_I}
       \ A_{P'}^{(q)}
-      \approx_{\sqrt{q\operatorname{tupleSum}(s)/2}}
+      \approx_{\sqrt{q\lVert s\rVert_1/2}}
       \ A_{P''}^{(q)}
       \set{o_L=o_R}
   }.
 \end{mathpar}
-This tuple form is the one used by the current noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
+This tuple form is the one used by the noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
 Informally, this is the oracle rule
 \[
     O_i\sim_s O_i'
     \quad\Longrightarrow\quad
     A^{O_1,\ldots,O_i,\ldots}
-    \sim_{\sqrt{q\operatorname{tupleSum}(s)/2}}
+    \sim_{\sqrt{q\lVert s\rVert_1/2}}
     A^{O_1,\ldots,O_i',\ldots}
 \]
 for concrete SSProve adversaries after compiling the first $q$ calls to the selected operation.
@@ -606,4 +624,4 @@ for concrete SSProve adversaries after compiling the first $q$ calls to the sele
 Compared with EasyCrypt, the difference is mostly where the abstraction boundary sits.
 EasyCrypt's adversarial call rules reason about opaque adversary modules.
 Here the adversary is executable syntax, so the proof factors the adversary by a verified trace compiler.
-Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\operatorname{tupleSum}(s)/2}$.
+Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\lVert s\rVert_1/2}$.

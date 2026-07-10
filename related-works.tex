@@ -1,103 +1,248 @@
 \section{Comparison with Other Program Logics}
 \label{sec:related-works}
 
-We first recall how standard hybrid arguments are typically formalized in RHL and compare it to our additive-error logic.
-We then compare our full logic to apRHL \cite{aprhl}.
+This section situates the verified logic against nearby relational program
+logics.
+The short version is that our additive-error layer is close in spirit to
+standard up-to-bad reasoning, while the Pythagorean layer and trace compiler
+are the pieces that are specific to the noise-flooding proof.
+They let us package a one-call KL argument as a whole-game theorem with
+loss $\sqrt{q\lVert s\rVert_1/2}$ for a concrete SSProve adversary
+making up to $q$ selected oracle calls.
 
-\subsection{Additive Errors and Up-to-bad Arguments}
+\subsection{Additive Error and Up-to-bad Reasoning}
 \label{sec:up-to-bad-event}
 
-\emph{Up-to-bad argument} is another name for what cryptography researchers often refer to as the data-processing inequality, union bound, or hybrid arguments.
-In toolchains such as EasyCrypt,
-they are usually treated using a combination of relational and probabilistic Hoare logic.
-More concretely, in RHL we define a \emph{bad event} $B$ and set the post-condition to the form $\neg B \implies \Psi$, and in pHL we show the probability of $B$ is low.
-These existing toolchains then provide specialized inference rules taking two judgments of the form above and automatically concluding that two programs' outputs are $\varepsilon$-close.
-Our additive-error judgment can be seen as simply combining the two judgments above,
-with an additional advantage of no longer requiring an explicit description of the ``bad event" $B$.
-More precisely, if needed, we can connect the two different styles as follows:
-\begin{mathpar}
-\inferrule[UtB-AE]
-    {\vdash c_1 \sim c_2:\Phi\implies(\neg B_2 \Rightarrow\Psi) \\ \vdash \Pr[c_2:\Phi\implies B_2]<\varepsilon}
-  {\vdash c_1 \sim_\varepsilon c_2:\Phi\implies\Psi}
-\end{mathpar}
-where $B_2$ is a predicate on the second program's final memory.
+The most familiar cryptographic comparison principle is the up-to-bad
+argument.
+One proves a relational judgment saying that two executions agree unless a bad
+event occurs, and separately proves that the bad event has small probability.
+In an EasyCrypt-style presentation, this often appears as an RHL judgment with
+postcondition $\neg B\Rightarrow\Psi$, followed by a probabilistic Hoare proof
+that $\Pr[B]\leq\varepsilon$.
+The conclusion is a statistical-distance or distinguishing-advantage bound.
 
-\subsection{Comparison to apRHL}
+Our additive-error judgment internalizes this final step.
+The judgment
+\[
+  \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+    \approx_\varepsilon c_R\ \set{Q}
+\]
+directly asserts a coupling of the completed output distributions satisfying
+$Q$ with probability at least $1-\varepsilon$.
+Thus the bad event need not be named when a direct coupling or TVD argument is
+more convenient.
+Conversely, the usual up-to-bad pattern embeds into our judgment: if a coupling
+satisfies $\neg B\Rightarrow Q$ and the coupled probability of $B$ is at most
+$\varepsilon$, then the same coupling witnesses the additive-error judgment
+with loss $\varepsilon$.
 
-Approximate relational Hoare logic \cite{aprhl} is another logic for analysis involving KL divergence.
-The main motivation is to analyze differential privacy bounds of the form
-\begin{equation}
-\label{eq:dp-generic-bound}
-\Pr[E_1] \leq e^\varepsilon \Pr[E_2] + \delta.
-\end{equation}
-\newcommand{\aprhl}{\mathsf{ap}}
-Accordingly, it is based on relational triples of the form:
-$$\vDash\aprhl \set{\Phi}c_1\sim_{\langle\varepsilon, \delta\rangle} c_2:\set{\Psi}$$
-Roughly speaking, this judgment states that for all initial memories $(m_1, m_2)$, there exists \emph{two} couplings $\cP_L$ and $\cP_R$ such that:
-\begin{itemize}
-    \item The two couplings are close, with a \emph{multiplicative privacy budget} factor on top of the total variation distance:
-    \[
-        \sup_E \abs{\Pr_{m_1\gets \cP_L}[E(m_1)] -  e^\varepsilon \Pr_{m_2\gets \cP_R}[E(m_2)]}\leq \delta
-    \]
-    \item The first marginal of $\cP_L$ matches $\llbracket c_1\rrbracket (m_1)$.
-    \item The second marginal of $\cP_R$ matches $\llbracket c_2\rrbracket (m_2)$.
-\end{itemize}
+This is the role of the additive-error layer in the noise-flooding proof.
+It is not where the sublinear bound is created.
+It provides the completed-output notion of closeness, exact bridge rules, and
+triangle rules used to compose the hybrid chain in \Cref{sec:games}.
 
-Now, in many popular differential privacy settings (e.g. database queries), one aims to prove bounds in the form of \Cref{eq:dp-generic-bound}.
-In the game-based cryptographic primitive (e.g. encryption; IND-CPA and families) setting however, one rarely considers this multiplicative lax.
-To make use of \Cref{eq:dp-generic-bound} then, unfortunately it seems like we must use the loose bounds
-$e^\varepsilon\approx1+\varepsilon$ and $\Pr[E_2]\leq 1$ to arrive at
-\begin{equation}
-    \label{eq:aprhl-to-hybrid-bound}
-    \abs{\Pr[E_1]-\Pr[E_2]}\lesssim\delta+\varepsilon
-\end{equation}
-In other words, the $\varepsilon$ term might not offer much more than what $\delta$ already does for analyzing primitives.
+\subsection{Where Sublinear Error Enters}
 
-Now, apRHL admits the following sequence rule:
-\begin{mathpar}
-\inferrule[ApRHL-Seq]{
-    c_i:X_i\rightarrow\code X_i' \\
-    c_i':X_i'\rightarrow Y_i \\
-    \vDash\aprhl\set{P}c_1\sim_{\langle \varepsilon, \delta\rangle}c_2\set{R}\\
-    \vDash\aprhl\set{R}c_1'\sim_{\langle\varepsilon', \delta'\rangle}c_2'\set{Q}
-}{
-    \vDash\aprhl\set{P}c_1;c_1'\sim_{\langle\varepsilon+\varepsilon', \delta+\delta'\rangle}c_2;c_2'\set{Q}
-}
-\end{mathpar}
-In particular, the parameters $\delta$ and $\varepsilon$ both grow linearly in the number of applications of the sequence rule.
-That is, the error grows linearly in the length of the experiment, and therefore in the number of queries the adversary is allowed in a cryptographic game.
-There are no sub-linear scalings here that we would achieve by Pythagorean probability preservation.
+Standard relational logics compose approximate judgments linearly.
+If a sequence rule is applied to two fragments with losses $\varepsilon$ and
+$\varepsilon'$, the composed fragment typically has loss
+$\varepsilon+\varepsilon'$.
+This is the right shape for union-bound and up-to-bad proofs, but it does not
+capture the Micciancio-Walter Pythagorean phenomenon used in lattice
+cryptography.
 
-Finally, if we set $\varepsilon=0$ in ApRHL, we claim that our judgment is strictly more expressive than apRHL, due to our different way of handling couplings and attributing errors.
-In particular, apRHL judgments always implies our additive-error judgment, but not the other way around.
-This can also be interpreted as a form of interoperability:
-apRHL judgments with $\varepsilon=0$ can be converted to our judgment.
-\begin{lemma}
-    For all $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, suppose we have
-    $$\vDash\aprhl\set{\Phi} c_1\sim_{\langle 0, \delta\rangle} c_2\set{\Psi}$$
-    then have
-    $$\vDash\AEJ \set{\Phi} c_1\sim_\delta c_2\set{\Psi}$$
-    \Ethan{Maybe missing a factor of 2 on one of the $\delta$'s?}
+Our Pythagorean judgment records a tuple of conditional KL costs rather than an
+additive TVD cost.
+Only after the relevant transcript has been built do we apply the verified
+Pythagorean preservation theorem, yielding the final-marginal bound
+\[
+  \Delta \leq \sqrt{\frac{\sum_i s_i}{2}}.
+\]
+For the oracle setting, \LabTirName{Compile-Replace} combines this with the
+trace compiler: from a one-call Pythagorean judgment for a selected oracle
+operation, it derives a completed additive-error judgment for the whole
+compiled adversary, with loss
+\[
+  \sqrt{q\lVert s\rVert_1/2}.
+\]
+This is the proof boundary used by the paid hop $H_2\to H_3$ in
+\Cref{sec:paid-hop}.
+
+\subsection{Concrete Adversaries and Trace Compilation}
+
+EasyCrypt-style developments often reason about adversaries through module
+interfaces and adversarial call rules.
+This is a good abstraction for cryptographic proofs, and reflection techniques
+can make distribution-level proof steps available at the program level
+\cite{reflection}.
+SSProve \cite{ssprove} has a different foundation: adversaries and games are
+concrete packages whose semantics are defined in Coq.
+
+The trace compiler is our bridge between these worlds.
+Instead of assuming that an adversary is already written as $q$ decryption
+subroutines, the compiler searches the concrete program for the first $q$
+calls to a selected operation identifier, records the surrounding trace, and
+resumes the residual program.
+The theorem \LabTirName{Compile-Same-Package} says that compiling and then
+linking back to the same package is semantics-preserving.
+The theorem \LabTirName{Compile-Replace} says that replacing those selected
+calls by a Pythagorean-close package changes the completed output distribution
+by the Pythagorean loss above.
+
+This trace-compiler proof is one of the main proof-engineering contributions
+of the development.
+It accounts for invalid replay traces, heap-region invariants, residual
+operation calls, and the fact that an ordinary adversary may decide when to
+query decryption in a data-dependent way.
+
+\subsection{Comparison with apRHL}
+
+Approximate relational Hoare logic and its approximate-coupling extensions
+were designed primarily for differential privacy
+\cite{aprhl-couplings}.
+The related approximate-lifting framework for $f$-divergences gives a broader
+semantic account of the same style of reasoning \cite{aprhl}.
+The characteristic judgment has parameters $(\varepsilon,\delta)$ and supports
+privacy bounds of the form
+\[
+  \Pr[E_1] \leq e^\varepsilon \Pr[E_2]+\delta .
+\]
+This multiplicative component is essential in differential privacy, but it is
+not the usual shape of a game-based cryptographic advantage bound.
+If one wants an ordinary additive distinguishing bound, the multiplicative
+term must be converted away, for instance by the coarse estimate
+\[
+  \Pr[E_1]-\Pr[E_2]
+    \leq (e^\varepsilon-1)\Pr[E_2]+\delta
+    \leq e^\varepsilon-1+\delta,
+\]
+and a symmetric bound requires a corresponding judgment in the other
+direction.
+Moreover, the standard sequential composition of approximate liftings adds
+the privacy parameters linearly.
+This is exactly the behavior our Pythagorean layer is meant to avoid for
+KL-based cryptographic analyses.
+
+The comparison is cleanest at $\varepsilon=0$.
+For clarity, we recall the relevant semantic shape of the apRHL judgment.
+
+\begin{definition}[apRHL judgment]
+  The judgment
+  \[
+    \vDash\apRHL\set{P}\ c_L
+      \sim_{\langle\varepsilon,\delta\rangle} c_R\ \set{Q}
+  \]
+  means that for every pair of initial states satisfying $P$, the output
+  distributions $\mu_L$ and $\mu_R$ of $c_L$ and $c_R$ admit an
+  $(\varepsilon,\delta)$-approximate lifting of $Q$.
+  Concretely, this means there are witness distributions
+  $\eta_L,\eta_R$ over pairs of outputs such that the first marginal of
+  $\eta_L$ is $\mu_L$, the second marginal of $\eta_R$ is $\mu_R$, both
+  witnesses are supported in $Q$, and
+  \[
+    \Delta_\varepsilon(\eta_L,\eta_R)
+      \triangleq
+      \sup_E
+        \left(\Pr_{\eta_L}[E] - e^\varepsilon\Pr_{\eta_R}[E]\right)
+      \leq \delta .
+  \]
+  At $\varepsilon=0$, for full output distributions, this divergence is the
+  usual total-variation distance between the two witnesses.
+\end{definition}
+
+The structural difference from our additive-error judgment is important.
+An apRHL proof uses two coupling-like witnesses, both of which must satisfy
+the postcondition exactly; the error is charged to the distance between those
+two witnesses.
+Our additive-error proof uses one coupling of the actual output distributions;
+the error is charged directly to the probability that the postcondition fails.
+The next two lemmas make this distinction precise at $\varepsilon=0$.
+
+\begin{lemma}[Zero-privacy apRHL implies additive error]
+  If
+  \[
+    \vDash\apRHL\set{P}\ c_L
+      \sim_{\langle 0,\delta\rangle} c_R\ \set{Q},
+  \]
+  then
+  \[
+    \vDash\AEJ_{\mathsf{opt}}\set{P}\ c_L
+      \approx_\delta c_R\ \set{Q}.
+  \]
 \end{lemma}
+
 \begin{proof}
-    \Ethan{Just proof sketch for now.}
-    By $\cP_L\approx_\varepsilon \cP_R$, we know that the marginal $\cP_{L, 2}$ is $\varepsilon$-close to $c_2(m_2)$.
-    We therefore define the coupling in our judgment by sampling with weight $1-\varepsilon$ from the ``overlap" of $\cP_{L, 2}$ and $c_2(m_2)$.
-    \Ethan{If the previous sentence makes no sense, that's because actually some clever Baysian ``magic" is required.
-    I discovered the technique during our Dilithium project, but did not put it into the final paper.}
+  Fix related initial states and let $\eta_L$ and $\eta_R$ be the apRHL
+  witnesses for the resulting output distributions.
+  Since $\varepsilon=0$, the definition gives
+  $\TVD(\eta_L,\eta_R)\leq\delta$.
+  Let $\kappa$ be a maximal coupling of $\eta_L$ and $\eta_R$.
+  Thus
+  \[
+    \Pr_{(z_L,z_R)\gets\kappa}[z_L=z_R]
+      = 1-\TVD(\eta_L,\eta_R)
+      \geq 1-\delta .
+  \]
+  Write $z_L=(x_L,y_L)$ and $z_R=(x_R,y_R)$.
+  Define a distribution $\gamma$ over output pairs by sampling
+  $(z_L,z_R)\gets\kappa$ and returning $(x_L,y_R)$.
+  The left marginal of $\gamma$ is the first marginal of $\eta_L$, hence the
+  output distribution of $c_L$; the right marginal of $\gamma$ is the second
+  marginal of $\eta_R$, hence the output distribution of $c_R$.
+  Therefore $\gamma$ is a coupling of the two program outputs.
+  Moreover, whenever $z_L=z_R$, the returned pair is exactly that common
+  witness pair, which lies in $Q$ because both witnesses are supported in $Q$.
+  Hence $\Pr_\gamma[Q]\geq 1-\delta$, as required by
+  $\AEJ_{\mathsf{opt}}$.
 \end{proof}
-\begin{lemma}
-    There exists $\Phi$, $\Psi$, $c_1$, $c_2$, $\delta$, so that we have $c_1\sim_\delta c_2:\Phi\implies\Psi$ as our additive-error judgment, but $c_1\sim_{\langle 0, \delta\rangle} c_2:\Phi\implies\Psi$ is not true under apRHL.
-    \Ethan{Maybe can strengthen to say that for any ``nontrivial" $\delta$, the apRHL judgment is not true with $\delta'=f(\delta)$.}
+
+Thus the old intuition that ``apRHL at $\varepsilon=0$ implies additive
+error'' is correct, and no extra factor of two is needed for full
+distributions.
+
+\begin{lemma}[A same-postcondition separation]
+  Let $0<\delta\leq 1$, let
+  $c_\delta$ be the program that samples $x\gets\Bern(1-\delta)$ and returns
+  $x$, and let $Q(x_L,x_R)$ mean $x_L=x_R=\mathsf{true}$.
+  Then
+  \[
+    \vDash\AEJ_{\mathsf{opt}}\set{\top}\ c_\delta
+      \approx_\delta c_\delta\ \set{Q},
+  \]
+  but for every $\delta'$,
+  \[
+    \not\vDash\apRHL\set{\top}\ c_\delta
+      \sim_{\langle 0,\delta'\rangle} c_\delta\ \set{Q}.
+  \]
 \end{lemma}
+
 \begin{proof}
-    \Ethan{Just proof sketch for now.}
-    By construction.
-    We have
-    $$\vDash\AEJ\set{\top}x_1\gets\Bern(1-\delta)\sim_{\delta}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
-    by taking the trivial matching coupling.
-    We however have also
-    $$\not\vDash\aprhl\set{\top}x_1\gets\Bern(1-\delta)\sim_{\langle\varepsilon, \delta\rangle}x_2\gets\Bern(1-\delta)\set{x_1\wedge x_2}$$
-    as the only coupling to satisfy the post-condition would be supported on only $(\top, \top)$.
+  Let $\mu$ be the distribution $\Bern(1-\delta)$.
+  For the additive-error judgment, use the diagonal coupling of $\mu$ with
+  itself: sample $b\gets\mu$ and return $(b,b)$.
+  This is a coupling of the two output distributions of $c_\delta$.
+  It satisfies $Q$ exactly when $b=\mathsf{true}$, which happens with
+  probability $1-\delta$.
+  Therefore the additive-error judgment holds with loss $\delta$.
+
+  For the apRHL judgment, suppose toward contradiction that the judgment held
+  for some $\delta'$.
+  Let $\eta_L$ and $\eta_R$ be its witnesses.
+  Since both witnesses must be supported in $Q$, they are supported only on
+  the single pair $(\mathsf{true},\mathsf{true})$.
+  The first marginal of $\eta_L$ is therefore the point mass at
+  $\mathsf{true}$.
+  But the first marginal is required to be the output distribution $\mu$ of
+  $c_\delta$, and $\mu(\mathsf{false})=\delta>0$.
+  This contradiction is independent of $\delta'$, so no such apRHL judgment
+  exists.
 \end{proof}
-Finally, similar can perhaps be said about the general $\varepsilon\ne0$ case by \Cref{eq:aprhl-to-hybrid-bound}.
+
+This separation should not be read as a broad completeness claim against
+apRHL.
+One can often recover a traditional proof by adding an explicit bad event to
+the postcondition and proving it separately.
+Rather, the point is that our additive-error judgment puts the probability of
+postcondition failure directly in the judgment, which is the form needed by
+the completed-output hybrid proofs in this paper.

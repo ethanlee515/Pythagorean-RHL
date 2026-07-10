@@ -7,6 +7,12 @@ Here we describe the preliminary mathematical and cryptographic background.
 We write $$\Delta(\cD_1, \cD_2)=\frac{1}{2}\sum_x \abs{\cD_1(x)-\cD_2(x)}$$ for statistical distance,
 and $$\KL{\cD_1}{\cD_2}=\sum_x \cD_1(x)\ln\parens{\frac{\cD_1(x)}{\cD_2(x)}}$$ for Kullback-Leibler divergence.
 For $x\in\bbR^n$, we write $\norm{x}_2=\sqrt{\sum x_i^2}$ for its $\ell_2$-norm.
+We display program-logic rules using the standard inference-rule notation
+\[
+\inferrule{P_1 \quad P_2}{Q}.
+\]
+For readers from cryptography, this notation may be read simply as the implication
+$P_1\wedge P_2\Rightarrow Q$: if all premises above the line hold, then the conclusion below the line follows.
 
 \subsection{Basic Real Analysis}
 
