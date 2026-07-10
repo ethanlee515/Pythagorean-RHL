@@ -9,25 +9,45 @@ the pieces that determine the shape of the security statement.
 \label{sec:prelim-probability-notation}
 
 All distributions in the paper are discrete.
-We write
+
+\begin{definition}[Distance and KL]
+Let \(\cD_1\) and \(\cD_2\) be distributions.
+Write
 \[
   \Delta(\cD_1,\cD_2)
   =
   \frac{1}{2}\sum_x |\cD_1(x)-\cD_2(x)|
 \]
-for statistical distance, and
+for statistical distance, and write
 \[
   \KL{\cD_1}{\cD_2}
   =
   \sum_x \cD_1(x)
     \ln\!\left(\frac{\cD_1(x)}{\cD_2(x)}\right)
 \]
-for KL divergence, when the series is well defined.
-For distributions \(\cD_1,\cD_2\), write
-\(\mathsf{AbsCont}(\cD_1,\cD_2)\) for absolute continuity:
+for KL divergence when the series is well defined.
+\end{definition}
+
+\begin{definition}[Summability]
+For a real-valued function \(f\) on a discrete type, write
+\(\mathsf{summable}(f)\) for MathComp Analysis's summability predicate.
+In paper notation, this means that the series \(\sum_x f(x)\) converges in
+the sense used by the formal analysis library.
+\end{definition}
+
+\begin{definition}[Absolute continuity]
+Let \(\cD_1\) and \(\cD_2\) be distributions.
+Write
+\[
+  \mathsf{AbsCont}(\cD_1,\cD_2)
+\]
+if
 \[
   \forall x.\ \cD_2(x)=0 \Rightarrow \cD_1(x)=0 .
 \]
+\end{definition}
+
+\begin{definition}[Finite KL]
 In the Rocq development, well-definedness of KL is tracked by
 \(\mathsf{finiteKL}(\cD_1,\cD_2)\), the predicate
 \[
@@ -43,9 +63,15 @@ In the Rocq development, well-definedness of KL is tracked by
   \right).
   \end{aligned}
 \]
+\end{definition}
+
+\begin{definition}[Coupling]
 For a joint distribution \(d\) on \(A\times B\), write
-\(\mathsf{Cpl}(d;\mu,\nu)\) to mean that \(d\) is a coupling of \(\mu\) and
-\(\nu\), i.e. its first and second marginals are \(\mu\) and \(\nu\).
+\(\mathsf{Cpl}(d;\mu,\nu)\) if \(d\) is a coupling of \(\mu\) and \(\nu\):
+its first and second marginals are \(\mu\) and \(\nu\), respectively.
+\end{definition}
+
+\begin{definition}[Completed distribution]
 For a subdistribution \(\mu\) over a set \(A\), write
 \(\completed{\mu}\) for the completed distribution over \(A\cup\{\bot\}\):
 \[
@@ -55,6 +81,8 @@ For a subdistribution \(\mu\) over a set \(A\), write
   \completed{\mu}(\bot)=1-\sum_{a\in A}\mu(a).
 \]
 The point mass at \(\bot\) accounts for the missing mass of \(\mu\).
+\end{definition}
+
 For \(x\in\bbR^n\), we write
 \(\norm{x}_2=(\sum_i x_i^2)^{1/2}\).
 For \(v\in\bbZ^n\), write
