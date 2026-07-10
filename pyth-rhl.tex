@@ -420,13 +420,22 @@ Linked back to the same package, the compiler is semantics-preserving.
 Linked to a KL-close replacement package, it gives the quantitative
 oracle-replacement theorem used in the noise-flooding proof.
 
-\begin{definition}[Trace compiler]
-Fix an operation identifier $fn$ and a package $P$ implementing that operation.
+\begin{definition}[Trace]
 A trace $\tau$ is a finite list of effect entries
 \[
     e ::= \mathsf{call}(y)\mid \mathsf{get}(v)\mid \mathsf{put}\mid \mathsf{sample}(a).
 \]
-For a program $c$, define the partial residual operation
+\end{definition}
+
+Intuitively, a trace is the evidence needed to replay the part of the program
+that has already been executed.
+It records the return value of each non-selected package call, the value read
+from each heap location, and the value drawn by each sampling command.
+Heap writes are deterministic once the current command is known, so their trace
+entry only records that the write occurred.
+
+\begin{definition}[Replay residual]
+For a program $c$ and a trace $\tau$, define the partial residual operation
 $\operatorname{cont}(c,\tau)$ by replaying $\tau$ against $c$:
 \[
 \begin{array}{rcl}
@@ -443,8 +452,18 @@ $\operatorname{cont}(c,\tau)$ by replaying $\tau$ against $c$:
 \end{array}
 \]
 with result $\bot$ when the next trace entry has the wrong tag or payload type.
+\end{definition}
 
-Define $\operatorname{runToCall}(c,fn,\tau)$ recursively by executing $c$ until it either returns or reaches the next call whose identifier is $fn$:
+The residual operation replays a trace through the original code and returns
+the program that remains to be run.
+Invalid traces produce $\bot$.
+This explicit invalid case lets the Rocq compiler be stated as a total
+function, even though intended executions only generate feasible traces.
+
+\begin{definition}[Run to selected call]
+Fix an operation identifier $fn$.
+Define $\operatorname{runToCall}(c,fn,\tau)$ recursively by executing $c$ until
+it either returns or reaches the next call whose identifier is $fn$:
 \[
 \begin{array}{rcl}
 \operatorname{runToCall}(\mathsf{ret}(v),fn,\tau)
@@ -465,7 +484,18 @@ Define $\operatorname{runToCall}(c,fn,\tau)$ recursively by executing $c$ until 
       \operatorname{runToCall}(k(a),fn,\tau\cdot\mathsf{sample}(a)).
 \end{array}
 \]
-Now define the trace-producing helper $\operatorname{factorCalls}_q(P,fn,c,\tau)$ by recursion on $q$:
+\end{definition}
+
+The run-to-call pass is the compiler's scanner.
+It executes ordinary commands and records them in the trace, but stops just
+before the selected operation call.
+Thus its result is either $\mathsf{done}(v)$, meaning the program returned, or
+$\mathsf{query}(x)$, meaning the next selected call wants input $x$.
+
+\begin{definition}[Factoring selected calls]
+Fix an operation identifier $fn$ and a package $P$ implementing that operation.
+Define the trace-producing helper
+$\operatorname{factorCalls}_q(P,fn,c,\tau)$ by recursion on $q$:
 \[
 \begin{array}{rcl}
 \operatorname{factorCalls}_0(P,fn,c,\tau)
@@ -489,7 +519,18 @@ F_q(\mathsf{query}(x),\tau')
         (P,fn,c,\tau\cdot\tau'\cdot\mathsf{call}(y)).
 \end{array}
 \]
-Finally, the compiled program is
+\end{definition}
+
+Factoring repeats the scanner at most $q$ times.
+When the scanner finds a selected call, the helper resolves that call using
+package $P$, appends the observed answer to the trace, and continues scanning
+the original program from the resulting residual.
+If the program returns before all $q$ calls are found, the current trace is
+returned.
+
+\begin{definition}[Trace compiler]
+Fix an operation identifier $fn$ and a package $P$ implementing that operation.
+The compiled program is
 \[
     \operatorname{compileCalls}_q(P,fn,c)
     =
@@ -500,6 +541,11 @@ Finally, the compiled program is
     \end{cases}
 \]
 \end{definition}
+
+The compiler first produces a trace exposing the first $q$ selected calls and
+then replays that trace against the source program to obtain the residual code.
+This is the point where an adaptive adversary is put into the fixed-call form
+expected by the Pythagorean rules.
 
 The formal definitions pack traces and call inputs into SSProve choice types, but the mathematical control flow is the one above.
 
@@ -534,33 +580,71 @@ The public replacement rule is stated in its tuple-budget form:
 \]
 The singleton tuple $s=(\varepsilon)$ recovers the scalar one-call rule.
 The displayed rules are schematic only in the SSProve packaging parameters.
-First define the heap-region and package-preservation predicates
+
+The remaining side conditions are the SSProve version of what EasyCrypt-style
+proofs often call memory restrictions.
+They identify the heap region on which the invariant \(I\) is allowed to
+depend, and they say that the ordinary package calls made while searching for
+the selected call preserve that invariant.
+
+\begin{definition}[Heap agreement on a region]
+For heaps \(m_0,m_1\) and a set of locations \(K\), write
+\[
+m_0\equiv_K m_1
+\]
+if the heaps agree on every location in \(K\):
+\[
+\forall \ell.\ \ell\in K\Rightarrow m_0[\ell]=m_1[\ell].
+\]
+\end{definition}
+
+The set \(K\) is the footprint of the invariant.
+If the compiler or adversary changes locations outside \(K\), such changes
+should be invisible to \(I\).
+
+\begin{definition}[Invariant footprint]
+For a heap predicate \(I\), write
+\[
+  \mathsf{DependsOnlyOn}_K(I)
+\]
+if
+\[
+  \forall m_0,m_1.\ 
+  m_0\equiv_K m_1
+  \Rightarrow
+  (I(m_0)\Leftrightarrow I(m_1)).
+\]
+\end{definition}
+
+The compiler also executes package calls that are not the selected operation
+\(fn\).
+Those calls are shared bookkeeping from the point of view of the replacement
+proof, so they must preserve the invariant rather than consume Pythagorean
+budget.
+The selected operation itself is excluded: it is handled by the local
+Pythagorean premise.
+
+\begin{definition}[Preservation except at the selected operation]
+For an interface \(M\), package \(P'\), operation identifier \(fn\), and heap
+predicate \(I\), write \(\mathsf{PresExcept}_{M,P',fn}(I)\) if every operation
+in \(M\) other than \(fn\) preserves \(I\):
 \[
 \begin{aligned}
-m_0\equiv_K m_1
-&\Longleftrightarrow
-\forall \ell.\ \ell\in K\Rightarrow m_0[\ell]=m_1[\ell],
+&\forall o\in M.\ \mathsf{id}(o)\neq fn\Rightarrow\\
+&\quad
+  \vDash\mathsf{Hoare}
+    \set{(u,m)\mapsto I(m)}
 \\
-\mathsf{DependsOnlyOn}_K(I)
-&\Longleftrightarrow
-\forall m_0,m_1.\ m_0\equiv_K m_1
-  \Rightarrow (I(m_0)\Leftrightarrow I(m_1)),
+&\quad\quad
+    (u\mapsto\mathsf{resolve}(P',o,u))
 \\
-\mathsf{PresExcept}_{M,P',fn}(I)
-&\Longleftrightarrow
-\forall o\in M.\ \mathsf{id}(o)\neq fn\Rightarrow
-\\
-&\qquad
-\vDash\mathsf{Hoare}
-  \set{(u,m)\mapsto I(m)}
-\\
-&\qquad\quad
-  (u\mapsto\mathsf{resolve}(P',o,u))
-\\
-&\qquad\quad
-  \set{(v,m')\mapsto I(m')}.
+&\quad\quad
+    \set{(v,m')\mapsto I(m')}.
 \end{aligned}
 \]
+\end{definition}
+
+\begin{definition}[Compiler side conditions]
 Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
 \[
 \begin{aligned}
@@ -581,8 +665,19 @@ Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
 \mathsf{PresExcept}_{M,P',fn}(I).
 \end{aligned}
 \]
+\end{definition}
+
+Thus \(\mathcal{H}_{\mathsf{cmp}}\) collects the well-formedness obligations
+for the source code and packages, the disjointness condition saying that the
+compiled code's locations \(L\) are separate from the invariant footprint
+\(K\), the presence of the selected operation \(fn\), and the two memory
+restriction predicates above.
 The fully quantified theorem keeps the SSProve location, interface, and package-validity parameters explicit.
 
+Let \(P_I\) abbreviate the synchronized initial condition
+\[
+  x_L=x_R\wedge m_L=m_R\wedge I(m_L).
+\]
 For readability, the intermediate Pythagorean compiler rule is shown as a
 scalar instance of the tuple-budget theorem used by
 \LabTirName{Compile-Replace}.
@@ -601,12 +696,32 @@ scalar instance of the tuple-budget theorem used by
       \set{I(m')}
   }.
 \end{mathpar}
-Here $P_I$ abbreviates $x_L=x_R\wedge m_L=m_R\wedge I(m_L)$.
 The proof is by induction over the call bound.
-Each inductive step spends one $\varepsilon$ entry for the selected package call and uses Hoare rules for the shared search/resume code around it.
-This compiler family is the most involved program-logic proof in the development: it combines the call-bound induction with residual/replay correctness, invalid-trace cases, heap-region preservation, and tuple-budget bookkeeping.
+Each inductive step spends one $\varepsilon$ entry for the selected package
+call.
+Hoare rules handle the shared search/resume code around it.
+This compiler family is the most involved program-logic proof in the
+development: it combines the call-bound induction with residual/replay
+correctness, invalid-trace cases, heap-region preservation, and tuple-budget
+bookkeeping.
 
-Composing this with \LabTirName{Micciancio-Walter} yields the oracle-replacement rule:
+This is the oracle-replacement statement needed by the noise-flooding proof.
+Informally, if one selected oracle implementation is Pythagorean-close to
+another with tuple budget \(s\), then replacing the first \(q\) selected calls
+inside a compiled adversary changes the final experiment by at most
+\[
+    O_i\sim_s O_i'
+    \quad\Longrightarrow\quad
+    A^{O_1,\ldots,O_i,\ldots}
+    \sim_{\sqrt{q\lVert s\rVert_1/2}}
+    A^{O_1,\ldots,O_i',\ldots}.
+\]
+The tuple form is the one used below: the selected decryption body is factored
+into a shared deterministic prefix, one discrete-Gaussian sampling coordinate,
+and a shared deterministic continuation.
+
+Composing the compiler theorem with \LabTirName{Micciancio-Walter} gives the
+formal rule:
 \begin{mathpar}
 \inferrule[Compile-Replace]
   {
@@ -623,16 +738,6 @@ Composing this with \LabTirName{Micciancio-Walter} yields the oracle-replacement
       \set{o_L=o_R}
   }.
 \end{mathpar}
-This tuple form is the one used by the noise-flooding proof: the selected decryption body is factored into a shared deterministic prefix, one discrete-Gaussian sampling coordinate, and a shared deterministic continuation.
-Informally, this is the oracle rule
-\[
-    O_i\sim_s O_i'
-    \quad\Longrightarrow\quad
-    A^{O_1,\ldots,O_i,\ldots}
-    \sim_{\sqrt{q\lVert s\rVert_1/2}}
-    A^{O_1,\ldots,O_i',\ldots}
-\]
-for concrete SSProve adversaries after compiling the first $q$ calls to the selected operation.
 
 Compared with EasyCrypt, the difference is mostly where the abstraction boundary sits.
 EasyCrypt's adversarial call rules reason about opaque adversary modules.
