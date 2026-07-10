@@ -103,23 +103,58 @@ formal reduction itself only calls on the chart equations above.
 
 The quantitative proof uses KL divergence locally and statistical distance
 globally.
-The probability theorem behind this conversion has the following shape.
-Let \(\cP,\cQ\) be distributions on \(n\)-tuples, and suppose that for every
-coordinate \(i\) and every previous prefix \(a\), the conditional
-distributions of the \(i\)th coordinate have finite KL and satisfy
+We recall the parameterized form of Pythagorean probability preservation from
+Micciancio and Walter~\cite{mw17}.
+
+\begin{definition}[\(\lambda\)-Pythagorean probability preservation]
+\label{def:pythagorean-probability-preservation}
+Let \(\delta(\cD,\cD')\) be a nonnegative function on pairs of distributions,
+and let \(\lambda>0\).
+We say that \(\delta\) is \(\lambda\)-Pythagorean if the following holds.
+For any length \(q\), and any two transcript distributions \(\cP,\cQ\) on
+\(\prod_{i=1}^q X_i\), suppose that for every coordinate \(i\) and every
+prefix \(a\in\prod_{j<i}X_j\),
 \[
-  \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i .
+  \delta(\cP_i\mid a,\cQ_i\mid a)\leq \lambda .
 \]
 Then
 \[
   \Delta(\cP,\cQ)
   \leq
+  \left(
+    \sum_{i=1}^q
+      \left(\sup_a \delta(\cP_i\mid a,\cQ_i\mid a)\right)^2
+  \right)^{1/2}.
+\]
+\end{definition}
+
+The KL-based instance used in this paper applies the definition to the
+square-root KL cost
+\[
+  \delta_{\sqrt{\mathrm{KL}}}(\cD,\cD')
+  =
+  \sqrt{\frac{D_{\mathrm{KL}}(\cD\Vert\cD')}{2}},
+\]
+where \(D_{\mathrm{KL}}\) denotes KL divergence.
+Equivalently, if we record KL budgets \(s_i\) directly, the same statement
+reads as follows:
+if every conditional coordinate has finite KL and satisfies
+\[
+  \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i ,
+\]
+then
+\[
+  \Delta(\cP,\cQ)
+  \leq
   \sqrt{\frac{\sum_i s_i}{2}}.
 \]
-This is the Micciancio--Walter Pythagorean accounting principle used by the
-program logic.
-\Cref{sec:verified-kl-analysis} explains the Rocq proof: first a
-conditional-coordinate KL chain bound, then Pinsker's inequality.
+Thus the formalization is not using a different asymptotic principle; it uses
+the budget-tuple specialization of the \(\lambda\)-Pythagorean theorem.
+For the uniform noise-flooding case below, each paid decrypt call has
+\(s_i=\epsilon_{\mathsf{nf}}\), so this corresponds to
+\(\lambda=\sqrt{\epsilon_{\mathsf{nf}}/2}\).
+\Cref{sec:verified-kl-analysis} explains the Rocq proof of this KL instance:
+first a conditional-coordinate KL chain bound, then Pinsker's inequality.
 
 \subsection{Discrete Gaussian Distributions}
 
