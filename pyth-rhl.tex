@@ -514,7 +514,7 @@ where
 \begin{array}{rcl}
 F_q(\mathsf{done}(v),\tau')&=&\mathsf{ret}(\tau\cdot\tau'),\\
 F_q(\mathsf{query}(x),\tau')
-  &=& y\gets \mathsf{resolve}(P,fn,x);\ 
+  &=& y\gets P.fn(x);\ 
       \operatorname{factorCalls}_q
         (P,fn,c,\tau\cdot\tau'\cdot\mathsf{call}(y)).
 \end{array}
@@ -522,9 +522,9 @@ F_q(\mathsf{query}(x),\tau')
 \end{definition}
 
 Factoring repeats the scanner at most $q$ times.
-When the scanner finds a selected call, the helper resolves that call using
-package $P$, appends the observed answer to the trace, and continues scanning
-the original program from the resulting residual.
+When the scanner finds a selected call, the helper calls \(P.fn\), appends the
+observed answer to the trace, and continues scanning the original program from
+the resulting residual.
 If the program returns before all $q$ calls are found, the current trace is
 returned.
 
@@ -567,7 +567,7 @@ The same-package correctness theorem is:
 Thus the compiler is not an additional cryptographic assumption; linked with the same package, it is semantics-preserving.
 
 The formalization proves the quantitative replacement theorem for this compiled form.
-Write $\mathcal{O}_{P'}(x)$ for $\mathsf{resolve}(P',fn,x)$, and write
+Write $\mathcal{O}_{P'}(x)$ for \(P'.fn(x)\), and write
 $A_{P'}^{(q)}$ for the linked adversary obtained by compiling the first $q$
 selected calls through $P'$.
 The local assumption is a one-call Pythagorean judgment for the selected operation.
@@ -636,7 +636,7 @@ in \(M\) other than \(fn\) preserves \(I\):
     \set{(u,m)\mapsto I(m)}
 \\
 &\quad\quad
-    (u\mapsto\mathsf{resolve}(P',o,u))
+    (u\mapsto P'.o(u))
 \\
 &\quad\quad
     \set{(v,m')\mapsto I(m')}.
