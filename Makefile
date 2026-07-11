@@ -8,6 +8,7 @@ EXCERPT_SRCS := \
 	../theories/Schemes/Indcpa.v \
 	../theories/Schemes/Indcpad.v \
 	../theories/Constructions/NoiseFlooding.v \
+	../theories/Security/IndcpadSimulator.v \
 	../theories/Security/NoiseFloodingSecurity/Prelude.v \
 	../theories/Security/NoiseFloodingSecurity/Final.v
 

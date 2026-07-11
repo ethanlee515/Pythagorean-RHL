@@ -83,7 +83,7 @@ Our claim starts above that foundation.
 Given SSProve's semantics for pseudocode and games, and MathComp's semantics
 for distributions and real analysis, the formal artifact checks that the
 noise-flooding theorem follows from the stated scheme, correctness, metric,
-and IND-CPA assumptions.
+and IND-CPA game interfaces.
 The program-logic rules, trace compiler, KL lemmas, and game hops are not part
 of the TCB: they are Rocq theorems proved from those underlying semantics.
 Once the definitions are accepted, the remaining claim is deliberately simple:
@@ -93,9 +93,9 @@ The command
   \texttt{Print Assumptions Secure.is\_secure}
 \]
 is the machine-checkable summary of what remains outside the proof: the
-scheme/correctness/metric interfaces, the assumed IND-CPA bound, positivity of
-the Gaussian-width multiplier, and the ordinary library/classical assumptions
-inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
+scheme/correctness/metric interfaces, the IND-CPA game interface, positivity
+of the Gaussian-width multiplier, and the ordinary library/classical
+assumptions inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
 
 \subsection{What a Cryptographer Should Audit}
 \label{sec:crypto-audit-surface}
@@ -104,41 +104,49 @@ The main theorem is exposed as
 \texttt{NoiseFloodingSecure.is\_secure}.
 The statement itself is the cryptographic object to audit:
 for every adversary package accepted by the IND-CPA-D interface, the
-noise-flooded winning probability is at most the IND-CPA security bound for
-the constructed reduction plus the verified noise-flooding loss.
-\Cref{app:final-reduction-theorem} contains the corresponding Rocq theorem
-statement.
+noise-flooded winning probability is at most the IND-CPA winning probability
+of the constructed reduction plus the verified noise-flooding loss.
+\Cref{app:ind-cpa-reduction-excerpt} shows the concrete reduction package;
+\Cref{app:security-bound-excerpt} shows the reduction-shaped bound as the
+definition of \texttt{security\_bound}; \Cref{app:reduction-bound-excerpt}
+shows that the constructed reduction has the IND-CPA adversary interface; and
+\Cref{app:final-reduction-theorem} shows the final theorem statement.
 
 The crypto-facing audit surface is small compared with the proof body.
 \Cref{tab:crypto-audit-surface} lists the files whose definitions and
 assumptions determine what the theorem means.
-The line counts are current source-line counts, included to give a sense of
-scale rather than as a stable metric.
+The line counts are the excerpted appendix lines, included to show the size of
+the human-facing audit surface rather than the size of the proof scripts.
 
 \begin{table}
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tabular}{lrl}
 \hline
-File & Lines & What to audit \\
+File & Excerpt lines & What to audit \\
 \hline
-\texttt{Schemes/ApproxFHE.v} & 311
+\texttt{Schemes/ApproxFHE.v} & 83
   & scheme interface, correctness assumptions, metric charts \\
-\texttt{Schemes/Indcpa.v} & 113
-  & IND-CPA game and assumed IND-CPA bound \\
-\texttt{Schemes/Indcpad.v} & 194
+\texttt{Schemes/Indcpa.v} & 60
+  & IND-CPA game and adversary-dependent bound interface \\
+\texttt{Schemes/Indcpad.v} & 108
   & IND-CPA-D game, oracle table, decrypt-query behavior \\
-\texttt{Constructions/NoiseFlooding.v} & 333
+\texttt{Constructions/NoiseFlooding.v} & 45
   & transformed scheme and Gaussian-width parameter \\
-\texttt{NoiseFloodingSecurity/Prelude.v} & 59
-  & public loss formula and functor glue \\
+\texttt{Security/IndcpadSimulator.v} & 95
+  & concrete IND-CPA reduction and simulation oracle \\
+\texttt{NoiseFloodingSecurity/Prelude.v} & 5
+  & closed-form noise-flooding loss \\
+\texttt{NoiseFloodingSecurity/Final.v} & 13
+  & security bound, reduction validity, main theorem statement \\
 \hline
-Total & 1010 & crypto-facing specification layer \\
+Total & 409 & crypto-facing specification layer \\
 \hline
 \end{tabular}
 }
 \caption{Primary cryptographic audit surface.  The files are under
-\texttt{theories/}; the rest of the development proves consequences of these
+\texttt{theories/}; \Cref{app:formal-interface-excerpts} includes exactly
+these excerpts, while the rest of the development proves consequences of these
 definitions and assumptions.}
 \label{tab:crypto-audit-surface}
 \end{table}
@@ -148,18 +156,31 @@ not the whole proof script.
 \Cref{app:approximate-homomorphic-encryption-interface,app:metric-chart-excerpt,app:support-correctness-excerpt}
 show the scheme interface and correctness/metric assumptions;
 \Cref{app:ind-cpa-game-excerpt,app:ind-cpa-d-game-excerpt} show the two games;
-\Cref{app:noise-flooded-construction-excerpt,app:loss-formula-excerpt} show the
-construction and loss formula.
-The final-theorem excerpt in \Cref{app:final-reduction-theorem} is intentionally
-short: the proof script is not the part a cryptographer should have to read.
+\Cref{app:noise-flooded-construction-excerpt,app:ind-cpa-reduction-excerpt,app:loss-formula-excerpt,app:security-bound-excerpt}
+show the construction, concrete reduction, closed-form loss, and
+reduction-shaped security bound.
+\Cref{app:reduction-bound-excerpt} shows reduction validity, and
+\Cref{app:final-reduction-theorem} shows only the main theorem statement.
+The proof scripts are not the part a cryptographer should have to read.
 The full development is about 35,000 lines, with roughly 14,000 lines in the
 split noise-flooding security proof alone.
 The artifact is the appropriate medium for that part.
 
 The assumptions that should receive the most cryptographic attention are the
 following.
-The IND-CPA assumption in \texttt{Indcpa.v} is the standard black-box security
-hypothesis for the underlying scheme, stated against the SSProve IND-CPA game.
+The IND-CPA interface in \texttt{Indcpa.v} gives the game used on the
+right-hand side of the reduction theorem.
+One may separately instantiate it with a concrete computational security
+assumption for the underlying scheme.
+The reduction in \texttt{IndcpadSimulator.v} is also on the hot path.
+The formal theorem proves a statement about the concrete SSProve package in
+\Cref{app:ind-cpa-reduction-excerpt}; it is not an existential reduction.
+A computational interpretation still requires the usual runtime audit: the
+reduction should run in time comparable to the original adversary, plus the
+explicit bookkeeping for oracle tables, homomorphic evaluation, and Gaussian
+sampling.
+The Rocq development does not formalize a polynomial-time cost model, so this
+runtime check remains a conventional cryptographic review obligation.
 The IND-CPA-D game in \texttt{Indcpad.v} is not assumed secure; it is the game
 proved secure after applying noise flooding.
 The final theorem currently uses the support-level perfect-correctness
