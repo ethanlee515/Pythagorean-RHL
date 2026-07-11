@@ -86,26 +86,30 @@ noise-flooding theorem follows from the stated scheme, correctness, metric,
 and IND-CPA assumptions.
 The program-logic rules, trace compiler, KL lemmas, and game hops are not part
 of the TCB: they are Rocq theorems proved from those underlying semantics.
+Once the definitions are accepted, the remaining claim is deliberately simple:
+Rocq typechecks the proof.
+The command
+\[
+  \texttt{Print Assumptions Secure.is\_secure}
+\]
+is the machine-checkable summary of what remains outside the proof: the
+scheme/correctness/metric interfaces, the assumed IND-CPA bound, positivity of
+the Gaussian-width multiplier, and the ordinary library/classical assumptions
+inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
 
 \subsection{What a Cryptographer Should Audit}
 \label{sec:crypto-audit-surface}
 
 The main theorem is exposed as
 \texttt{NoiseFloodingSecure.is\_secure}.
-It is not stated in terms of our program logic.
-Rather, it is a theorem about the SSProve games' own winning probabilities:
-for every adversary package accepted by the IND-CPAD interface, the
-noise-flooded winning probability is bounded by the IND-CPA winning probability
-of the constructed reduction plus the verified noise-flooding loss.
-Thus a cryptographic reviewer does not need to trust the inference rules as
-axioms.
-The rules are internal lemmas used to prove the theorem.
-There is no additional trusted soundness theorem for these rules: each rule
-must itself typecheck as a Rocq theorem about the SSProve semantics, and the
-final theorem still talks about ordinary SSProve package semantics.
+The statement itself is the cryptographic object to audit:
+for every adversary package accepted by the IND-CPA-D interface, the
+noise-flooded winning probability is at most the IND-CPA security bound for
+the constructed reduction plus the verified noise-flooding loss.
+\Cref{app:final-reduction-theorem} contains the corresponding Rocq theorem
+statement.
 
-The crypto-facing audit surface is therefore small compared with the proof
-body.
+The crypto-facing audit surface is small compared with the proof body.
 \Cref{tab:crypto-audit-surface} lists the files whose definitions and
 assumptions determine what the theorem means.
 The line counts are current source-line counts, included to give a sense of
@@ -123,7 +127,7 @@ File & Lines & What to audit \\
 \texttt{Schemes/Indcpa.v} & 113
   & IND-CPA game and assumed IND-CPA bound \\
 \texttt{Schemes/Indcpad.v} & 194
-  & IND-CPAD game, oracle table, decrypt-query behavior \\
+  & IND-CPA-D game, oracle table, decrypt-query behavior \\
 \texttt{Constructions/NoiseFlooding.v} & 333
   & transformed scheme and Gaussian-width parameter \\
 \texttt{NoiseFloodingSecurity/Prelude.v} & 59
@@ -141,18 +145,22 @@ definitions and assumptions.}
 
 The appendix therefore includes selected excerpts from the specification layer,
 not the whole proof script.
-\Cref{app:formal-interface-excerpts} includes representative Rocq excerpts
-for the scheme interface, metric and correctness assumptions, games,
-noise-flooded construction, loss formula, and final theorem.
-Including the entire proof is not: the full development is about 35,000 lines,
-with roughly 14,000 lines in the split noise-flooding security proof alone.
+\Cref{app:approximate-homomorphic-encryption-interface,app:metric-chart-excerpt,app:support-correctness-excerpt}
+show the scheme interface and correctness/metric assumptions;
+\Cref{app:ind-cpa-game-excerpt,app:ind-cpa-d-game-excerpt} show the two games;
+\Cref{app:noise-flooded-construction-excerpt,app:loss-formula-excerpt} show the
+construction and loss formula.
+The final-theorem excerpt in \Cref{app:final-reduction-theorem} is intentionally
+short: the proof script is not the part a cryptographer should have to read.
+The full development is about 35,000 lines, with roughly 14,000 lines in the
+split noise-flooding security proof alone.
 The artifact is the appropriate medium for that part.
 
 The assumptions that should receive the most cryptographic attention are the
 following.
 The IND-CPA assumption in \texttt{Indcpa.v} is the standard black-box security
 hypothesis for the underlying scheme, stated against the SSProve IND-CPA game.
-The IND-CPAD game in \texttt{Indcpad.v} is not assumed secure; it is the game
+The IND-CPA-D game in \texttt{Indcpad.v} is not assumed secure; it is the game
 proved secure after applying noise flooding.
 The final theorem currently uses the support-level perfect-correctness
 interface in \texttt{ApproxFHE.v}; approximate correctness with explicit
@@ -204,39 +212,6 @@ Those facts were developed while discharging the summability obligations for
 the KL analysis.
 A version of this material was also submitted upstream to MathComp Analysis,
 where it helps reduce reliance on admitted real-summation infrastructure.
-
-\subsection{What Typechecking Buys}
-\label{sec:typechecking-buys}
-
-Once the above definitions are accepted, the large body of game transformations
-is not a further trusted argument.
-It is checked proof.
-The theorem is proved by composing SSProve package equivalences, exact
-heap-invariant bridges, the trace compiler theorem, and the verified
-Micciancio-Walter/Pinsker analysis.
-After instantiating the security functor with a concrete scheme and assumptions,
-the command
-\[
-  \texttt{Print Assumptions Secure.is\_secure}
-\]
-is the machine-checkable summary of what remains outside the proof.
-In the current development there are no \texttt{Admitted} proofs in the Rocq
-sources.
-The remaining non-logical assumptions are the scheme/correctness/metric
-interfaces just described, the assumed IND-CPA bound, the positivity of the
-Gaussian-width multiplier, and the ordinary library/classical assumptions
-inherited from MathComp, SSProve, and Rocq's real-number infrastructure.
-
-This is the sense in which the program logic is not part of the trusted
-cryptographic statement.
-The additive-error and Pythagorean judgments are defined semantically over
-SSProve programs.
-Their rules are then proved as ordinary Rocq lemmas from those definitions.
-The final security theorem does not say ``there exists a derivation in our
-logic''; it says that two SSProve-defined winning probabilities satisfy an
-inequality.
-The logic is proof engineering: it factors a long proof into reusable,
-reviewable lemmas, but it does not replace the semantics of the games.
 
 \subsection{Program-Logic Review}
 \label{sec:program-logic-review}

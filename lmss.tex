@@ -1,4 +1,4 @@
-\section{Noise Flooding for Approximate FHE}
+\section{Noise Flooding for Approximate Homomorphic Encryption}
 
 This section describes the verified noise-flooding argument for an abstract
 approximate homomorphic encryption scheme.
@@ -164,37 +164,28 @@ security loss is twice the compile distance:
 
 The hop $H_2 \to H_3$ is the only place where the noise-flooding analysis
 pays loss.
-In Coq this is one closed-game additive-error theorem:
-\[
-  \vDash\AEJ\set{\Phi_0}\ 
-    H_2 \approx_{\Delta_{\mathsf{comp}}} H_3
-    \set{o_L=o_R}.
-\]
-Here $\Phi_0$ is the initial same-input/same-heap condition, completed at the
-output type.
-The theorem is not proved by manually walking through the adversary program.
-Instead, it is an instance of \LabTirName{Compile-Replace}: the trace
-compiler has already exposed the first $q$ calls to \textsc{ODec}, and the
-compiler theorem lifts a one-call oracle replacement to the whole compiled
-experiment.
-
 Let $O_{\mathsf{real}}(i)$ and $O_{\mathsf{sim}}(i)$ be the real and simulated
 decrypt oracle bodies, and let $\Phi$ be the challenger heap invariant
 recording initialized keys, table validity, and the decrypt counter.
-The local premise supplied to the compiler theorem is the one-call
-Pythagorean judgment
+
+\begin{lemma}[One-call decryption replacement]
+\label{lem:one-call-decryption-replacement}
+For every decrypt input \(i\), the real and simulated decrypt oracle bodies
+satisfy the Pythagorean judgment
 \[
   \vDash\Pyth\set{i_L=i_R\wedge m_L=m_R\wedge \Phi(m_L)}
     O_{\mathsf{real}} \approx_{(0,\epsilon_{\mathsf{nf}},0)}
     O_{\mathsf{sim}}
     \set{\Phi(m')}.
 \]
+\end{lemma}
+
+\begin{proof}
 The zero coordinates are bookkeeping: the decrypt prefix and final
 postprocessing are shared deterministic code.
 The middle coordinate is the Gaussian sample.
-
-The proof of this one-call premise factors the decryption oracle into a shared
-deterministic prefix and a noisy continuation.
+The proof factors the decryption oracle into a shared deterministic prefix and
+a noisy continuation.
 The prefix reads and increments the decrypt counter, reads the table, checks
 that the requested row exists, and branches on whether the two plaintext labels
 stored in that row are equal.
@@ -216,16 +207,39 @@ $\bbZ^n$.
 For each coordinate, the discrete-Gaussian KL calculation gives cost at most
 $1/(2\gamma^2)$, hence the vector cost is
 $\epsilon_{\mathsf{nf}}=n/(2\gamma^2)$.
+The Pythagorean sequencing rules combine the shared prefix, the Gaussian
+sampling step, and the shared postprocessing continuation into the displayed
+tuple budget.
+\end{proof}
 
-Formally, the deterministic prefix contributes a leading zero coordinate in
-the Pythagorean budget, and the Gaussian continuation contributes
-$\epsilon_{\mathsf{nf}}$.
-The tuple compiler theorem sums the call budget over the first $q$ selected
-decrypt calls and applies \LabTirName{Micciancio-Walter}, producing the
-closed-game additive error
+\begin{corollary}[Compiled decryption replacement]
+\label{cor:compiled-decryption-replacement}
+Let \(\Phi_0\) be the initial same-input/same-heap condition for the closed
+games.
+Then
 \[
-  \sqrt{q\epsilon_{\mathsf{nf}}/2}.
+  \vDash\AEJ\set{\Phi_0}\ 
+    H_2 \approx_{\Delta_{\mathsf{comp}}} H_3
+    \set{o_L=o_R}.
 \]
+\end{corollary}
+
+\begin{proof}
+Apply \LabTirName{Compile-Replace} to
+\Cref{lem:one-call-decryption-replacement}, with \(\mathsf{ODec}\) as the
+selected operation.
+The trace compiler has already exposed the first \(q\) selected decrypt calls
+in \(H_2\) and \(H_3\).
+The compiler side conditions are the usual package-validity and memory
+restriction obligations: the adversary locations are separated from the
+challenger invariant footprint, and the non-decrypt oracle calls preserve
+\(\Phi\).
+The tuple compiler theorem sums the local budget over the first \(q\) selected
+decrypt calls and then applies \LabTirName{Micciancio-Walter}, giving
+\[
+  \Delta_{\mathsf{comp}}=\sqrt{q\epsilon_{\mathsf{nf}}/2}.
+\]
+\end{proof}
 
 \subsection{The Exact Bridges}
 \label{sec:exact-hops}

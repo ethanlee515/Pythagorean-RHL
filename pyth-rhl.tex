@@ -1,4 +1,4 @@
-\section{RHL with Pythagorean Errors}
+\section{Relational Hoare Logic with Pythagorean Errors}
 \label{sec:program-logic}
 
 We now describe the program logic used by the formalized noise-flooding proof.
@@ -197,40 +197,6 @@ J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
 \caption{Core judgment forms and representative rules.  The displayed rules are schematic versions of the Rocq lemmas in \texttt{ProgramLogics/Ae.v} and \texttt{ProgramLogics/Pyth.v}; later rules specialize these principles to discrete Gaussians and compiled oracle calls.}
 \label{fig:program-logic-core-rules}
 \end{figure}
-
-\subsection{Pythagorean Error Budgets}
-
-The mathematical bridge from conditional KL budgets to TVD is
-\Cref{lem:verified-pythagorean-preservation}.
-The program logic uses that lemma through a final-marginal TVD theorem: once a Pythagorean judgment has produced transcript distributions satisfying the Pythagorean distribution predicate, the final completed-output marginals are within
-\[
-  \sqrt{\frac{\sum_i s_i}{2}}
-\]
-in total variation.
-For a Pythagorean budget tuple $s$, we write
-\[
-  \lVert s\rVert_1 \triangleq \sum_i s_i .
-\]
-This is the ordinary $\ell_1$ norm because the judgment requires every coordinate of $s$ to be nonnegative.
-
-For the compiler theorem, we use a call-budget tuple $\operatorname{callErr}_q(\varepsilon)$ defined by
-\[
-\begin{aligned}
-\operatorname{callErr}_0(\varepsilon)
-  &= (0,\varepsilon,0),\\
-\operatorname{callErr}_{q+1}(\varepsilon)
-  &= (0,\varepsilon)\mathbin{+\!\!+}
-     \operatorname{callErr}_q(\varepsilon).
-\end{aligned}
-\]
-Thus $\operatorname{callErr}_q(\varepsilon)$ contains $q+1$ copies of $\varepsilon$ separated by zero-budget bookkeeping steps, and its TVD bookkeeping lemma is:
-\[
-    \operatorname{pythTV}
-      (\operatorname{callErr}_q(\varepsilon))
-    =
-    \sqrt{\frac{(q+1)\varepsilon}{2}}.
-\]
-The oracle-replacement theorem below phrases the bound with a direct call budget $q$, hence $\sqrt{q\varepsilon/2}$.
 
 \subsection{Pythagorean Proof Rules}
 
@@ -657,6 +623,20 @@ in \(M\) other than \(fn\) preserves \(I\):
 \]
 \end{definition}
 
+\begin{definition}[Separated memory regions]
+For location sets \(K\) and \(L\), write \(\mathsf{fseparate}(K,L)\) if the
+two sets are disjoint:
+\[
+  K\cap L=\emptyset .
+\]
+\end{definition}
+
+This is the usual memory-restriction condition.
+The adversary code may use the locations in \(L\), while the challenger
+invariant \(I\) may depend on the protected footprint \(K\).
+Separation says that adversary-local state cannot directly read or overwrite
+the challenger's internal memory.
+
 \begin{definition}[Compiler side conditions]
 Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
 \[
@@ -691,6 +671,35 @@ Let \(P_I\) abbreviate the synchronized initial condition
 \[
   x_L=x_R\wedge m_L=m_R\wedge I(m_L).
 \]
+The compiler rules also use a small amount of budget notation.
+For a Pythagorean budget tuple \(s\), write
+\[
+  \lVert s\rVert_1 \triangleq \sum_i s_i .
+\]
+This is the ordinary \(\ell_1\) norm because the judgment requires every
+coordinate of \(s\) to be nonnegative.
+For a scalar one-call budget \(\varepsilon\), define
+\[
+\begin{aligned}
+\operatorname{callErr}_0(\varepsilon)
+  &= (0,\varepsilon,0),\\
+\operatorname{callErr}_{q+1}(\varepsilon)
+  &= (0,\varepsilon)\mathbin{+\!\!+}
+     \operatorname{callErr}_q(\varepsilon).
+\end{aligned}
+\]
+Thus \(\operatorname{callErr}_q(\varepsilon)\) contains \(q+1\) copies of
+\(\varepsilon\) separated by zero-budget bookkeeping steps.
+Its final-marginal total-variation bookkeeping lemma is
+\[
+    \operatorname{pythTV}
+      (\operatorname{callErr}_q(\varepsilon))
+    =
+    \sqrt{\frac{(q+1)\varepsilon}{2}}.
+\]
+The oracle-replacement theorem below phrases the bound with a direct call
+budget \(q\), hence \(\sqrt{q\varepsilon/2}\).
+
 For readability, the intermediate Pythagorean compiler rule is shown as a
 scalar instance of the tuple-budget theorem used by
 \LabTirName{Compile-Replace}.
