@@ -55,17 +55,17 @@ proof elegance or implementation effort.
 Layer & Lines & Representative files \\
 \hline
 KL, Pinsker, Pythagorean probability, discrete Gaussians
-  & 6861
+  & 5527
   & \texttt{Probability/KL/}, \texttt{Probability/DiscreteGaussians/} \\
 Program logics and trace infrastructure
-  & 8637
+  & 6657
   & \texttt{ProgramLogics/}, \texttt{Probability/\{DletTuple,OutputHeap,PythSeq\}.v}, \texttt{NextMessage/Trace.v} \\
 LMSS/noise-flooding games and security proof
   & 11199
   & \texttt{Schemes/\{ApproxFHE,Indcpa,Indcpad\}.v}, \texttt{Constructions/NoiseFlooding.v}, \texttt{Security/IndcpadSimulator.v}, \texttt{NoiseFloodingSecurity/} \\
 \hline
-Three main technical layers & 26697 & \\
-Full Rocq development & 31344 & includes local MathComp/SSProve adapters \\
+Three main technical layers & 23383 & \\
+Full Rocq development & 27938 & includes local MathComp/SSProve adapters \\
 \hline
 \end{tabular}
 }
@@ -202,7 +202,7 @@ reduction-shaped security bound.
 \Cref{app:final-reduction-theorem} shows only the main theorem statement.
 The proof scripts are not the part a cryptographer should have to read in
 order to understand what has been proved.
-The full development is about 31,000 lines, with just under 10,000 lines in the
+The full development is about 28,000 lines, with just under 10,000 lines in the
 split noise-flooding security proof alone.
 The artifact is the appropriate medium for that part.
 
