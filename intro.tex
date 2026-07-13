@@ -61,10 +61,18 @@ Since
   =
   \frac{\sqrt{qn}}{\gamma},
 \]
-keeping the security loss below a target constant requires
-\(\gamma\) to grow like \(\sqrt q\), for fixed \(n\).
-A linear hybrid bound would be much easier to prove, but it would force
-\(\gamma\) to grow linearly with \(q\) for the same security target.
+the query dependence can be cancelled by increasing \(\gamma\) like
+\(\sqrt q\), up to the dimension factor.
+In the construction summarized below, \(\gamma\) scales linearly with the
+standard deviation of the flooding noise after the flood has already been
+scaled to dominate the allowed correctness error.
+For a back-of-the-envelope example, take \(q=2^{64}\) decryption queries.
+The square-root bound asks the flooding width to absorb a factor
+\(\sqrt q=2^{32}\), while a linear hybrid bound would ask it to absorb
+\(q=2^{64}\).
+Thinking of standard deviation as the relevant width, this is the difference
+between losing roughly 32 and 64 extra base-2 digits of precision to the
+flooding noise, up to constants and the scheme's correctness-error scaling.
 
 That difference matters because \(\gamma\) is not an abstract proof
 parameter: it is the amount of noise added to decryption answers.
