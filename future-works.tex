@@ -1,9 +1,9 @@
 \section{Future Works}
 
-One of our next steps is certainly to finish eliminating the remaining admitted helper lemmas in the additive-error layer and to polish the soundness story of the program logic.
-Another direction is to integrate the trace-compilation oracle replacement theorem more cleanly into the application proofs discussed in \Cref{sec:query-bound}.
-
-On the cryptography application side, there is also a lot more to verify for the CKKS approximate homomorphic encryption.
+The verified noise-flooding reduction gives a reusable formal theorem, but
+the surrounding cryptographic applications are still only a first step.
+In particular, there is more to verify for the CKKS approximate homomorphic
+encryption scheme itself.
 For example, one could simply fill in the construction and show that the scheme is indeed IND-CPA and approximately correct.
 Another natural direction is to verify other strategies for choosing
 noise-flooding parameters.
