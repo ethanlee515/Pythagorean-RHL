@@ -76,8 +76,8 @@ flooding noise, up to constants and the scheme's correctness-error scaling.
 
 That difference matters because \(\gamma\) is not an abstract proof
 parameter: it is the amount of noise added to decryption answers.
-If \(\gamma\) is made extremely large, the scheme can be made to ``look''
-secure for a trivial reason: the returned approximate plaintext is drowned by
+If \(\gamma\) is made extremely large, the scheme can be made trivially secure:
+the returned approximate plaintext is drowned by
 fresh noise, so the message is effectively masked by the flood.
 Such a defense is not useful unless the answer remains accurate enough for the
 application.
