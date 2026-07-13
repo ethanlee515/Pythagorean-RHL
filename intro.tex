@@ -47,50 +47,45 @@ the usual IND-CPA reduction and proves the bound
   \leq
   \Pr[\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})=1]
   +
-  2\sqrt{q\epsilon_{\mathsf{nf}}/2},
-  \qquad
-  \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2}.
+  \frac{\sqrt{qn}}{\gamma}.
 \]
 Here $q$ is the decryption-query bound, $n$ is the metric-chart dimension, and
 $\gamma$ is the Gaussian-width multiplier.
-This bound should be read as a parameter tradeoff, not only as a theorem about
-distinguishing probabilities.
-Since
-\[
-  2\sqrt{q\epsilon_{\mathsf{nf}}/2}
-  =
-  \frac{\sqrt{qn}}{\gamma},
-\]
-the query dependence can be cancelled by increasing \(\gamma\) like
+The displayed loss should be read as a parameter tradeoff, not only as a
+theorem about distinguishing probabilities.
+The \(q\)-dependence can be cancelled by increasing \(\gamma\) like
 \(\sqrt q\), up to the dimension factor.
 In the construction summarized below, \(\gamma\) scales linearly with the
-standard deviation of the flooding noise after the flood has already been
+standard deviation of the flooding noise, after the flood has already been
 scaled to dominate the allowed correctness error.
-For a back-of-the-envelope example, take \(q=2^{64}\) decryption queries.
+Thus increasing \(\gamma\) is not a harmless proof maneuver: it directly means
+adding wider noise to decryption answers.
+
+For intuition, take \(q=2^{64}\) decryption queries and ignore constants and
+the fixed dimension factor.
 The square-root bound asks the flooding width to absorb a factor
 \(\sqrt q=2^{32}\), while a linear hybrid bound would ask it to absorb
 \(q=2^{64}\).
-Thinking of standard deviation as the relevant width, this is the difference
-between losing roughly 32 and 64 extra bits of precision to the
-flooding noise, up to constants and the scheme's correctness-error scaling.
-
-That difference matters because \(\gamma\) is not an abstract proof
-parameter: it is the amount of noise added to decryption answers.
-If \(\gamma\) is made extremely large, the scheme can be made trivially secure:
-the returned approximate plaintext is drowned by
-fresh noise, so the message is effectively masked by the flood.
-Such a defense is not useful unless the answer remains accurate enough for the
+Thinking of standard deviation as the relevant width, this is roughly the
+difference between losing 32 and 64 extra bits of precision to the flooding
+noise.
+At the extreme, one can make the scheme trivially secure by choosing
+\(\gamma\) so large that the returned approximate plaintext is drowned in
+fresh noise; the message is then effectively masked by the flood.
+Such a defense is useful only if the answer remains accurate enough for the
 application.
-To recover accuracy after adding more noise, an FHE implementation must spend
-other expensive resources, for example larger parameters, more noise-budget
-headroom, or additional bootstrapping.
+Recovering accuracy after adding more noise pushes cost elsewhere, for
+example into larger parameters, more noise-budget headroom, or additional
+bootstrapping.
 Since these resources are a major source of FHE's runtime cost, avoiding an
 unnecessary \(O(q)\) loss is part of making the security argument compatible
 with usable approximate homomorphic encryption.
-This parameter-choice problem is a subject in its own right: recent work has
-studied precision loss in approximate homomorphic encryption and revisited
-noise-flooding countermeasures from the point of view of concrete parameter
-selection \cite{costache2023precision,bergamaschi2025revisiting}.
+
+This parameter-choice problem is a subject in its own right.
+Recent work has studied precision loss in approximate homomorphic encryption
+and revisited noise-flooding countermeasures from the point of view of
+concrete parameter selection
+\cite{costache2023precision,bergamaschi2025revisiting}.
 Our theorem verifies one sufficient analytic way to choose the flooding width
 and obtain a provable IND-CPAD reduction; it is not meant to be the last word
 on optimizing this tradeoff.
