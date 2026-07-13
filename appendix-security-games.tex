@@ -47,9 +47,10 @@ The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
   \EndProcedure
   \State
   \Procedure{OEval}{$f,\mathcal{I}$}
-    \State $m_0' \gets f((T_i.m_0)_{i\in\mathcal{I}})$
-    \State $m_1' \gets f((T_i.m_1)_{i\in\mathcal{I}})$
-    \State $c' \gets Eval(f,(T_i.c)_{i\in\mathcal{I}})$
+    \State $\vec r \gets (T_i)_{i\in\mathcal{I}}$
+    \State $m_0' \gets f((r.m_0)_{r\in\vec r})$
+    \State $m_1' \gets f((r.m_1)_{r\in\vec r})$
+    \State $c' \gets Eval(f,(r.c)_{r\in\vec r})$
     \State $T \gets T \doubleplus [(m_0',m_1',c')]$
     \State \Return $c'$
   \EndProcedure
@@ -61,12 +62,13 @@ The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
     \If{$T_i.m_0\ne T_i.m_1$}
       \State \Return $\bot$
     \Else
-      \State \Return a flooded plaintext sample according to the current game
+      \State \Return $\mathsf{SampleCurrent}(T_i)$
     \EndIf
   \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
+Here \(\mathsf{SampleCurrent}\) is instantiated by the surrounding game.
 The real game returns a noise-flooded sample centered at
 $Dec(sk,T_i.c)$.
 The simulated-decrypt game returns a noise-flooded sample centered at the
@@ -103,8 +105,10 @@ challenge encryptions from the outer IND-CPA encryption oracle.
   \EndProcedure
   \Statex
   \Procedure{$OEval_{\mathcal{B}}$}{$f,\mathcal{I}$}
-    \State Compute $m_0',m_1'$ from the rows indexed by $\mathcal{I}$.
-    \State $c' \gets Eval(f,(T_i.c)_{i\in\mathcal{I}})$
+    \State $\vec r \gets (T_i)_{i\in\mathcal{I}}$
+    \State $m_0' \gets f((r.m_0)_{r\in\vec r})$
+    \State $m_1' \gets f((r.m_1)_{r\in\vec r})$
+    \State $c' \gets Eval(f,(r.c)_{r\in\vec r})$
     \State $T \gets T \doubleplus [(m_0',m_1',c')]$
     \State \Return $c'$
   \EndProcedure

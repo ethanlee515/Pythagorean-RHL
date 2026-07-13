@@ -473,32 +473,39 @@ $\mathsf{query}(x)$, meaning the next selected call wants input $x$.
 
 \begin{definition}[Factoring selected calls]
 Fix an operation identifier $fn$ and a package $P$ implementing that operation.
-Define the trace-producing helper
-$\operatorname{factorCalls}_q(P,fn,c,\tau)$ by recursion on $q$:
+The trace-producing helper
 \[
-\begin{array}{rcl}
-\operatorname{factorCalls}_0(P,fn,c,\tau)
-  &=&\mathsf{ret}(\tau),\\
-\operatorname{factorCalls}_{q+1}(P,fn,c,\tau)
-  &=&
-  \begin{cases}
-  \mathsf{bad}, & \operatorname{cont}(c,\tau)=\bot,\\
-  s\gets\operatorname{runToCall}(c',fn,[\,]);\ F_q(s),
-    & \operatorname{cont}(c,\tau)=c',
-  \end{cases}
-\end{array}
+  \operatorname{factorCalls}_q(P,fn,c,\tau)
 \]
-where
-\[
-\begin{array}{rcl}
-F_q(\mathsf{done}(v),\tau')&=&\mathsf{ret}(\tau\cdot\tau'),\\
-F_q(\mathsf{query}(x),\tau')
-  &=& y\gets P.fn(x);\ 
-      \operatorname{factorCalls}_q
-        (P,fn,c,\tau\cdot\tau'\cdot\mathsf{call}(y)).
-\end{array}
-\]
+is the procedure in
+\Cref{alg:factor-calls}.
 \end{definition}
+
+\begin{algorithm}[H]
+\caption{Factoring selected calls}
+\label{alg:factor-calls}
+\begin{algorithmic}[1]
+  \Procedure{$\operatorname{factorCalls}_q$}{$P,fn,c,\tau$}
+    \If{$q=0$}
+      \State \Return $\tau$
+    \EndIf
+    \State $c' \gets \operatorname{cont}(c,\tau)$
+    \If{$c'=\bot$}
+      \State \Return $\mathsf{bad}$
+    \EndIf
+    \State $(r,\tau') \gets \operatorname{runToCall}(c',fn,[\,])$
+    \If{$r=\mathsf{done}(v)$}
+      \State \Return $\tau\cdot\tau'$
+    \Else
+      \State let $r=\mathsf{query}(x)$
+      \State $y\gets P.fn(x)$
+      \State \Return
+        $\operatorname{factorCalls}_{q-1}
+          (P,fn,c,\tau\cdot\tau'\cdot\mathsf{call}(y))$
+    \EndIf
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
 
 Factoring repeats the scanner at most $q$ times.
 When the scanner finds a selected call, the helper calls \(P.fn\), appends the

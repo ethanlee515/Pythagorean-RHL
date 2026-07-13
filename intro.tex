@@ -8,6 +8,14 @@ decryption returns an approximate value, and the approximation error itself can
 become a source of information.
 The Li--Micciancio attack \cite{lm} showed that this issue is not merely
 cosmetic.
+Later work has shown that this decryption-query viewpoint is broader than
+CKKS: exact FHE schemes can also fail IND-CPAD when parameters are pushed so
+aggressively that decryption errors become visible \cite{cheon2024attacks}.
+For exact schemes, the natural response may simply be to restore exact
+correctness by choosing less aggressive parameters.
+For approximate FHE, however, approximate decryption is part of the interface,
+so the security question is how to hide the approximation error while keeping
+the answer useful.
 Li, Micciancio, Schultz-Wu, and Sorrell \cite{lmss} proposed a noise-flooding
 defense and proved that, under suitable parameters, the resulting scheme
 satisfies a stronger decryption-query security notion.
@@ -45,13 +53,46 @@ the usual IND-CPA reduction and proves the bound
 \]
 Here $q$ is the decryption-query bound, $n$ is the metric-chart dimension, and
 $\gamma$ is the Gaussian-width multiplier.
+This bound should be read as a parameter tradeoff, not only as a theorem about
+distinguishing probabilities.
+Since
+\[
+  2\sqrt{q\epsilon_{\mathsf{nf}}/2}
+  =
+  \frac{\sqrt{qn}}{\gamma},
+\]
+keeping the security loss below a target constant requires
+\(\gamma\) to grow like \(\sqrt q\), for fixed \(n\).
+A linear hybrid bound would be much easier to prove, but it would force
+\(\gamma\) to grow linearly with \(q\) for the same security target.
+
+That difference matters because \(\gamma\) is not an abstract proof
+parameter: it is the amount of noise added to decryption answers.
+If \(\gamma\) is made extremely large, the scheme can be made to ``look''
+secure for a trivial reason: the returned approximate plaintext is drowned by
+fresh noise, so the message is effectively masked by the flood.
+Such a defense is not useful unless the answer remains accurate enough for the
+application.
+To recover accuracy after adding more noise, an FHE implementation must spend
+other expensive resources, for example larger parameters, more noise-budget
+headroom, or additional bootstrapping.
+Since these resources are a major source of FHE's runtime cost, avoiding an
+unnecessary \(O(q)\) loss is part of making the security argument compatible
+with usable approximate homomorphic encryption.
+This parameter-choice problem is a subject in its own right: recent work has
+studied precision loss in approximate homomorphic encryption and revisited
+noise-flooding countermeasures from the point of view of concrete parameter
+selection \cite{costache2023precision,bergamaschi2025revisiting}.
+Our theorem verifies one sufficient analytic way to choose the flooding width
+and obtain a provable IND-CPAD reduction; it is not meant to be the last word
+on optimizing this tradeoff.
 The theorem is exposed in the artifact as
 \texttt{NoiseFloodingSecure.is\_secure}.
 
 \subsection{Why a Program Logic?}
 
-The central proof-engineering problem is preserving the
-$O(\sqrt q)$ bound.
+The central proof-engineering problem is preserving this
+$O(\sqrt q)$ bound inside the mechanized game-hopping proof.
 Standard approximate relational logics are built around sequencing rules that
 add the error of the first command to the error of the continuation.
 This is exactly right for ordinary statistical-distance or failure-probability
@@ -73,6 +114,36 @@ errors, and the Micciancio--Walter bridge later turns a budget $s$ into the
 single loss $\sqrt{\lVert s\rVert_1/2}$.
 Thus the logic is what makes the formal proof express the same
 ``pay once at the end'' idea as the paper cryptographic argument.
+
+\subsection{Paper Organization}
+
+\Cref{sec:prelim-probability-notation} fixes notation for distributions,
+statistical distance, KL divergence, SSProve programs, metric charts, and the
+noise-flooding parameters.
+\Cref{sec:verified-kl-analysis} gives the verified probability facts used by
+the rest of the paper: Pinsker's inequality, the conditional-coordinate
+Pythagorean preservation theorem, and the KL calculation for equal-variance
+integer Gaussians.
+\Cref{sec:program-logic} then explains the program-logic layer that lets those
+probability facts be applied to SSProve games and adaptive oracle code.
+\Cref{sec:noise-flooding-proof} is the cryptographic application: it states
+the abstract approximate-FHE interface, describes the IND-CPAD-to-IND-CPA
+hybrid chain, isolates the one nonzero noise-flooding hop, and records the
+final theorem.
+\Cref{sec:independent-verification} explains how to audit the formal
+artifact, and the appendices reproduce the main game and interface excerpts.
+
+The paper is meant to support more than one reading path.
+Readers interested in the formal program logic should read
+\Cref{sec:verified-kl-analysis,sec:program-logic} before the application.
+Readers whose main interest is the cryptographic theorem can instead read
+\Cref{sec:noise-flooding-proof,sec:artifact-accounting,sec:tcb,sec:crypto-audit-surface}
+as a largely self-contained account of the verified LMSS-style argument and
+its audit surface.
+These parts are of independent interest to theory cryptographers: they are
+written to minimize assumed programming-language or formal-verification
+prerequisites, while assuming standard cryptographic familiarity with games,
+reductions, hybrids, and oracle adversaries.
 
 \subsection{Contributions}
 

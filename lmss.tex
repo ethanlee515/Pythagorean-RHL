@@ -1,30 +1,47 @@
 \section{Noise Flooding for Approximate Homomorphic Encryption}
+\label{sec:noise-flooding-proof}
 
-This section describes the verified noise-flooding argument for an abstract
-approximate homomorphic encryption scheme.
-The development is intentionally not a CKKS instantiation:
-the scheme interface, correctness assumptions, IND-CPA assumption, and
-metric-chart assumptions are parameters.
-The formal theorem is \texttt{NoiseFloodingSecure.is\_secure}, in the final
-noise-flooding security module.
+This section gives the cryptographic proof carried by the formal development.
+It is written so that the main argument can be read as an ordinary
+game-hopping proof: the verification-specific machinery is used to justify
+the hops, but the objects being related are the usual security games,
+oracles, reductions, and probability bounds.
 
-The cryptographic object being proved secure is the IND-CPAD game of Li and
-Micciancio-style attacks on approximate FHE.
-We keep the exact game syntax out of the main flow; the challenger and oracle
-definitions are given in \Cref{app:ind-cpad-game}.
-Here, the important point is that the adversary is an ordinary SSProve package
-with access to encryption, evaluation, and decryption oracles.
-The decryption oracle enforces a bound $q$ by a counter.
-There is no source-level assumption that the adversary was already factored
-into $q$ decryption-query routines.
+The theorem is parameterized by an abstract approximate homomorphic encryption
+scheme.
+It is intentionally not a CKKS instantiation.
+The scheme interface, correctness assumptions, IND-CPA assumption, and metric
+assumptions are all explicit parameters, and the final formal theorem is
+\texttt{NoiseFloodingSecure.is\_secure}.
+Thus the statement should be read as: any concrete approximate-FHE scheme that
+implements this interface inherits the verified noise-flooding reduction.
+
+The security notion is the IND-CPAD game for Li--Micciancio-style decryption
+attacks on approximate FHE.
+The challenger and oracle definitions are given in \Cref{app:ind-cpad-game};
+the main body uses only their standard roles.
+The adversary receives encryption, evaluation, and decryption oracles, and the
+decryption oracle enforces a bound $q$ by maintaining a counter.
+One piece of terminology is specific to SSProve but harmless: a
+\emph{package} is a stateful implementation of one or more oracles.
+The adversary is otherwise an arbitrary oracle program; in particular, it is
+not assumed to have been written in advance as a list of $q$ separate
+decryption-query routines.
 
 \subsection{Metric and Correctness Interface}
 \label{sec:isometry}
 
-The proof works over a message type $M$ equipped with a metric
-$d : M \times M \to \bbN$ and local integer-vector charts.
-For each center $a \in M$ there is a chart map $I_a : M \to \bbZ^n$ and an
-inverse chart map.
+Noise flooding compares two plaintext centers by sampling discrete Gaussian
+noise around them.
+To state that comparison without committing to a concrete message space, the
+proof assumes a message type $M$ with a metric $d : M \times M \to \bbN$ and
+local integer-vector charts.
+For each center $a \in M$, the chart
+\[
+  I_a : M \to \bbZ^n
+\]
+represents nearby plaintexts as integer vectors relative to $a$, with an
+inverse chart map taking vectors back to messages.
 The interface used by the current theorem is origin-centered:
 \[
   I_a(a)=0,
@@ -35,33 +52,52 @@ together with the chart-compatibility equation
 \[
   I_b^{-1}(x)=I_a^{-1}(x+I_a(b)).
 \]
-This is the abstract version of the usual modular representative story in
-lattice-based approximate FHE: when a plaintext is used as the chart center,
-nearby plaintexts are represented by short integer vectors.
+The first two equations say that the center has vector representative zero and
+that the message metric is exactly the vector norm in the chart.
+The compatibility equation says that changing the center from $a$ to $b$
+amounts to translating coordinates by the vector for $b$ in the $a$-chart.
+This abstracts the usual modular-representative bookkeeping in
+lattice-based approximate FHE: once a plaintext is chosen as the local center,
+nearby plaintexts are represented by short integer vectors, and translating
+the center translates the coordinate system.
 
-For correctness, the proof uses the support-level interface
+The correctness assumption is also stated at the interface level.
+The proof uses the support-level interface
 \texttt{ApproxCorrectnessPerfect}.
 The scheme decryption algorithm remains distribution-valued,
 but the correctness and metric statements use a deterministic decryption center
 \[
   \mathsf{deterministic\_dec}(sk,c).
 \]
-The assumption \texttt{deterministic\_dec\_correct} says that the sampled
-decryption distribution is exactly the point mass at this center.
-Encryption and evaluation correctness then say that every supported ciphertext
-row stored in the challenger table decrypts within its recorded error bound of
-the corresponding challenge plaintext.
+The assumption \texttt{deterministic\_dec\_correct} says that the actual
+decryption distribution is the point mass at this center.
+Encryption and evaluation correctness then give the property needed by the
+security proof: every ciphertext row that can appear in the challenger's table
+decrypts within its recorded error bound of the corresponding challenge
+plaintext.
+Equivalently, whenever the decryption oracle reaches a well-formed table row,
+the real decryption center and the table plaintext are close in the metric
+above.
 
 \subsection{Query-Bounded Oracle Adversaries}
 \label{sec:query-bound}
 
-The query-bound issue is handled by the trace compiler from
-\Cref{sec:program-logic}.
+The only structural obstacle to a direct hybrid proof is adaptivity.
+For a fixed list of $q$ decryption calls, the Pythagorean analysis would simply
+replace one call at a time and combine the $q$ KL costs.
+An oracle adversary does not present such a list: it chooses whether and when
+to call decryption based on previous answers.
+
+The trace compiler from \Cref{sec:program-logic} is the formal device that
+bridges this gap.
 Given an ordinary SSProve adversary and a selected operation identifier, the
 compiler exposes the first $q$ calls to that operation and records the
 surrounding computation as a replayable trace.
+For a cryptographer, this can be read as a verified version of the familiar
+``run until the next oracle call, answer it, and resume'' transformation.
 Invalid replay branches are interpreted as null code, so the compiler theorem
-is semantic rather than merely syntactic.
+is a semantic statement about the adversary's behavior rather than a claim
+about a particular syntactic normal form.
 
 In the noise-flooding proof, the selected operation is the decryption oracle.
 The real and simulated decryption oracles both maintain the same decrypt-count
@@ -88,6 +124,11 @@ We spell out the pseudocode in \Cref{alg:ind-cpa-reduction}; the main proof
 below is about why the transition to that conventional reduction is justified
 inside the verified program logic.
 
+The intermediate games are presentations of the same cryptographic experiment
+with different oracle implementations and, in two places, with the trace
+compiler inserted or removed.
+They are useful because they isolate the only probabilistic loss from the
+bookkeeping equalities.
 To name the intermediate games, we use the trace compiler from
 \Cref{sec:program-logic} directly.
 Let $C_{\cA}^{\mathsf{open}}$ be the open IND-CPAD experiment body: it
@@ -127,6 +168,9 @@ $H_2$ is the compiled-real presentation.
 The equality $H_1=H_2$ is the same-package compiler theorem:
 compiling selected calls and linking them back to the same package preserves
 the completed semantics.
+Here ``completed'' means that assertion failure is treated as an explicit
+failure output, so equalities and statistical-distance bounds compare total
+output distributions.
 
 The paper-level hybrid chain is then
 \[
@@ -158,12 +202,25 @@ security loss is twice the compile distance:
   \mathsf{security\_loss}(q)
     = 2\sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
+This square-root dependence is parameter-critical, not just a prettier proof
+bound.
+Since \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\), the displayed loss is
+\(\sqrt{qn}/\gamma\).
+Keeping the final loss fixed therefore requires the Gaussian-width multiplier
+\(\gamma\) to grow like \(\sqrt q\) for fixed \(n\); a linear composition of
+per-query statistical-distance losses would force \(\gamma\) to grow like
+\(q\).
+In approximate FHE, \(\gamma\) is actual added decryption noise.
+Making it unnecessarily large worsens precision and noise-budget pressure, and
+can force larger parameters or more bootstrapping.
 
 \subsection{The Nonzero Hop}
 \label{sec:paid-hop}
 
 The hop $H_2 \to H_3$ is the only place where the noise-flooding analysis
 pays loss.
+In this hop, the compiled experiment answers each of the first $q$ selected
+decrypt calls with the simulator instead of the real decrypt oracle.
 Let $O_{\mathsf{real}}(i)$ and $O_{\mathsf{sim}}(i)$ be the real and simulated
 decrypt oracle bodies, and let $\Phi$ be the challenger heap invariant
 recording initialized keys, table validity, and the decrypt counter.
@@ -181,9 +238,12 @@ satisfy the Pythagorean judgment
 \end{lemma}
 
 \begin{proof}
-The zero coordinates are bookkeeping: the decrypt prefix and final
-postprocessing are shared deterministic code.
-The middle coordinate is the Gaussian sample.
+The tuple \((0,\epsilon_{\mathsf{nf}},0)\) separates the call into three
+parts.
+The first and last coordinates are bookkeeping: the decrypt prefix and final
+postprocessing are shared deterministic code and therefore spend no KL budget.
+The middle coordinate is the only random step whose center changes, namely
+the Gaussian sample.
 The proof factors the decryption oracle into a shared deterministic prefix and
 a noisy continuation.
 The prefix reads and increments the decrypt counter, reads the table, checks
@@ -192,13 +252,16 @@ stored in that row are equal.
 Ordinary Hoare reasoning shows that this prefix preserves $\Phi$ and certifies
 the table row for the continuation.
 
-If the two labels are unequal, both continuations return \texttt{None}, so the
-Pythagorean cost is zero.
+Unequal labels are the easy branch.
+Both continuations return \texttt{None}, and this branch costs zero.
 If the labels are equal, the real continuation samples around
 \[
   \mathsf{deterministic\_dec}(sk,c),
 \]
 while the simulator samples around the table plaintext.
+This is exactly the LMSS noise-flooding move: replace the real approximate
+decryption center by the ideal table plaintext, and hide the displacement by
+adding sufficiently wide discrete Gaussian noise.
 The table invariant and perfect correctness give that these centers are within
 the ciphertext's recorded error bound.
 The chart equation
@@ -245,6 +308,8 @@ decrypt calls and then applies \LabTirName{Micciancio-Walter}, giving
 \label{sec:exact-hops}
 
 The remaining hops are exact, but they are not all the same kind of exactness.
+This subsection records what each zero-cost arrow means, so that the single
+nonzero loss above is not hiding any informal oracle-replacement step.
 
 The bridge $H_0\to H_1$ is an exact presentation change.
 It unfolds the IND-CPAD game from \Cref{app:ind-cpad-game} into open

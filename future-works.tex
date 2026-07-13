@@ -5,6 +5,17 @@ Another direction is to integrate the trace-compilation oracle replacement theor
 
 On the cryptography application side, there is also a lot more to verify for the CKKS approximate homomorphic encryption.
 For example, one could simply fill in the construction and show that the scheme is indeed IND-CPA and approximately correct.
+Another natural direction is to verify other strategies for choosing
+noise-flooding parameters.
+The present theorem formalizes one sufficient choice: choose the flooding
+width large enough that the Pythagorean KL calculation yields the stated
+IND-CPAD loss.
+Existing work studies related choices through precision-loss analysis and
+concrete reassessments of noise-flooding countermeasures
+\cite{costache2023precision,bergamaschi2025revisiting}.
+Formalizing such alternative analytic or heuristic parameter choices would
+make it possible to compare security loss, output accuracy, and implementation
+cost inside the same checked framework.
 
 Finally, we can attempt to apply our program logic to the floating point computation setting as described by \cite{mw17}.
 For instance, one can consider the Falcon post-quantum digital signature which was selected by NIST,
