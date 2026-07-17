@@ -50,6 +50,133 @@ audit independently.
   lastline=230
 ]{coq}{rocq-excerpts/theories/Schemes/ApproxFHE.v}
 
+\subsection{Discrete-Gaussian Distribution and KL Formula}
+\label{app:discrete-gaussian-definition-excerpt}
+
+The following excerpts pin down the sampler's mass function.  In particular,
+the distribution is not an abstract parameter: it is the normalized
+exponential weight below (and is the null subdistribution when the standard
+deviation is nonpositive).
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=27,
+  firstline=27,
+  lastline=29
+]{coq}{rocq-excerpts/theories/Probability/DiscreteGaussians/DiscreteGaussian.v}
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=195,
+  firstline=195,
+  lastline=200
+]{coq}{rocq-excerpts/theories/Probability/DiscreteGaussians/DiscreteGaussian.v}
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=226,
+  firstline=226,
+  lastline=227
+]{coq}{rocq-excerpts/theories/Probability/DiscreteGaussians/DiscreteGaussian.v}
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=278,
+  firstline=278,
+  lastline=282
+]{coq}{rocq-excerpts/theories/Probability/DiscreteGaussians/DiscreteGaussian.v}
+
+The equal-variance KL identity consumed by the program logic is itself a
+proved theorem, rather than an additional Gaussian assumption.
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=221,
+  firstline=221,
+  lastline=224
+]{coq}{rocq-excerpts/theories/Probability/DiscreteGaussians/DiscreteGaussianKL.v}
+
+\subsection{Product Samplers and SSProve Bridge}
+\label{app:discrete-gaussian-product-excerpt}
+
+The construction folds the one-coordinate distribution into an independent
+tuple.
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=14,
+  firstline=14,
+  lastline=26
+]{coq}{rocq-excerpts/theories/LibExtras/MathcompExtras/DTuple.v}
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=23,
+  firstline=23,
+  lastline=24
+]{coq}{rocq-excerpts/theories/Constructions/NoiseFlooding.v}
+
+The reduction uses SSProve's integer and vector types.  Its adapter transports
+the same one-dimensional distribution into that integer type, then samples
+the vector recursively.
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=21,
+  firstline=21,
+  lastline=22
+]{coq}{rocq-excerpts/theories/LibExtras/SSProveExtras/DiscreteGaussian.v}
+
+\begin{samepage}
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=112,
+  firstline=112,
+  lastline=125
+]{coq}{rocq-excerpts/theories/LibExtras/SSProveExtras/DiscreteGaussian.v}
+\end{samepage}
+
+The proved bridge identifies that SSProve sampler, after conversion, with the
+tuple sampler used by the transformed scheme.
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=205,
+  firstline=205,
+  lastline=207
+]{coq}{rocq-excerpts/theories/Security/IndcpadSimulator.v}
+
+Finally, the addition in the displayed decryption code below is coordinatewise.
+
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=22,
+  firstline=22,
+  lastline=23
+]{coq}{rocq-excerpts/theories/Schemes/Utils/IntVec.v}
+
 \subsection{IND-CPA Game}
 \label{app:ind-cpa-game-excerpt}
 
@@ -138,9 +265,9 @@ audit independently.
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=1788,
-  firstline=1788,
-  lastline=1792
+  firstnumber=1783,
+  firstline=1783,
+  lastline=1787
 ]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
 
 \subsection{Final Security Theorem}
@@ -150,9 +277,9 @@ audit independently.
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=1957,
-  firstline=1957,
-  lastline=1960
+  firstnumber=1952,
+  firstline=1952,
+  lastline=1955
 ]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
 
 \endgroup

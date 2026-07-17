@@ -109,14 +109,23 @@ mathematics and programming-language semantics live below our development.
 Once those foundations and the cryptographic definitions are accepted, the
 remaining machine-checkable claim is deliberately simple: Rocq typechecks the
 proof.
-The command
+After applying the parameterized \texttt{NoiseFloodingSecure} module to a
+scheme, metric, correctness proof, IND-CPA interface, and parameter module,
+and binding the result as \texttt{Secure}, the command
 \[
   \texttt{Print Assumptions Secure.is\_secure}
 \]
 is the machine-checkable summary of what remains outside the proof: the
 scheme/correctness/metric interfaces, the IND-CPA game interface, positivity
-of the Gaussian-width multiplier, and the ordinary library/classical
-assumptions inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
+of the Gaussian-width multiplier, and the library/classical assumptions
+inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
+At present that output also contains MathComp Analysis's admitted
+\path{realsum.__admitted__interchange_psum} axiom, inherited through
+the distribution infrastructure.
+The local \texttt{interchange\_psum\_proved} lemma proves the same statement,
+but the final dependency graph has not yet been refactored to eliminate every
+library path through the admitted version; it therefore remains part of the
+current trusted computing base.
 
 \subsection{What a Cryptographer Should Audit}
 \label{sec:crypto-audit-surface}
@@ -164,20 +173,26 @@ File & Excerpt lines & What to audit \\
 \hline
 \texttt{Schemes/ApproxFHE.v} & 83
   & scheme interface, correctness assumptions, metric charts \\
+\texttt{Probability/DiscreteGaussians/\{DiscreteGaussian,DiscreteGaussianKL\}.v} & 20
+  & normalized mass function and equal-variance KL theorem \\
+\texttt{LibExtras/\{MathcompExtras/DTuple,SSProveExtras/DiscreteGaussian\}.v} & 29
+  & independent product sampler and SSProve integer adapter \\
+\texttt{Schemes/Utils/IntVec.v} & 2
+  & coordinatewise integer-vector addition \\
 \texttt{Schemes/Indcpa.v} & 60
   & IND-CPA game and adversary-dependent bound interface \\
 \texttt{Schemes/Indcpad.v} & 108
   & IND-CPAD game, oracle table, decrypt-query behavior \\
-\texttt{Constructions/NoiseFlooding.v} & 45
-  & transformed scheme and Gaussian-width parameter \\
-\texttt{Security/IndcpadSimulator.v} & 95
-  & concrete IND-CPA reduction and simulation oracle \\
+\texttt{Constructions/NoiseFlooding.v} & 47
+  & tuple sampler, transformed scheme, and Gaussian-width parameter \\
+\texttt{Security/IndcpadSimulator.v} & 98
+  & concrete reduction, simulation oracle, and sampler bridge \\
 \texttt{NoiseFloodingSecurity/Prelude.v} & 5
   & closed-form noise-flooding loss \\
 \texttt{NoiseFloodingSecurity/Final.v} & 13
   & security bound, reduction validity, main theorem statement \\
 \hline
-Total & 409 & crypto-facing specification layer \\
+Total & 465 & crypto-facing specification layer \\
 \hline
 \end{tabular}
 }
@@ -194,6 +209,9 @@ This is deliberate: the specification layer is where a cryptographer checks
 that the theorem is about the intended games and assumptions.
 \Cref{app:approximate-homomorphic-encryption-interface,app:metric-chart-excerpt,app:support-correctness-excerpt}
 show the scheme interface and correctness/metric assumptions;
+\Cref{app:discrete-gaussian-definition-excerpt,app:discrete-gaussian-product-excerpt}
+show the normalized one-dimensional Gaussian, its KL theorem, both product
+samplers, and their proved bridge;
 \Cref{app:ind-cpa-game-excerpt,app:ind-cpa-d-game-excerpt} show the two games;
 \Cref{app:noise-flooded-construction-excerpt,app:ind-cpa-reduction-excerpt,app:loss-formula-excerpt,app:security-bound-excerpt}
 show the construction, concrete reduction, closed-form loss, and
