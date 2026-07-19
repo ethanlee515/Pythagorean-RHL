@@ -21,9 +21,9 @@ approximate arithmetic, but their decryption interfaces require care: small
 approximation errors can become attack surfaces, and standard mitigations such
 as noise flooding rely on quantitative probabilistic arguments.
 We present a Rocq/SSProve formalization of the Li--Micciancio--Schultz-Wu--Sorrell noise-flooding proof for an abstract approximate-FHE interface.
-The verified theorem shows that the IND-CPAD advantage of the noise-flooded
-scheme is bounded by the IND-CPA advantage of the underlying scheme plus the
-expected Pythagorean loss.
+The verified theorem shows that an IND-CPAD adversary's probability of
+guessing the hidden bit is bounded by the supplied IND-CPA security bound for
+a constructed reduction plus the expected Pythagorean loss.
 The proof rests on three reusable components: a verified KL-divergence and
 discrete-Gaussian analysis over countable MathComp distributions, semantic
 additive-error and Pythagorean relational judgments for SSProve programs, and

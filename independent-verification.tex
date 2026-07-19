@@ -93,7 +93,7 @@ subdistributions, and completed games.
 
 Our claim starts above that foundation.
 Given SSProve's semantics for games and MathComp's semantics for distributions
-and real analysis, the formal artifact checks that the noise-flooding theorem
+and real analysis, the formal artifact checks that the security theorem
 follows from the stated scheme, correctness, metric, and IND-CPA assumptions.
 The proof-specific ingredients are not additional trusted axioms.
 The program-logic rules, trace compiler, KL lemmas, discrete-Gaussian facts,
@@ -116,9 +116,10 @@ and binding the result as \texttt{Secure}, the command
   \texttt{Print Assumptions Secure.is\_secure}
 \]
 is the machine-checkable summary of what remains outside the proof: the
-scheme/correctness/metric interfaces, the IND-CPA game interface, positivity
-of the Gaussian-width multiplier, and the library/classical assumptions
-inherited from Rocq, MathComp, MathComp Analysis, and SSProve.
+scheme/correctness/metric interfaces, the assumed IND-CPA winning-probability
+theorem, positivity of the Gaussian-width multiplier, and the
+library/classical assumptions inherited from Rocq, MathComp, MathComp
+Analysis, and SSProve.
 At present that output also contains MathComp Analysis's admitted
 \path{realsum.__admitted__interchange_psum} axiom, inherited through
 the distribution infrastructure.
@@ -134,8 +135,9 @@ The main theorem is exposed as
 \texttt{NoiseFloodingSecure.is\_secure}.
 The statement itself is the primary cryptographic object to audit.
 It says that for every adversary accepted by the IND-CPAD interface, the
-noise-flooded advantage is at most the IND-CPA advantage
-of a concrete constructed reduction plus the verified noise-flooding loss.
+noise-flooded adversary's probability of guessing the hidden bit is at most
+the supplied IND-CPA security bound for a concrete constructed reduction plus
+the verified noise-flooding loss.
 The word ``package'' in the formal statement should be read simply as
 ``stateful oracle program''; the important cryptographic point is that the
 adversary can make adaptive encryption, evaluation, and decryption queries
@@ -144,8 +146,8 @@ subject to the stated decryption-query bound.
 A crypto-facing audit can therefore focus on four questions.
 Does the IND-CPAD game encode the intended Li--Micciancio-style decryption
 attack model?
-Does the IND-CPA game on the right-hand side match the assumed security notion
-for the underlying scheme?
+Does the assumed IND-CPA winning-probability bound match the intended security
+notion for the underlying scheme?
 Is the concrete reduction the expected one, with simulated decrypt queries
 answered by noise flooding the common table plaintext?
 Do the metric, correctness, and Gaussian-width assumptions justify the loss
@@ -153,7 +155,7 @@ Do the metric, correctness, and Gaussian-width assumptions justify the loss
 \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\)?
 The appendix excerpts are organized around exactly these questions.
 \Cref{app:ind-cpa-reduction-excerpt} shows the concrete reduction package;
-\Cref{app:security-bound-excerpt} shows the reduction-shaped bound as the
+\Cref{app:security-bound-excerpt} shows the composed bound as the
 definition of \texttt{security\_bound}; \Cref{app:reduction-bound-excerpt}
 shows that the constructed reduction has the IND-CPA adversary interface; and
 \Cref{app:final-reduction-theorem} shows the final theorem statement.
@@ -179,9 +181,9 @@ File & Excerpt lines & What to audit \\
   & independent product sampler and SSProve integer adapter \\
 \texttt{Schemes/Utils/IntVec.v} & 2
   & coordinatewise integer-vector addition \\
-\texttt{Schemes/Indcpa.v} & 60
+\texttt{Schemes/Indcpa.v} & 57
   & IND-CPA game and adversary-dependent bound interface \\
-\texttt{Schemes/Indcpad.v} & 108
+\texttt{Schemes/Indcpad.v} & 118
   & IND-CPAD game, oracle table, decrypt-query behavior \\
 \texttt{Constructions/NoiseFlooding.v} & 47
   & tuple sampler, transformed scheme, and Gaussian-width parameter \\
@@ -189,10 +191,10 @@ File & Excerpt lines & What to audit \\
   & concrete reduction, simulation oracle, and sampler bridge \\
 \texttt{NoiseFloodingSecurity/Prelude.v} & 5
   & closed-form noise-flooding loss \\
-\texttt{NoiseFloodingSecurity/Final.v} & 13
-  & security bound, reduction validity, main theorem statement \\
+\texttt{NoiseFloodingSecurity/Final.v} & 14
+  & security bound, reduction validity, final theorem statement \\
 \hline
-Total & 465 & crypto-facing specification layer \\
+Total & 473 & crypto-facing specification layer \\
 \hline
 \end{tabular}
 }
@@ -215,9 +217,9 @@ samplers, and their proved bridge;
 \Cref{app:ind-cpa-game-excerpt,app:ind-cpa-d-game-excerpt} show the two games;
 \Cref{app:noise-flooded-construction-excerpt,app:ind-cpa-reduction-excerpt,app:loss-formula-excerpt,app:security-bound-excerpt}
 show the construction, concrete reduction, closed-form loss, and
-reduction-shaped security bound.
+composed security bound.
 \Cref{app:reduction-bound-excerpt} shows reduction validity, and
-\Cref{app:final-reduction-theorem} shows only the main theorem statement.
+\Cref{app:final-reduction-theorem} shows only the final theorem statement.
 The proof scripts are not the part a cryptographer should have to read in
 order to understand what has been proved.
 The full development is about 28,000 lines, with just under 10,000 lines in the

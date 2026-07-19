@@ -196,7 +196,7 @@ the paid hop.
 The Coq development refines the last exact arrow through an auxiliary linked
 presentation, but this is package-linking bookkeeping rather than an additional
 cryptographic endpoint.
-The public theorem states the final advantage bound, so the exported
+The public theorem states the final winning-probability bound, so the exported
 security loss is twice the compile distance:
 \[
   \mathsf{security\_loss}(q)
@@ -357,33 +357,18 @@ queries, the verified reduction constructs the IND-CPA adversary
 $\mathcal{B}_{\cA}$
 such that
 \[
-  \Adv[H_0(\cA)]
-  \le
-  \Adv[\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})]
-  + 2\sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-Consequently, using the assumed IND-CPA security bound for the underlying
-scheme,
-\[
-  \Adv[H_0(\cA)]
+  \WinProb[H_0(\cA)]
   \le
   \mathsf{security\_bound}_{\mathsf{IND\text{-}CPA}}(\mathcal{B}_{\cA})
   + 2\sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
 \end{theorem}
 
-\Codex{Critical artifact mismatch: the current
-\texttt{NoiseFloodingSecure.is\_secure} proves the first, reduction-shaped
-bound because \texttt{Final.v}'s local \texttt{security\_bound} contains the
-constructed reduction's actual \texttt{winning\_probability}. It never applies
-\texttt{IndCpaSecurity.is\_secure}, so the second displayed consequence is not
-currently exported by the artifact and the assumed IND-CPA theorem should not
-appear in \texttt{Print Assumptions}. Add and export the short corollary using
-\texttt{IndCpaSecurity.is\_secure}, or remove the second claim and revise the
-TCB discussion.}
-
-This is the theorem exposed in Coq as \texttt{NoiseFloodingSecure.is\_secure}.
+This inequality is exposed in Coq as
+\texttt{NoiseFloodingSecure.is\_secure}.
 The intermediate additive-error theorem is the direct formal counterpart of
 the hybrid chain above: it relates $H_0$ to $H_6$ by additive
-error $\sqrt{q\epsilon_{\mathsf{nf}}/2}$ at the returned-bit postcondition, and
-the final theorem packages this into the advantage bound.
+error $\sqrt{q\epsilon_{\mathsf{nf}}/2}$ at the returned-bit postcondition.
+An internal lemma first bounds the IND-CPAD winning probability by the actual
+winning probability of $\mathcal{B}_{\cA}$ plus the loss; the final theorem
+then applies the assumed IND-CPA bound.
