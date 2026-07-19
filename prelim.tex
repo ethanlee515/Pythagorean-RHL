@@ -350,18 +350,15 @@ compile distance
   =
   \sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}},
 \]
-and the final winning-probability theorem pays this distance twice:
+and the final winning-probability theorem pays exactly this distance:
 \[
   \mathsf{security\_loss}(q)
   =
-  2\sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}}.
+  \sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}}.
 \]
+The last step uses the tight fact that, for equal-mass distributions, the
+difference at any point is at most their statistical distance.  Completed
+game-output distributions have mass one, and winning is the Boolean output
+point \texttt{true}, so no extra factor is introduced.
 These are the parameters appearing in the formal theorem
 \texttt{NoiseFloodingSecure.is\_secure}.
-\Codex{The factor two is not inherent in the Pythagorean argument. It enters in
-\texttt{Final.v} through \texttt{total\_variation\_complete\_point\_bound2},
-which bounds a point-probability difference by twice TVD even though the
-completed distributions have weight one. A tight event bound should reduce the
-exported loss from $2\Delta_{\mathsf{comp}}$ to
-$\Delta_{\mathsf{comp}}$; either tighten the artifact or explain that the stated
-constant is conservative.}

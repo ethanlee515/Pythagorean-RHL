@@ -196,16 +196,16 @@ the paid hop.
 The Coq development refines the last exact arrow through an auxiliary linked
 presentation, but this is package-linking bookkeeping rather than an additional
 cryptographic endpoint.
-The public theorem states the final winning-probability bound, so the exported
-security loss is twice the compile distance:
+The public theorem states the final winning-probability bound, and the
+exported security loss is the compile distance itself:
 \[
   \mathsf{security\_loss}(q)
-    = 2\sqrt{q\epsilon_{\mathsf{nf}}/2}.
+    = \sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
 This square-root dependence is parameter-critical, not just a prettier proof
 bound.
 Since \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\), the displayed loss is
-\(\sqrt{qn}/\gamma\).
+\(\sqrt{qn}/(2\gamma)\).
 Keeping the final loss fixed therefore requires the Gaussian-width multiplier
 \(\gamma\) to grow like \(\sqrt q\) for fixed \(n\); a linear composition of
 per-query statistical-distance losses would force \(\gamma\) to grow like
@@ -360,7 +360,7 @@ such that
   \WinProb[H_0(\cA)]
   \le
   \mathsf{security\_bound}_{\mathsf{IND\text{-}CPA}}(\mathcal{B}_{\cA})
-  + 2\sqrt{q\epsilon_{\mathsf{nf}}/2}.
+  + \sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
 \end{theorem}
 
