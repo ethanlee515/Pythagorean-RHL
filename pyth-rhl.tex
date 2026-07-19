@@ -94,17 +94,16 @@ We write
 \end{equation}
 if all entries of $s$ are nonnegative and, for every pair of initial configurations
 $\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$,
-there exist weight-one correlated transcript families
+there exist weight-one joint transcript distributions
 \[
-  \{\cP_i(\rho_L,\rho_R)\}_{i=1}^n,
-  \{\cQ_i(\rho_L,\rho_R)\}_{i=1}^n
+  \cP(\rho_L,\rho_R),\cQ(\rho_L,\rho_R)\in\distr(\Omega^n)
 \]
 over completed output/heap values such that:
 \[
 \begin{aligned}
-&\cP_n(\rho_L,\rho_R)=\csemantic{c_L}_{\rho_L},
+&\mathsf{marg}_n(\cP(\rho_L,\rho_R))=\csemantic{c_L}_{\rho_L},
 \qquad
-\cQ_n(\rho_L,\rho_R)=\csemantic{c_R}_{\rho_R},
+\mathsf{marg}_n(\cQ(\rho_L,\rho_R))=\csemantic{c_R}_{\rho_R},
 \\
 &\forall i\in\{1,\ldots,n\},\ 
   \forall a\in\Omega^{i-1}.\

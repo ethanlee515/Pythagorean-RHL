@@ -58,14 +58,14 @@ KL, Pinsker, Pythagorean probability, discrete Gaussians
   & 5527
   & \texttt{Probability/KL/}, \texttt{Probability/DiscreteGaussians/} \\
 Program logics and trace infrastructure
-  & 6657
+  & 6919
   & \texttt{ProgramLogics/}, \texttt{Probability/\{DletTuple,OutputHeap,PythSeq\}.v}, \texttt{NextMessage/Trace.v} \\
 LMSS/noise-flooding games and security proof
-  & 11199
+  & 10959
   & \texttt{Schemes/\{ApproxFHE,Indcpa,Indcpad\}.v}, \texttt{Constructions/NoiseFlooding.v}, \texttt{Security/IndcpadSimulator.v}, \texttt{NoiseFloodingSecurity/} \\
 \hline
-Three main technical layers & 23383 & \\
-Full Rocq development & 27938 & includes local MathComp/SSProve adapters \\
+Three main technical layers & 23405 & \\
+Full Rocq development & 27960 & includes local MathComp/SSProve adapters \\
 \hline
 \end{tabular}
 }
@@ -134,7 +134,7 @@ The main theorem is exposed as
 \texttt{NoiseFloodingSecure.is\_secure}.
 The statement itself is the primary cryptographic object to audit.
 It says that for every adversary accepted by the IND-CPAD interface, the
-noise-flooded winning probability is at most the IND-CPA winning probability
+noise-flooded advantage is at most the IND-CPA advantage
 of a concrete constructed reduction plus the verified noise-flooding loss.
 The word ``package'' in the formal statement should be read simply as
 ``stateful oracle program''; the important cryptographic point is that the
@@ -277,6 +277,10 @@ order.
 The paper should give pen-and-paper proofs of the mathematical facts that are
 not immediate, especially the chain-rule/summability argument and the
 discrete-Gaussian KL calculation.
+\Codex{Submission blocker: the current draft says these proofs should be
+present but does not yet provide them. For a PLDI/POPL presentation, include at
+least proof sketches for the chain/summability theorem, Pythagorean sequencing,
+final-marginal bridge, and trace-compiler correctness.}
 The formal development then checks the details that are easy to lose in an
 informal proof over countable distributions: absolute continuity,
 positive/negative-part summability, interchange of countable sums, and the
@@ -325,6 +329,11 @@ and the Pythagorean final-marginal theorem behind the Micciancio--Walter
 bridge---the paper should provide pen-and-paper arguments at the level of
 mathematics and proof structure.
 The Rocq proofs then check that those arguments have no hidden side conditions.
+
+\Codex{For PLDI, turn this audit narrative into an evaluation: report rule and
+theorem coverage, build/check time and environment, proof decomposition for the
+case study, where the compiler is required, the linear-composition baseline,
+and evidence for reuse beyond this single noise-flooding proof.}
 
 For cryptographers, this part should look familiar at a high level.
 We define judgments by their intended semantics, prove inference rules sound,

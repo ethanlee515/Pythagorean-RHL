@@ -60,7 +60,7 @@ The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
     \State $d \gets d+1$
     \State \textbf{assert} $i<|T|$
     \If{$T_i.m_0\ne T_i.m_1$}
-      \State \Return $\bot$
+      \State \Return $\mathsf{None}$
     \Else
       \State \Return $\mathsf{SampleCurrent}(T_i)$
     \EndIf

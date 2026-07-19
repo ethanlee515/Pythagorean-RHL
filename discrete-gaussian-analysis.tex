@@ -28,9 +28,8 @@ The proof reduces total variation to a binary event, proves the binary quadratic
 
 We also prove the chain-rule for the conditional-coordinate KL bound.
 This is the result used by Pythagorean probability preservation.
-\begin{lemma}    
-Let $\set{\cP_i}_{i=1}^n$ and $\set{\cQ_i}_{i=1}^n$ be distributions over $n$-tuples.
-Moreover, we assume
+\begin{lemma}
+Let $\cP$ and $\cQ$ be distributions over $n$-tuples. Assume
 \begin{itemize}
     \item The distributions are lossless: $dweight(\cP)=dweight(\cQ)=1$.
     \item The relevant KL divergences are all finite:
@@ -77,7 +76,7 @@ The discrete-Gaussian development is now one ingredient of the KL story rather t
 It proves the equal-variance KL formula used by \LabTirName{KL-DG}:
 \begin{lemma}[KL Divergence between discrete Gaussians]
 \label{lem:dg-kl}
-Let $\sigma\in\bbR$ be positive. For all $\mu, \nu\in\bbN$, We have
+Let $\sigma\in\bbR$ be positive. For all $\mu, \nu\in\bbZ$, we have
 \[
   \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
   =
@@ -98,16 +97,18 @@ These tail bounds are useful for future cryptographic applications, but the curr
 Thus the probability layer supplies three kinds of facts to the program logic:
 ordinary distribution-level KL bounds such as the discrete-Gaussian theorem,
 global KL-to-TVD conversion via Pinsker and the chain rule,
-and completion/coupling lemmas \Ethan{Commented out below, find a home for it at some point} that turn TVD bounds into additive-error judgments over SSProve semantics.
-
-% The additive-error probability layer defines completion of a subdistribution by adding an explicit failure point,
-% constructs overlap and residual distributions, and proves a maximal-coupling theorem from a TVD bound:
-% \[
-%   \Delta(\mu,\nu)\leq \varepsilon
-%   \quad\Longrightarrow\quad
-%   \exists d.\ 
-%   \mathsf{Cpl}(d;\mu,\nu)
-%   \wedge
-%   \Pr_{(x,y)\gets d}[x=y]\geq 1-\varepsilon .
-% \]
-% The program-level additive-error rules use this theorem after packing SSProve outputs and heaps into a common completed output space.
+and completion/coupling lemmas that turn TVD bounds into additive-error
+judgments over SSProve semantics.
+The additive-error probability layer defines completion of a subdistribution
+by adding an explicit failure point, constructs overlap and residual
+distributions, and proves a maximal-coupling theorem from a TVD bound:
+\[
+  \Delta(\mu,\nu)\leq \varepsilon
+  \quad\Longrightarrow\quad
+  \exists d.\
+  \mathsf{Cpl}(d;\mu,\nu)
+  \wedge
+  \Pr_{(x,y)\gets d}[x=y]\geq 1-\varepsilon .
+\]
+The program-level additive-error rules use this theorem after packing SSProve
+outputs and heaps into a common completed output space.

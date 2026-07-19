@@ -1,10 +1,11 @@
-\section{Future Works}
+\section{Future Work}
 
 The verified noise-flooding reduction gives a reusable formal theorem, but
 the surrounding cryptographic applications are still only a first step.
 In particular, there is more to verify for the CKKS approximate homomorphic
 encryption scheme itself.
-For example, one could simply fill in the construction and show that the scheme is indeed IND-CPA and approximately correct.
+A major next step is to instantiate the abstract interface with CKKS and verify
+the concrete scheme's IND-CPA security and approximate correctness obligations.
 Another natural direction is to verify other strategies for choosing
 noise-flooding parameters.
 The present theorem formalizes one sufficient choice: choose the flooding

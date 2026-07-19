@@ -42,9 +42,9 @@ metric charts that connect plaintext distance to discrete-Gaussian sampling.
 For every adversary in the IND-CPAD game, the formal development constructs
 the usual IND-CPA reduction and proves the bound
 \[
-  \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}(\cA)=1]
+  \Adv[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}(\cA)]
   \leq
-  \Pr[\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})=1]
+  \Adv[\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})]
   +
   \frac{\sqrt{qn}}{\gamma}.
 \]
@@ -191,9 +191,12 @@ the $q$-query noise-flooding bound.
 \paragraph{Verified LMSS-style noise flooding.}
 Combining the probability library, program logic, and trace compiler, we prove
 the noise-flooding security theorem for an abstract approximate-FHE scheme.
-The final statement is an inequality about SSProve winning probabilities, not
+The final statement is an inequality about SSProve distinguishing advantages, not
 about derivability in our logic.
 Thus the program logic organizes the proof, while the exported theorem remains
 anchored in the standard SSProve game semantics.
 The accompanying Rocq development is available at
 \url{https://github.com/ethanlee515/mending}.
+\Codex{All candidate venues discussed for this draft use double-blind review.
+Replace this URL with an anonymized artifact link in the review version and
+scrub identifying repository metadata.}

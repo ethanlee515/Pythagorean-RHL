@@ -9,6 +9,11 @@ the pieces that determine the shape of the security statement.
 \label{sec:prelim-probability-notation}
 
 All distributions in the paper are discrete.
+For either security game below, we follow the artifact's convention
+\[
+  \Adv[G]\triangleq \left|\Pr[G=1]-\frac12\right|.
+\]
+The Rocq development calls this quantity \texttt{winning\_probability}.
 
 \begin{definition}[Distance and KL]
 Let \(\cD_1\) and \(\cD_2\) be distributions.
@@ -221,6 +226,11 @@ short representative of \(b-a\) and \(J_a\) as coordinate-wise modular
 decoding centered at \(a\).
 The usual metric-space laws are expected of concrete instantiations, but the
 formal reduction itself only calls on the chart equations above.
+\Codex{The artifact does not assume either round-trip equation
+$J_a(I_a(b))=b$ or $I_a(J_a(x))=x$.  Thus \texttt{inverse\_isometry} is only a
+shift-compatible decoder, not a proved inverse.  State this limitation and the
+resulting correctness/utility boundary prominently, or restore the needed
+round-trip laws for the intended concrete interpretation.}
 
 \subsection{Pythagorean Probability Preservation}
 \label{sec:prelim-pythagorean-preservation}
@@ -338,7 +348,7 @@ compile distance
   =
   \sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}},
 \]
-and the final winning-probability theorem pays this distance twice:
+and the final advantage theorem pays this distance twice:
 \[
   \mathsf{security\_loss}(q)
   =
@@ -346,3 +356,10 @@ and the final winning-probability theorem pays this distance twice:
 \]
 These are the parameters appearing in the formal theorem
 \texttt{NoiseFloodingSecure.is\_secure}.
+\Codex{The factor two is not inherent in the Pythagorean argument. It enters in
+\texttt{Final.v} through \texttt{total\_variation\_complete\_point\_bound2},
+which bounds a point-probability difference by twice TVD even though the
+completed distributions have weight one. A tight event bound should reduce the
+exported loss from $2\Delta_{\mathsf{comp}}$ to
+$\Delta_{\mathsf{comp}}$; either tighten the artifact or explain that the stated
+constant is conservative.}
