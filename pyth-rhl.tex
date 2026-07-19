@@ -231,36 +231,44 @@ The primitive sampling rule embeds an ordinary distribution-level KL fact into a
 \end{mathpar}
 The equal-memory premise is present because sampling returns the sampled value without changing the heap, and the one-step trace encoding packs output/heap pairs.
 
-The discrete Gaussian rule is the corresponding  \Ethan{Can probably be cleaned up. $y\in\supp(\mathcal{DG}_{\mu_R,\sigma^2})$ is not meaningful, since the support is full $\bbN$.}:
+The discrete-Gaussian specialization used by the noise-flooding proof is the
+vector rule below.  Write
+\(\mathcal{DG}^n_{\vec\mu,\sigma^2}\) for the product of \(n\)
+independent discrete Gaussians with center vector
+\(\vec\mu\in\bbZ^n\).  Applying the verified scalar KL formula to each
+coordinate and then summing the resulting budgets gives:
 \begin{mathpar}
-\inferrule[KL-DG]
+\inferrule[KL-DGn]
   {
     0<\sigma\\
     0\leq\varepsilon\\
-    \forall \mu_L,\mu_R,m_L,m_R.\
-      P((\mu_L,m_L),(\mu_R,m_R))\Rightarrow m_L=m_R\\
-    \forall \mu_L,\mu_R,m_L,m_R.\
-      P((\mu_L,m_L),(\mu_R,m_R))\Rightarrow
-      \frac{(\mu_R-\mu_L)^2}{2\sigma^2}\leq\varepsilon\\
-    \forall \mu_L,\mu_R,m_L,m_R,y.\
-      P((\mu_L,m_L),(\mu_R,m_R))
-      \wedge y\in\supp(\mathcal{DG}_{\mu_L,\sigma^2})
-      \Rightarrow Q(y,m_L)\\
-    \forall \mu_L,\mu_R,m_L,m_R,y.\
-      P((\mu_L,m_L),(\mu_R,m_R))
-      \wedge y\in\supp(\mathcal{DG}_{\mu_R,\sigma^2})
-      \Rightarrow Q(y,m_R)
+    \forall i<n.\
+      \frac{(\mu_{R,i}-\mu_{L,i})^2}{2\sigma^2}
+      \leq\varepsilon\\
+    \forall m_L,m_R.\ P(m_L,m_R)\Rightarrow m_L=m_R\\
+    \forall m_L,m_R,\vec y\in\bbZ^n.\
+      P(m_L,m_R)\Rightarrow
+      Q(\vec y,m_L)\wedge Q(\vec y,m_R)
   }
   {
     \vDash\Pyth\set{P}\
-      x\gets\mathcal{DG}_{\mu_L,\sigma^2}
-      \approx_{[\varepsilon]}
-      x\gets\mathcal{DG}_{\mu_R,\sigma^2}
+      \vec x\gets
+        \mathcal{DG}^n_{\vec\mu_L,\sigma^2}
+      \approx_{[n\varepsilon]}
+      \vec x\gets
+        \mathcal{DG}^n_{\vec\mu_R,\sigma^2}
       \set{Q}
   }.
 \end{mathpar}
-The formal rule uses integer centers and the verified KL bound for discrete Gaussians.
-There is also a closed-program variant.
+Unlike the generic sampling rule, \LabTirName{KL-DGn} has no support side
+conditions: the product Gaussian has full support on \(\bbZ^n\), so the
+postcondition must hold for every integer-vector output.
+The formal \texttt{dgTuplePythDist} proof constructs the product distribution
+coordinate by coordinate from the scalar discrete-Gaussian KL theorem.
+The \texttt{klDgNRule} then sums the \(n\) coordinate bounds and transports the
+tuple through an injective SSProve encoding.  The noise-flooding development
+instantiates this encoding with its integer-vector representation and uses
+\texttt{klDgNRule} for the vector sampling step.
 
 \paragraph{Structural rules.}
 The reflexivity and consequence rules are proved directly from the transcript semantics:
