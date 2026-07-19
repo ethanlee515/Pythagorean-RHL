@@ -6,8 +6,7 @@ Approximate schemes such as CKKS \cite{ckks} make this idea practical for
 real-valued arithmetic, but they also make security statements more delicate:
 decryption returns an approximate value, and the approximation error itself can
 become a source of information.
-The Li--Micciancio attack \cite{lm} showed that this issue is not merely
-cosmetic.
+The Li--Micciancio attack \cite{lm} can recover the private decryption key using this information.
 Later work has shown that this decryption-query viewpoint is broader than
 CKKS: exact FHE schemes can also fail IND-CPAD when parameters are pushed so
 aggressively that decryption errors become visible \cite{cheon2024attacks}.

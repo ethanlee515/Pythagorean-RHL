@@ -13,52 +13,38 @@ for MathComp distributions.
 The summability component matters in Rocq because many of the distributions in the development are countable rather than finite.
 The core library also proves the log-sum inequality, KL preservation under injective pushforwards, and the summability facts used by the chain-rule proof.
 
-The additive-error probability layer defines completion of a subdistribution by adding an explicit failure point,
-constructs overlap and residual distributions, and proves a maximal-coupling theorem from a TVD bound:
-\[
-  \Delta(\mu,\nu)\leq \varepsilon
-  \quad\Longrightarrow\quad
-  \exists d.\ 
-  \mathsf{Cpl}(d;\mu,\nu)
-  \wedge
-  \Pr_{(x,y)\gets d}[x=y]\geq 1-\varepsilon .
-\]
-The program-level additive-error rules use this theorem after packing SSProve outputs and heaps into a common completed output space.
-
 \subsection{Pinsker and Pythagorean Preservation}
 
-The formalization proves Pinsker's inequality for MathComp distributions:
-\[
-\begin{gathered}
-  \mathsf{finiteKL}(\cP,\cQ)
-  \wedge
-  dweight(\cP)=dweight(\cQ)=1
-\\
-  \Longrightarrow
-  \Delta(\cP,\cQ)
+The formalization proves Pinsker's inequality for MathComp distributions.
+\begin{lemma}[Pinsker's inequality]
+    For all full distributions $\cP$ and $\cQ$ satisfying $\mathsf{finiteKL}(\cP,\cQ)$, we have
+    \begin{equation}
+        \Delta(\cP,\cQ)
   \leq
   \sqrt{\frac{\KL{\cP}{\cQ}}{2}}.
-\end{gathered}
-\]
-This is not assumed axiomatically.
+    \end{equation}
+\end{lemma}
 The proof reduces total variation to a binary event, proves the binary quadratic Pinsker inequality by real analysis, and combines it with the data-processing/log-sum argument for that event.
 
-The chain-rule development proves the conditional-coordinate KL bound.
+We also prove the chain-rule for the conditional-coordinate KL bound.
 This is the result used by Pythagorean probability preservation.
-For distributions $\cP,\cQ$ on $n$-tuples, the theorem has the following shape:
+\begin{lemma}    
+Let $\set{\cP_i}_{i=1}^n$ and $\set{\cQ_i}_{i=1}^n$ be distributions over $n$-tuples.
+Moreover, we assume
+\begin{itemize}
+    \item The distributions are lossless: $dweight(\cP)=dweight(\cQ)=1$.
+    \item The relevant KL divergences are all finite:
+    $\forall i,a.\ 
+    \mathsf{finiteKL}(\cP_i\mid a,\cQ_i\mid a)$
+    \item For all coordinate $i$ and history $a$, we have the following bound:
+    $$\KL{\cP_i\mid a}{\cQ_i\mid a}\leq \varepsilon_i$$
+\end{itemize}
+We then have
 \[
-\begin{gathered}
-  dweight(\cP)=dweight(\cQ)=1,
-  \qquad
-  \forall i,a.\ 
-    \mathsf{finiteKL}(\cP_i\mid a,\cQ_i\mid a),
-\\
-  \forall i,a.\ 
-    \KL{\cP_i\mid a}{\cQ_i\mid a}\leq \varepsilon_i
-  \quad\Longrightarrow\quad
   \KL{\cP}{\cQ}\leq \sum_i \varepsilon_i .
-\end{gathered}
 \]
+\end{lemma}
+
 The proof is the technical heart of the probability development:
 it decomposes the KL integrand pointwise over tuple prefixes, controls both positive and negative parts of the resulting series, and then reassembles the bound.
 The value-level inequality and the summability obligation are proved in parallel.
@@ -89,13 +75,15 @@ The same part of the formalization packages this lemma into a reusable Pythagore
 
 The discrete-Gaussian development is now one ingredient of the KL story rather than the whole story.
 It proves the equal-variance KL formula used by \LabTirName{KL-DG}:
+\begin{lemma}[KL Divergence between discrete Gaussians]
+\label{lem:dg-kl}
+Let $\sigma\in\bbR$ be positive. For all $\mu, \nu\in\bbN$, We have
 \[
-  \sigma>0
-  \quad\Longrightarrow\quad
   \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
   =
   \frac{(\nu-\mu)^2}{2\sigma^2}.
 \]
+\end{lemma}
 The proof is completely internal to the development.
 It first exposes the normalized mass function, proves integer-shift invariance of the Gaussian weight, derives symmetry of the centered distribution, and then uses the zero-centered first moment to evaluate the remaining expectation.
 The moment summability needed for that expectation is proved as well; it is no longer a side caveat.
@@ -105,9 +93,21 @@ The development also includes geometric upper bounds for events of the form
   \Pr_{x\gets\DG{\mu}{\sigma^2}}
     \bigl[\, |x-\mu|\geq k\,\bigr].
 \]
-These tail bounds are useful for future cryptographic applications, but the current Pythagorean program logic primarily consumes the KL formula above through the discrete-Gaussian sampling rule.
+These tail bounds are useful for future cryptographic applications, but the current Pythagorean program logic primarily consumes the \Cref{lem:dg-kl} through the discrete-Gaussian sampling rule.
 
 Thus the probability layer supplies three kinds of facts to the program logic:
 ordinary distribution-level KL bounds such as the discrete-Gaussian theorem,
 global KL-to-TVD conversion via Pinsker and the chain rule,
-and completion/coupling lemmas that turn TVD bounds into additive-error judgments over SSProve semantics.
+and completion/coupling lemmas \Ethan{Commented out below, find a home for it at some point} that turn TVD bounds into additive-error judgments over SSProve semantics.
+
+% The additive-error probability layer defines completion of a subdistribution by adding an explicit failure point,
+% constructs overlap and residual distributions, and proves a maximal-coupling theorem from a TVD bound:
+% \[
+%   \Delta(\mu,\nu)\leq \varepsilon
+%   \quad\Longrightarrow\quad
+%   \exists d.\ 
+%   \mathsf{Cpl}(d;\mu,\nu)
+%   \wedge
+%   \Pr_{(x,y)\gets d}[x=y]\geq 1-\varepsilon .
+% \]
+% The program-level additive-error rules use this theorem after packing SSProve outputs and heaps into a common completed output space.

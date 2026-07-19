@@ -231,7 +231,7 @@ The primitive sampling rule embeds an ordinary distribution-level KL fact into a
 \end{mathpar}
 The equal-memory premise is present because sampling returns the sampled value without changing the heap, and the one-step trace encoding packs output/heap pairs.
 
-The discrete Gaussian rule is the corresponding specialization:
+The discrete Gaussian rule is the corresponding  \Ethan{Can probably be cleaned up. $y\in\supp(\mathcal{DG}_{\mu_R,\sigma^2})$ is not meaningful, since the support is full $\bbN$.}:
 \begin{mathpar}
 \inferrule[KL-DG]
   {
