@@ -1,31 +1,28 @@
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+\usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{graphicx}
-\usepackage{amsmath, amsthm, amssymb}
+\usepackage{booktabs}
+\usepackage{array}
 \usepackage{mathpartir}
 \usepackage{mathrsfs}
-\usepackage{physics}
-\usepackage{braket}
-\usepackage{hyperref, cleveref}
 \usepackage{stmaryrd}
 \usepackage{xcolor}
-%\usepackage[utf8]{inputenc}
-%\usepackage[T1]{fontenc}
-\usepackage{fontspec}
-% Your preferred mono font:
-% \setmonofont{JetBrains Mono}[
-%   Scale=MatchLowercase,
-%   Ligatures=TeX,
-%   FallbackFamilies = {Noto Sans Symbols 2, Noto Sans Math}
-% ]
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{minted}
-\DeclareMathOperator{\code}{code}
-%\usepackage[utf8]{inputenc}
-%\setmonofont{Noto Serif} % or Times New Roman, TeX Gyre Termes, etc.
-\usepackage{unicode-math} % optional but nice for math
+\usepackage{hyperref}
+\usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 
-% Fonts that are available on Overleaf and have lots of symbols:
-% \setmainfont{STIX Two Text}
-% \setmathfont{STIX Two Math}
-% \setmonofont{Inconsolata}[
-%   Scale=MatchLowercase,
-%   FallbackFamilies = {STIX Two Text} % use text font as fallback for weird symbols like ℓ
-% ]
+\hypersetup{hidelinks}
+\urlstyle{same}
+\makeatletter
+\providecommand{\theHALG@line}{}
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
+\makeatother
+
+% Keep code excerpts compact enough for the IEEE two-column appendix.
+\setminted{fontsize=\scriptsize,breaklines=true,breakanywhere=true,autogobble=true}

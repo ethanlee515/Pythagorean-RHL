@@ -1,13 +1,11 @@
-\documentclass{article}
+\documentclass[conference]{IEEEtran}
 
 \input{packages}
 
-\title{Formal Verification of Noise-Flooding Constructions for Homomorphic Encryption}
+\title{Machine-Checked Noise-Flooding Security\\
+for Adaptive Decryption Queries}
 
-\author{
-Placeholder Authors List
-}
-\date{\today}
+\author{\IEEEauthorblockN{Anonymous submission}}
 
 \input{macros}
 
@@ -16,56 +14,63 @@ Placeholder Authors List
 \maketitle
 
 \begin{abstract}
-Approximate homomorphic encryption schemes such as CKKS support encrypted
-approximate arithmetic, but their decryption interfaces require care: small
-approximation errors can become attack surfaces, and standard mitigations such
-as noise flooding rely on quantitative probabilistic arguments.
-We present a Rocq/SSProve formalization of the Li--Micciancio--Schultz-Wu--Sorrell noise-flooding proof for an abstract approximate-FHE interface.
-The verified theorem shows that an IND-CPAD adversary's probability of
-guessing the hidden bit is bounded by the supplied IND-CPA security bound for
-a constructed reduction plus the expected Pythagorean loss.
-The proof rests on three reusable components: a verified KL-divergence and
-discrete-Gaussian analysis over countable MathComp distributions, semantic
-additive-error and Pythagorean relational judgments for SSProve programs, and
-a trace compiler that lifts one-call oracle replacement to the first $q$
-selected adversary calls.
-The main theorem is stated directly in terms of SSProve game semantics, so the
-program logic is proof infrastructure rather than an additional trusted axiom.
+Noise flooding is a standard defense against decryption attacks on approximate
+homomorphic encryption, but its security proof is unusually sensitive to
+composition.  Replacing each of \(q\) adaptive decryption answers with a
+statistically close simulation and applying an ordinary hybrid argument loses
+linearly in \(q\).  The cryptographic proof instead accumulates conditional
+Kullback--Leibler (KL) costs and converts to statistical distance once, giving
+the parameter-critical square-root loss.
+
+We give a machine-checked, game-based account of this argument in Rocq and
+SSProve.  For an abstract approximate-FHE scheme satisfying explicit metric,
+support-correctness, and IND-CPA assumptions, the development constructs an
+IND-CPA reduction for every \(q\)-query IND-CPAD adversary and proves
+
+\[
+ \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}^{\mathcal A}=1]
+ \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
+       + \frac{\sqrt{qn}}{2\gamma}.
+\]
+
+Here \(n\) is the plaintext-chart dimension and \(\gamma\) is the flooding-width
+multiplier.  The proof extends SSProve with countable discrete-Gaussian
+analysis, completed-output quantitative judgments, and a trace compiler that
+lifts one-call KL bounds to adaptive oracle programs.  The checked theorem
+isolates the good-execution reduction: imperfect correctness can be added by
+one standard up-to-bad layer once an aggregate failure bound is supplied.
+As in SSProve, polynomial-time preservation remains the conventional
+metatheoretic audit outside the program semantics.
 \end{abstract}
 
-\tableofcontents
-
-\Codex{Venue note: the current PDF has roughly 38 pages of main text before the
-appendices and uses the generic \texttt{article} class. A PLDI submission needs a
-substantial restructuring in the official PACMPL format, with appendices moved
-to anonymized supplementary material; the table of contents should also be
-removed for a conference submission.}
+\begin{IEEEkeywords}
+approximate homomorphic encryption, noise flooding, IND-CPAD, SSProve,
+Rocq, game-based cryptography, Kullback--Leibler divergence
+\end{IEEEkeywords}
 
 \input{intro}
-
 \input{prelim}
-
-\input{discrete-gaussian-analysis}
-
-\input{pyth-rhl}
-
 \input{lmss}
-
+\input{pyth-rhl}
 \input{independent-verification}
-
+\input{related-works}
 \input{future-works}
 
-\appendix
+\label{page:main-matter-end}
 
-\input{appendix-security-games}
+\section*{Acknowledgment of AI Assistance}
+OpenAI Codex was used to restructure and draft prose throughout this
+manuscript, edit \LaTeX{}, and run and interpret build checks.  Earlier stages
+of the Rocq development were also substantially AI-assisted.  The authors are
+responsible for, and must independently review, every definition, proof,
+claim, and citation before submission.
 
-\input{appendix-formal-interface-excerpts}
-
-\section*{Acknowledgements}
-
-We thank ChatGPT for insightful technical discussions, and for improving the writing quality of this work.
-
-\bibliographystyle{plain}
+\bibliographystyle{IEEEtran}
 \bibliography{reference}
+
+\appendices
+\input{appendix-security-games}
+\input{discrete-gaussian-analysis}
+\input{appendix-formal-interface-excerpts}
 
 \end{document}

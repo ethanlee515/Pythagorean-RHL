@@ -1,4 +1,4 @@
-\section{Verified Kullback-Leibler Divergence Analysis}
+\section{Additional Probability Details}
 \label{sec:verified-kl-analysis}
 
 The program logic in the next section rests on a probability library rather than on informal analytic facts.
@@ -8,7 +8,7 @@ Its role is deliberately supporting: here we explain the mathematical facts that
 \subsection{Kullback-Leibler Infrastructure}
 
 The formalization defines KL divergence, absolute continuity, and the
-\(\mathsf{finiteKL}\) predicate from \Cref{sec:prelim-probability-notation}
+\(\mathsf{finiteKL}\) predicate from \Cref{sec:security-model}
 for MathComp distributions.
 The summability component matters in Rocq because many of the distributions in the development are countable rather than finite.
 The core library also proves the log-sum inequality, KL preservation under injective pushforwards, and the summability facts used by the chain-rule proof.
@@ -56,11 +56,10 @@ Combining this chain bound with Pinsker gives the main preservation theorem.
 Let $\cP,\cQ\in\distr(A^n)$ be distributions of weight one, and let
 $s=(s_1,\ldots,s_n)$ be a tuple of nonnegative real numbers.
 If, for every coordinate $i$ and every prefix $a\in A^{i-1}$,
-\[
-  \mathsf{finiteKL}(\cP_i\mid a,\cQ_i\mid a)
-  \qquad\text{and}\qquad
-  \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i,
-\]
+\begin{align*}
+  &\mathsf{finiteKL}(\cP_i\mid a,\cQ_i\mid a),\\
+  &\KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i,
+\end{align*}
 then
 \[
   \Delta(\cP,\cQ)
@@ -73,7 +72,7 @@ The same part of the formalization packages this lemma into a reusable Pythagore
 \subsection{Discrete Gaussian Facts}
 
 The discrete-Gaussian development is now one ingredient of the KL story rather than the whole story.
-It proves the equal-variance KL formula used by \LabTirName{KL-DG}:
+It proves the equal-variance KL formula used in \Cref{eq:dg-kl}:
 \begin{lemma}[KL Divergence between discrete Gaussians]
 \label{lem:dg-kl}
 Let $\sigma\in\bbR$ be positive. For all $\mu, \nu\in\bbZ$, we have
@@ -102,13 +101,12 @@ judgments over SSProve semantics.
 The additive-error probability layer defines completion of a subdistribution
 by adding an explicit failure point, constructs overlap and residual
 distributions, and proves a maximal-coupling theorem from a TVD bound:
-\[
+\begin{align*}
   \Delta(\mu,\nu)\leq \varepsilon
-  \quad\Longrightarrow\quad
-  \exists d.\
-  \mathsf{Cpl}(d;\mu,\nu)
-  \wedge
+  \quad\Longrightarrow\quad&
+  \exists d.\ \mathsf{Cpl}(d;\mu,\nu)\\
+  &{}\wedge
   \Pr_{(x,y)\gets d}[x=y]\geq 1-\varepsilon .
-\]
+\end{align*}
 The program-level additive-error rules use this theorem after packing SSProve
 outputs and heaps into a common completed output space.

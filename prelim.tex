@@ -1,364 +1,172 @@
-\section{Preliminaries}
+\section{Security Model and Checked Theorem}
+\label{sec:security-model}
 
-This section fixes the notation and mathematical interface used by the
-formalized proof.
-The detailed verified analysis appears in later sections; here we record only
-the pieces that determine the shape of the security statement.
+We first state the result without program-logic notation.  All distributions
+are discrete.  Games return a Boolean, and
+\(\WinProb[G]=\Pr[G=\mathsf{true}]\).  Statistical distance is
+\(\TVD(P,Q)=\tfrac12\sum_x|P(x)-Q(x)|\), and \(\KL{P}{Q}\) denotes KL
+divergence when the defining series is summable and \(P\) is absolutely
+continuous with respect to \(Q\).
 
-\subsection{Notation}
-\label{sec:prelim-probability-notation}
+\subsection{Approximate FHE and noise flooding}
 
-All distributions in the paper are discrete.
-Both security games below sample a uniform challenge bit $b$, receive the
-adversary's guess $b^*$, and return the predicate $b^*=b$.  We write
+The formal scheme interface contains
 \[
-  \WinProb[G]\triangleq \Pr[G=1]=\Pr[b^*=b].
+ S=(\mathsf{KeyGen},\mathsf{Enc},\mathsf{Eval}_1,
+       \mathsf{Eval}_2,\mathsf{Dec}).
 \]
-The Rocq development calls this quantity \texttt{winning\_probability}; it
-does not separately define or use an advantage normalized around $1/2$.
+Ciphertexts are either invalid or pairs \(\mathsf{Some}(c,e)\), where \(e\) is
+an explicit error bound.  Unary and binary evaluation suffice to represent
+circuits while keeping the package interface small.  Decryption is
+distribution-valued in the generic interface, but the present proof assumes
+it is concentrated at a pure function
+\(\mathsf{dec}_0(sk,c)\).
 
-\begin{definition}[Distance and KL]
-Let \(\cD_1\) and \(\cD_2\) be distributions.
-Write
+To state flooding abstractly, messages carry a natural-valued metric \(d\)
+and, for each center \(a\), maps
 \[
-  \Delta(\cD_1,\cD_2)
-  =
-  \frac{1}{2}\sum_x |\cD_1(x)-\cD_2(x)|
+ I_a:M\rightarrow\bbZ^n,
+ \qquad J_a:\bbZ^n\rightarrow M.
 \]
-for statistical distance, and write
-\[
-  \KL{\cD_1}{\cD_2}
-  =
-  \sum_x \cD_1(x)
-    \ln\!\left(\frac{\cD_1(x)}{\cD_2(x)}\right)
-\]
-for KL divergence when the series is well defined.
-\end{definition}
+The theorem assumes
+\begin{equation}
+\label{eq:charts}
+ I_a(a)=0,
+ \quad d(a,b)=\norm{I_a(b)}_\infty,
+ \quad J_b(v)=J_a(v+I_a(b)).
+\end{equation}
+The first two laws expose metric displacement as an integer vector; the last
+says that changing the flooding center is translation in local coordinates.
+These equations abstract the representative bookkeeping of lattice plaintext
+spaces.  They are assumptions, not consequences of the generic FHE interface.
 
-\begin{definition}[Summability]
-For a real-valued function \(f\) on a discrete type, write
-\(\mathsf{summable}(f)\) for MathComp Analysis's summability predicate.
-In paper notation, this means that the series \(\sum_x f(x)\) converges in
-the sense used by the formal analysis library.
-\end{definition}
+For \(\gamma>0\), the flooded transform
+\(\mathsf{NF}_{\gamma}[S]\) keeps key generation, encryption, and evaluation
+unchanged.  On \(c=\mathsf{Some}(\_,e)\), its decryption samples
+\begin{align}
+\label{eq:flood}
+ m&\leftarrow\mathsf{Dec}(sk,c),&
+ \sigma_e&=(e^2+1)\gamma,\notag\\
+ \eta&\leftarrow D_{\bbZ^n,0,\sigma_e^2},&
+ \mathsf{out}&=J_m(\eta+I_m(m)).
+\end{align}
+The tuple Gaussian has independent integer coordinates.  Invalid ciphertexts
+produce the null subdistribution; the completed semantics used in the proof
+make this missing mass explicit.
 
-\begin{definition}[Absolute continuity]
-Let \(\cD_1\) and \(\cD_2\) be distributions.
-Write
-\[
-  \mathsf{AbsCont}(\cD_1,\cD_2)
-\]
-if
-\[
-  \forall x.\ \cD_2(x)=0 \Rightarrow \cD_1(x)=0 .
-\]
-\end{definition}
+\subsection{IND-CPAD game}
+\label{sec:ind-cpad}
 
-\begin{definition}[Finite KL]
-In the Rocq development, well-definedness of KL is tracked by
-\(\mathsf{finiteKL}(\cD_1,\cD_2)\), the predicate
-\[
-  \begin{aligned}
-  \mathsf{finiteKL}(\cD_1,\cD_2)
-  \quad\Longleftrightarrow\quad&
-  \mathsf{AbsCont}(\cD_1,\cD_2)
-  \\
-  &{}\wedge
-  \mathsf{summable}\!\left(
-    x\mapsto
-    \cD_1(x)\ln\!\left(\frac{\cD_1(x)}{\cD_2(x)}\right)
-  \right).
-  \end{aligned}
-\]
-\end{definition}
+IND-CPAD augments the usual left-or-right encryption game with homomorphic
+evaluation and restricted decryption~\cite{lmss}.  The challenger samples a
+hidden bit \(b\), generates \((pk,evk,sk)\), and gives \((pk,evk)\) to \(\cA\).
+It maintains a table of triples \((m_0,m_1,c)\):
 
-\begin{definition}[Coupling]
-For a joint distribution \(d\) on \(A\times B\), write
-\(\mathsf{Cpl}(d;\mu,\nu)\) if \(d\) is a coupling of \(\mu\) and \(\nu\):
-its first and second marginals are \(\mu\) and \(\nu\), respectively.
-\end{definition}
+\begin{itemize}
+\item \(\mathsf{OEnc}(m_0,m_1)\) encrypts \(m_b\) and appends the two labels
+and resulting ciphertext;
+\item \(\mathsf{OEval}\) evaluates indexed table ciphertexts and applies the
+same gate to their left and right labels before appending a row;
+\item \(\mathsf{ODec}(i)\) consumes one of \(q\) decryption credits.  It
+returns no plaintext when the row's labels differ and otherwise returns the
+decryption of its ciphertext.
+\end{itemize}
 
-\begin{definition}[Completed distribution]
-For a subdistribution \(\mu\) over a set \(A\), write
-\(\completed{\mu}\) for the completed distribution over \(A\cup\{\bot\}\):
-\[
-  \completed{\mu}(a)=\mu(a)
-  \quad(a\in A),
-  \qquad
-  \completed{\mu}(\bot)=1-\sum_{a\in A}\mu(a).
-\]
-The point mass at \(\bot\) accounts for the missing mass of \(\mu\).
-\end{definition}
+The final result is whether \(\cA\)'s guess equals \(b\).  Thus decryption is
+available only when it cannot trivially reveal which challenge message was
+selected, but its approximation error may still depend on the secret key.
+The full oracle pseudocode is in \Cref{app:ind-cpad-game}.
 
-For \(x\in\bbR^n\), we write
-\(\norm{x}_2=(\sum_i x_i^2)^{1/2}\).
-For \(v\in\bbZ^n\), write
-\[
-  \norm{v}_\infty=\max_i |v_i|,
-  \qquad
-  d_{\bbZ^n}(u,v)=\norm{u-v}_\infty .
-\]
-This is the integer-vector distance implemented in the artifact as
-\texttt{ivec\_dist}.
+The Rocq adversary is a concrete stateful oracle program with the required
+SSProve interface.  It may choose queries adaptively and may make arbitrary
+numbers of encryption and evaluation calls.  The counter limits successful
+entries into \(\mathsf{ODec}\) to \(q\); subsequent calls assertion-fail and
+contribute failure mass.
 
-We display program-logic rules using the standard inference-rule notation
-\[
-\inferrule{P_1 \quad P_2}{Q}.
-\]
-For readers from cryptography, this notation may be read simply as the
-implication \(P_1\wedge P_2\Rightarrow Q\): if all premises above the line
-hold, then the conclusion below the line follows.
-Rules are often displayed with labels, for example
-\[
-\inferrule*[right=\textsc{Rule-Name}]
-  {P_1 \quad P_2}
-  {Q}
-\qquad\text{or}\qquad
-\inferrule[\textsc{Rule-Name}]
-  {P_1 \quad P_2}
-  {Q}.
-\]
-The label is the name of the proof principle, much as mathematical lemmas are
-named ``triangle inequality'' or ``data processing inequality''; it is not an
-additional premise.
+\subsection{Simulation and reduction}
 
-\subsection{SSProve Programs and Semantics}
-\label{sec:prelim-ssprove-semantics}
+The IND-CPA reduction \(\cB_{\cA,q}\) runs \(\cA\), forwards pairs to its own
+left-or-right encryption oracle, and reproduces evaluation and table updates
+locally.  For a decrypt query on a row with equal labels \(m_0=m_1=m\), it
+does not know \(sk\), so it samples a flooded answer centered directly at
+\(m\).  When the labels differ it returns no plaintext, exactly as the real
+game.  \Cref{alg:ind-cpa-reduction} gives executable-style pseudocode.
 
-SSProve programs are written in the \texttt{raw\_code} monad shown in
-\Cref{fig:ssprove-monad}.
-The constructors cover pure return, sampling, heap reads and writes, and calls
-to imported operations.
-As usual in SSProve, cryptographic games are assembled by linking such code
-with packages.
+The lossy proof step compares the two centers
+\(\mathsf{dec}_0(sk,c)\) and \(m\).  Support-level correctness gives
+\[
+ d(\mathsf{dec}_0(sk,c),m)\leq e.
+\]
+By \Cref{eq:charts}, every coordinate displacement has magnitude at most
+\(e\).  The equal-variance Gaussian identity
+\begin{equation}
+\label{eq:dg-kl}
+ \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
+   =\frac{(\nu-\mu)^2}{2\sigma^2}
+\end{equation}
+therefore bounds the \(n\)-coordinate KL cost of one replacement by
+\begin{equation}
+\label{eq:epsilon-nf}
+ \epsilon_{\mathsf{nf}}
+ \leq \frac{ne^2}{2(e^2+1)^2\gamma^2}
+ \leq \frac{n}{2\gamma^2}.
+\end{equation}
 
-\begin{figure}
-\caption{SSProve command language used by the formalization}
-\label{fig:ssprove-monad}
-\begin{minted}{coq}
-Inductive raw_code (A : choiceType) : Type :=
-| ret (x : A)
-| sampler (op : Op) (k : Arit op -> raw_code A)
-| getr (l : Location) (k : l -> raw_code A)
-| putr (l : Location) (v : l) (k : raw_code A)
-| opr (o : opsig) (x : src o) (k : tgt o -> raw_code A).
-\end{minted}
-\end{figure}
+\subsection{The formal theorem boundary}
 
-The semantic function is SSProve's \texttt{Pr\_code}.
-For an input \(x\) and heap \(m\), a program \(c:X\to\code(Y)\) denotes a
-subdistribution
-\[
-    \semantic{c(x)}(m) \in \distr(Y\times\cM).
-\]
-Because SSProve semantics may be subprobabilistic, the judgments below use
-completed distributions.
-For SSProve programs, output/heap pairs are first packed into a uniform choice
-type and then completed.
-This explicit failure mass is what lets the rules account for failed traces
-and other loss of mass without an informal side condition.
-No language extension is needed for discrete Gaussians: they are MathComp
-distributions embedded into SSProve sampling code by a small sampling wrapper.
+\begin{table*}[t]
+\centering
+\caption{Inputs and obligations of the checked security theorem.  The first
+five rows are explicit functor parameters; the last row delimits its
+computational interpretation.}
+\label{tab:theorem-boundary}
+\begin{tabular}{@{}p{.18\textwidth}p{.34\textwidth}p{.39\textwidth}@{}}
+\toprule
+Input & What Rocq assumes & Consequence used by the proof \\
+\midrule
+Scheme \(S\) & Typed, lossless key generation and distribution-valued
+algorithms & Defines the IND-CPA game and transformed scheme \\
+Metric charts & Dimension \(n\) and the three laws in \Cref{eq:charts} &
+Reduces message displacement to integer-coordinate displacement \\
+Support correctness & Deterministic decryption; bad key, encryption, and
+evaluation outputs have probability zero & Every reachable table ciphertext
+is within its stored error bound \\
+IND-CPA security & For every valid reduction package \(B\),
+\(\WinProb[\mathsf{IND\text{-}CPA}_S(B)]\leq\beta_{\mathsf{CPA}}(B)\) &
+Discharges the endpoint game \\
+Flooding parameter & \(\gamma>0\) & Makes division and the Gaussian loss
+well defined \\
+Adversary model & A well-typed SSProve package; PPT is external to the
+semantics & Standard metatheoretic audit that the explicit reduction preserves
+probabilistic polynomial time~\cite{ssprove} \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-When a program is run from input \(x\) and heap \(m\), write
-\(\rho=(x,m)\) for the corresponding configuration.
-For a program semantics \(\semantic{c(x)}(m)\), we abbreviate its completion
-by
-\[
-  \csemantic{c(x)}(m)\triangleq\completed{\semantic{c(x)}(m)},
-\]
-and write
-\[
-  \csemantic{c}_{\rho}\triangleq\csemantic{c(x)}(m).
-\]
-For programs with output type \(Y\), write
-\[
-  \Omega_Y=(Y\times\cM)\cup\{\bot\}
-\]
-for the completed output/heap space, and omit the subscript when the output
-type is clear.
-If \(\mathcal{T}\) is a distribution over an \(n\)-tuple transcript space,
-write \(\mathsf{marg}_n(\mathcal{T})\) for its final-coordinate marginal.
-For a prefix \(a\in\Omega^{i-1}\), write \(\mathcal{T}_i\mid a\) for the
-conditional distribution of the \(i\)th coordinate given prefix \(a\), using
-the conditional-coordinate convention from \Cref{sec:verified-kl-analysis}.
-Following the cryptographic literature, we sometimes present such a transcript
-law as a correlated family \(\{\mathcal{T}_i\}_{i=1}^n\).
-This does not mean the coordinates are independent: formally it is a single
-joint law on \(\Omega^n\), with notation \(\mathcal{T}_i\mid a\) for its
-conditional coordinate distributions.
+\begin{theorem}[Checked noise-flooding reduction]
+\label{thm:main}
+Let \(S\), its metric charts, support-correctness proof, IND-CPA security
+interface, and \(\gamma>0\) satisfy \Cref{tab:theorem-boundary}.  For every
+valid IND-CPAD adversary package \(\cA\) and \(q\in\bbN\), the concrete package
+\(\cB_{\cA,q}\) is a valid IND-CPA adversary and
+\begin{align*}
+ &\WinProb[
+   \mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S],q}(\cA)]\\
+ &\quad\leq \beta_{\mathsf{CPA}}(\cB_{\cA,q})
+       +\sqrt{q\epsilon_{\mathsf{nf}}/2}\\
+ &\quad\leq \beta_{\mathsf{CPA}}(\cB_{\cA,q})
+       +\frac{\sqrt{qn}}{2\gamma}.
+\end{align*}
+\end{theorem}
 
-\subsection{Metric Charts for Approximate Messages}
-\label{sec:prelim-metric-charts}
+The first inequality is the shape used internally.  In the artifact,
+\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) is already the uniform bound from
+\Cref{eq:epsilon-nf}, so the exported loss is written directly as
+\(\sqrt{q(n/(2\gamma^2))/2}\).  The final theorem applies the assumed IND-CPA
+bound to the checked reduction package; it does not assume IND-CPAD security.
 
-The noise-flooding theorem is stated for an abstract approximate-FHE scheme.
-Its message type \(M\) is equipped with a natural-number-valued distance
-\[
-  d : M\times M\to\bbN
-\]
-and an integer-vector chart interface of dimension \(n\).
-For each chart center \(a\in M\), the interface provides a map
-\[
-  I_a : M\to\bbZ^n
-\]
-and a decoding map
-\[
-  J_a : \bbZ^n\to M.
-\]
-The formal proof uses the following chart laws:
-\[
-  I_a(a)=0,
-  \qquad
-  d(a,b)=d_{\bbZ^n}(0,I_a(b)),
-\]
-and, for all centers \(a,b\in M\) and vectors \(x\in\bbZ^n\),
-\[
-  J_b(x)=J_a\!\left(x+I_a(b)\right).
-\]
-The first two equations say that every chart is centered at its chosen
-plaintext and that the abstract message distance is exactly the integer-vector
-distance from the chart origin.
-The last equation is the chart-compatibility law used when moving a Gaussian
-sample from one plaintext center to another.
-
-This is intentionally the part of the metric structure needed by the security
-proof.
-For concrete torus-like plaintext spaces, one should read \(I_a(b)\) as the
-short representative of \(b-a\) and \(J_a\) as coordinate-wise modular
-decoding centered at \(a\).
-The usual metric-space laws are expected of concrete instantiations, but the
-formal reduction itself only calls on the chart equations above.
-\Codex{The artifact does not assume either round-trip equation
-$J_a(I_a(b))=b$ or $I_a(J_a(x))=x$.  Thus \texttt{inverse\_isometry} is only a
-shift-compatible decoder, not a proved inverse.  State this limitation and the
-resulting correctness/utility boundary prominently, or restore the needed
-round-trip laws for the intended concrete interpretation.}
-
-\subsection{Pythagorean Probability Preservation}
-\label{sec:prelim-pythagorean-preservation}
-
-The quantitative proof uses KL divergence locally and statistical distance
-globally.
-We recall the parameterized form of Pythagorean probability preservation from
-Micciancio and Walter~\cite{mw17}.
-
-\begin{definition}[\(\lambda\)-Pythagorean probability preservation]
-\label{def:pythagorean-probability-preservation}
-Let \(\delta(\cD,\cD')\) be a nonnegative function on pairs of distributions,
-and let \(\lambda>0\).
-We say that \(\delta\) is \(\lambda\)-Pythagorean if the following holds.
-For any length \(q\), and any two transcript distributions \(\cP,\cQ\) on
-\(\prod_{i=1}^q X_i\), suppose that for every coordinate \(i\) and every
-prefix \(a\in\prod_{j<i}X_j\),
-\[
-  \delta(\cP_i\mid a,\cQ_i\mid a)\leq \lambda .
-\]
-Then
-\[
-  \Delta(\cP,\cQ)
-  \leq
-  \left(
-    \sum_{i=1}^q
-      \left(\sup_a \delta(\cP_i\mid a,\cQ_i\mid a)\right)^2
-  \right)^{1/2}.
-\]
-\end{definition}
-
-The KL-based instance used in this paper applies the definition to the
-square-root KL cost
-\[
-  \delta_{\sqrt{\mathrm{KL}}}(\cD,\cD')
-  =
-  \sqrt{\frac{D_{\mathrm{KL}}(\cD\Vert\cD')}{2}},
-\]
-where \(D_{\mathrm{KL}}\) denotes KL divergence.
-Equivalently, if we record KL budgets \(s_i\) directly, the same statement
-reads as follows:
-if every conditional coordinate has finite KL and satisfies
-\[
-  \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i ,
-\]
-then
-\[
-  \Delta(\cP,\cQ)
-  \leq
-  \sqrt{\frac{\sum_i s_i}{2}}.
-\]
-Thus the formalization is not using a different asymptotic principle; it uses
-the budget-tuple specialization of the \(\lambda\)-Pythagorean theorem.
-For the uniform noise-flooding case below, each paid decrypt call has
-\(s_i=\epsilon_{\mathsf{nf}}\), so this corresponds to
-\(\lambda=\sqrt{\epsilon_{\mathsf{nf}}/2}\).
-\Cref{sec:verified-kl-analysis} explains the Rocq proof of this KL instance:
-first a conditional-coordinate KL chain bound, then Pinsker's inequality.
-
-\subsection{Discrete Gaussian Distributions}
-
-For \(\mu\in\bbZ\) and \(\sigma>0\), define the Gaussian weight
-\[
-  \mathcal{G}_{\mu,\sigma^2}(x)
-  =
-  \exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
-\]
-and the normalizing constant
-\[
-  W_{\mu,\sigma}=\sum_{x\in\bbZ}\mathcal{G}_{\mu,\sigma^2}(x).
-\]
-The discrete Gaussian \(\DG{\mu}{\sigma^2}\) is the distribution on
-\(\bbZ\) given by
-\[
-  \Pr_{x\gets\DG{\mu}{\sigma^2}}[x=x_0]
-  =
-  \frac{\mathcal{G}_{\mu,\sigma^2}(x_0)}{W_{\mu,\sigma}}.
-\]
-The formalized KL calculation used by the noise-flooding proof is
-\[
-  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
-  =
-  \frac{(\nu-\mu)^2}{2\sigma^2}.
-\]
-The \(n\)-dimensional noise used in the construction is the product of \(n\)
-independent one-dimensional discrete Gaussians, transported through the
-integer-vector chart maps.
-
-\subsection{Noise-Flooding Parameters}
-\label{sec:prelim-noise-flooding-parameters}
-
-The verified construction takes a positive Gaussian-width multiplier
-\(\gamma>0\).
-When a ciphertext carries error bound \(B\), the flooded decryption samples an
-\(n\)-dimensional discrete Gaussian with standard deviation
-\[
-  \sigma_B=(B^2+1)\gamma
-\]
-in each coordinate, then decodes the sampled integer vector through the
-plaintext chart.
-If two candidate plaintext centers are within distance \(B\), the chart law
-above bounds every coordinate displacement by \(B\).
-The one-dimensional discrete-Gaussian KL formula therefore gives the
-coordinate budget \(1/(2\gamma^2)\), conservatively, and the whole
-\(n\)-coordinate decrypt response has per-query KL budget
-\[
-  \epsilon_{\mathsf{nf}}
-  =
-  \frac{n}{2\gamma^2}.
-\]
-For a decryption-query bound \(q\), the Pythagorean preservation theorem gives
-compile distance
-\[
-  \Delta_{\mathsf{comp}}
-  =
-  \sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}},
-\]
-and the final winning-probability theorem pays exactly this distance:
-\[
-  \mathsf{security\_loss}(q)
-  =
-  \sqrt{\frac{q\epsilon_{\mathsf{nf}}}{2}}.
-\]
-The last step uses the tight fact that, for equal-mass distributions, the
-difference at any point is at most their statistical distance.  Completed
-game-output distributions have mass one, and winning is the Boolean output
-point \texttt{true}, so no extra factor is introduced.
-These are the parameters appearing in the formal theorem
-\texttt{NoiseFloodingSecure.is\_secure}.
+For fixed \(n\) and target loss, \Cref{thm:main} requires
+\(\gamma=\Theta(\sqrt q)\).  A statistical-distance hybrid using the same
+one-call facts would require \(\gamma=\Theta(q)\).  Because \(\gamma\) scales
+the noise actually returned by decryption, the improvement directly affects
+precision rather than only proof aesthetics.

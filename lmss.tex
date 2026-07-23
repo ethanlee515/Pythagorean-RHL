@@ -1,374 +1,147 @@
-\section{Noise Flooding for Approximate Homomorphic Encryption}
-\label{sec:noise-flooding-proof}
+\section{Verified Reduction}
+\label{sec:verified-reduction}
 
-This section gives the cryptographic proof carried by the formal development.
-It is written so that the main argument can be read as an ordinary
-game-hopping proof: the verification-specific machinery is used to justify
-the hops, but the objects being related are the usual security games,
-oracles, reductions, and probability bounds.
+The formal proof follows a conventional sequence of games.  Its additional
+structure exists to justify adaptive replacement without paying a linear
+loss.  This section gives the cryptographic argument; \Cref{sec:pyth-toolkit}
+then describes the reusable machinery that Rocq uses to check the nonzero hop.
 
-The theorem is parameterized by an abstract approximate homomorphic encryption
-scheme.
-It is intentionally not a CKKS instantiation.
-The scheme interface, correctness assumptions, IND-CPA assumption, and metric
-assumptions are all explicit parameters, and the final formal theorem is
-\texttt{NoiseFloodingSecure.is\_secure}.
-Thus the statement should be read as: any concrete approximate-FHE scheme that
-implements this interface inherits the verified noise-flooding reduction.
+\subsection{Games and invariant}
 
-The security notion is the IND-CPAD game for Li--Micciancio-style decryption
-attacks on approximate FHE.
-The challenger and oracle definitions are given in \Cref{app:ind-cpad-game};
-the main body uses only their standard roles.
-The adversary receives encryption, evaluation, and decryption oracles, and the
-decryption oracle enforces a bound $q$ by maintaining a counter.
-One piece of terminology is specific to SSProve but harmless: a
-\emph{package} is a stateful implementation of one or more oracles.
-The adversary is otherwise an arbitrary oracle program; in particular, it is
-not assumed to have been written in advance as a list of $q$ separate
-decryption-query routines.
-
-\subsection{Metric and Correctness Interface}
-\label{sec:isometry}
-
-Noise flooding compares two plaintext centers by sampling discrete Gaussian
-noise around them.
-To state that comparison without committing to a concrete message space, the
-proof assumes a message type $M$ with a metric $d : M \times M \to \bbN$ and
-local integer-vector charts.
-For each center $a \in M$, the chart
+Let \(C_{\cA}^{\mathsf{open}}\) be the IND-CPAD experiment with calls to its
+oracle interface left unresolved.  Let \(P_{\mathsf{real}}\) implement the
+real encryption, evaluation, and flooded-decryption oracles, and let
+\(P_{\mathsf{sim}}\) differ only by flooding around the table plaintext on an
+equal-label decrypt query.  If \(P_s\) answers selected decrypt calls and
+\(P_r\) answers operations remaining in the residual program, abbreviate
 \[
-  I_a : M \to \bbZ^n
+ G(P_s,P_r)=
+ \mathsf{Link}\bigl(
+  \mathsf{compile}_{q}(P_s,\mathsf{ODec},C_{\cA}^{\mathsf{open}}),P_r
+ \bigr).
 \]
-represents nearby plaintexts as integer vectors relative to $a$, with an
-inverse chart map taking vectors back to messages.
-The interface used by the current theorem is origin-centered:
+The compiler exposes the first \(q\) calls to the selected operation
+\(\mathsf{ODec}\); it does not assume that the adversary has a fixed query
+schedule.
+
+The proof maintains an invariant \(\Phi\) over challenger state.  It records
+initialized, good keys; agreement of public data and the challenge bit; table
+validity under encryption and evaluation; and the decrypt counter.  In
+particular, each supported table row \((m_0,m_1,c)\), viewed on the selected
+branch \(b\), satisfies
 \[
-  I_a(a)=0,
-  \qquad
-  d(a,b)=\|I_a(b)\|,
+ d(\mathsf{dec}_0(sk,c),m_b)\leq e_c.
 \]
-together with the chart-compatibility equation
-\[
-  I_b^{-1}(x)=I_a^{-1}(x+I_a(b)).
-\]
-The first two equations say that the center has vector representative zero and
-that the message metric is exactly the vector norm in the chart.
-The compatibility equation says that changing the center from $a$ to $b$
-amounts to translating coordinates by the vector for $b$ in the $a$-chart.
-This abstracts the usual modular-representative bookkeeping in
-lattice-based approximate FHE: once a plaintext is chosen as the local center,
-nearby plaintexts are represented by short integer vectors, and translating
-the center translates the coordinate system.
+Support correctness proves that initialization establishes \(\Phi\) and that
+encryption/evaluation preserve it.  The selected decrypt prefix preserves it
+while incrementing the counter.
 
-The correctness assumption is also stated at the interface level.
-The proof uses the support-level interface
-\texttt{ApproxCorrectnessPerfect}.
-The scheme decryption algorithm remains distribution-valued,
-but the correctness and metric statements use a deterministic decryption center
-\[
-  \mathsf{deterministic\_dec}(sk,c).
-\]
-The assumption \texttt{deterministic\_dec\_correct} says that the actual
-decryption distribution is the point mass at this center.
-Encryption and evaluation correctness then give the property needed by the
-security proof: every ciphertext row that can appear in the challenger's table
-decrypts within its recorded error bound of the corresponding challenge
-plaintext.
-Equivalently, whenever the decryption oracle reaches a well-formed table row,
-the real decryption center and the table plaintext are close in the metric
-above.
+\subsection{Hybrid chain}
 
-\subsection{Query-Bounded Oracle Adversaries}
-\label{sec:query-bound}
+The paper-level games are
+\begin{align*}
+ H_0 &= \mathsf{IND\text{-}CPAD}_{\mathsf{NF}[S],q}(\cA),\\
+ H_1 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{real}}),\\
+ H_2 &= G(P_{\mathsf{real}},P_{\mathsf{real}}),\\
+ H_3 &= G(P_{\mathsf{sim}},P_{\mathsf{real}}),\\
+ H_4 &= G(P_{\mathsf{sim}},P_{\mathsf{sim}}),\\
+ H_5 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{sim}}),\\
+ H_6 &= \mathsf{IND\text{-}CPA}_{S}(\cB_{\cA,q}).
+\end{align*}
+Rocq checks the chain
+\begin{equation}
+\label{eq:hybrid-chain}
+ H_0\xrightarrow{0}H_1\xrightarrow{0}H_2
+ \xrightarrow{\sqrt{q\epsilon_{\mathsf{nf}}/2}}H_3
+ \xrightarrow{0}H_4\xrightarrow{0}H_5\xrightarrow{0}H_6.
+\end{equation}
+The labels are completed-output statistical-distance bounds.  Completion adds
+an explicit \(\bot\) outcome for missing subdistribution mass, so an assertion
+failure cannot silently disappear from either an equality or a distance
+claim.
 
-The only structural obstacle to a direct hybrid proof is adaptivity.
-For a fixed list of $q$ decryption calls, the Pythagorean analysis would simply
-replace one call at a time and combine the $q$ KL costs.
-An oracle adversary does not present such a list: it chooses whether and when
-to call decryption based on previous answers.
+The zero-cost steps have distinct roles:
 
-The trace compiler from \Cref{sec:program-logic} is the formal device that
-bridges this gap.
-Given an ordinary SSProve adversary and a selected operation identifier, the
-compiler exposes the first $q$ calls to that operation and records the
-surrounding computation as a replayable trace.
-For a cryptographer, this can be read as a verified version of the familiar
-``run until the next oracle call, answer it, and resume'' transformation.
-Invalid replay branches are interpreted as null code, so the compiler theorem
-is a semantic statement about the adversary's behavior rather than a claim
-about a particular syntactic normal form.
+\begin{itemize}
+\item \(H_0=H_1\) unfolds package linking.
+\item \(H_1=H_2\) is same-package compiler correctness: exposing selected
+calls and answering them with the package they originally called preserves
+semantics.
+\item \(H_3=H_4\) changes the residual decrypt implementation.  After \(q\)
+selected decrypt entries, the shared counter makes every residual decrypt
+assertion fail on both sides; all other operations agree.
+\item \(H_4=H_5\) removes the compiler after selected and residual calls use
+the same simulated package.
+\item \(H_5=H_6\) relates package layouts by a heap invariant.  Both games
+sample the same key and hidden bit, expose the same public values, maintain
+the same logical table, answer calls with the same distributions, and return
+whether the same guess equals that bit.  The Rocq proof factors this through
+one auxiliary linked game.
+\end{itemize}
 
-In the noise-flooding proof, the selected operation is the decryption oracle.
-The real and simulated decryption oracles both maintain the same decrypt-count
-location.
-After $q$ successful selected calls, any later decrypt call assert-fails on
-both sides.
-Thus replacing the first $q$ selected calls is enough to cover every
-non-failing decryption response, even though the adversary itself may decide
-when to query decryption in a data-dependent way.
+Thus the final loss is not concealing unproved probabilistic changes in
+package algebra.  Each such change is a theorem over SSProve semantics.
 
-\subsection{Proof Overview}
-\label{sec:games}
-
-The proof follows the standard cryptographic shape: define a sequence of
-games, prove neighboring games close, and compose the losses.
-The endpoints are the usual ones:
-$H_0$ is the real IND-CPAD experiment for $\cA$, and the final game is the
-IND-CPA experiment for the reduction adversary $\mathcal{B}_{\cA}$.
-The reduction is the standard one: it answers encryption queries using the
-IND-CPA challenge oracle, recomputes homomorphic-evaluation table entries
-locally, and answers decrypt queries by flooding the common plaintext when the
-two stored labels agree.
-We spell out the pseudocode in \Cref{alg:ind-cpa-reduction}; the main proof
-below is about why the transition to that conventional reduction is justified
-inside the verified program logic.
-
-The intermediate games are presentations of the same cryptographic experiment
-with different oracle implementations and, in two places, with the trace
-compiler inserted or removed.
-They are useful because they isolate the only probabilistic loss from the
-bookkeeping equalities.
-To name the intermediate games, we use the trace compiler from
-\Cref{sec:program-logic} directly.
-Let $C_{\cA}^{\mathsf{open}}$ be the open IND-CPAD experiment body: it
-initializes the challenger state, runs $\cA$, and returns the final guess
-predicate, but its oracle calls are not yet linked to an oracle package.
-Let $P_{\mathsf{real}}$ be the ordinary IND-CPAD oracle package and
-$P_{\mathsf{sim}}$ be the same package with the decrypt oracle replaced by the
-noise-flooding simulator.
-For a package $P_s$ used by the compiler for the selected decrypt calls and a
-package $P_r$ used for all calls left in the residual program, write
-\[
-  G(P_s,P_r)
-  =
-  \mathsf{Link}\bigl(
-    \operatorname{compileCalls}_q(P_s,\mathsf{ODec},C_{\cA}^{\mathsf{open}}),
-    P_r
-  \bigr).
-\]
-Thus the compiler is applied to the open experiment code, not literally to
-$\cA$ as a standalone adversary package.
-With this notation, the hybrids are
-\[
-\begin{array}{rcl}
-  H_0 &=& \mathsf{IND\text{-}CPAD}(\cA),\\
-  H_1 &=& \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{real}}),\\
-  H_2 &=& G(P_{\mathsf{real}},P_{\mathsf{real}}),\\
-  H_3 &=& G(P_{\mathsf{sim}},P_{\mathsf{real}}),\\
-  H_4 &=& G(P_{\mathsf{sim}},P_{\mathsf{sim}}),\\
-  H_5 &=& \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{sim}}),\\
-  H_6 &=& \mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA}).
-\end{array}
-\]
-$H_0$ is the security game from \Cref{app:ind-cpad-game}.
-$H_1$ is the same game written as open experiment code linked with the real
-oracle package.
-$H_2$ is the compiled-real presentation.
-The equality $H_1=H_2$ is the same-package compiler theorem:
-compiling selected calls and linking them back to the same package preserves
-the completed semantics.
-Here ``completed'' means that assertion failure is treated as an explicit
-failure output, so equalities and statistical-distance bounds compare total
-output distributions.
-
-The paper-level hybrid chain is then
-\[
-  H_0 \xrightarrow{0} H_1
-  \xrightarrow{0} H_2
-  \xrightarrow{\Delta_{\mathsf{comp}}} H_3
-  \xrightarrow{0} H_4
-  \xrightarrow{0} H_5
-  \xrightarrow{0} H_6,
-\]
-where
-\[
-  \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2},
-  \qquad
-  \Delta_{\mathsf{comp}}=\sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-Here $n$ is the chart dimension and $\gamma$ is the Gaussian-width multiplier.
-Only the arrow $H_2\to H_3$ spends statistical distance.
-The semantic relation between neighboring closed games is the canonical
-additive-error judgment from \Cref{sec:program-logic}, interpreted over
-completed outputs; the Pythagorean judgment is used only inside the proof of
-the paid hop.
-The Coq development refines the last exact arrow through an auxiliary linked
-presentation, but this is package-linking bookkeeping rather than an additional
-cryptographic endpoint.
-The public theorem states the final winning-probability bound, and the
-exported security loss is the compile distance itself:
-\[
-  \mathsf{security\_loss}(q)
-    = \sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-This square-root dependence is parameter-critical, not just a prettier proof
-bound.
-Since \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\), the displayed loss is
-\(\sqrt{qn}/(2\gamma)\).
-Keeping the final loss fixed therefore requires the Gaussian-width multiplier
-\(\gamma\) to grow like \(\sqrt q\) for fixed \(n\); a linear composition of
-per-query statistical-distance losses would force \(\gamma\) to grow like
-\(q\).
-In approximate FHE, \(\gamma\) is actual added decryption noise.
-Making it unnecessarily large worsens precision and noise-budget pressure, and
-can force larger parameters or more bootstrapping.
-
-\subsection{The Nonzero Hop}
+\subsection{The single paid hop}
 \label{sec:paid-hop}
 
-The hop $H_2 \to H_3$ is the only place where the noise-flooding analysis
-pays loss.
-In this hop, the compiled experiment answers each of the first $q$ selected
-decrypt calls with the simulator instead of the real decrypt oracle.
-Let $O_{\mathsf{real}}(i)$ and $O_{\mathsf{sim}}(i)$ be the real and simulated
-decrypt oracle bodies, and let $\Phi$ be the challenger heap invariant
-recording initialized keys, table validity, and the decrypt counter.
+The selected decrypt body factors into a deterministic prefix, one Gaussian
+sample, and deterministic postprocessing.  On a row whose labels differ, both
+oracles return \(\mathsf{None}\) and spend zero.  On an equal-label row with
+common plaintext \(m\), the real continuation samples around
+\(a=\mathsf{dec}_0(sk,c)\), while the simulator samples around \(m\).
 
-\begin{lemma}[One-call decryption replacement]
-\label{lem:one-call-decryption-replacement}
-For every decrypt input \(i\), the real and simulated decrypt oracle bodies
-satisfy the Pythagorean judgment
+\begin{lemma}[One-call replacement]
+\label{lem:one-call}
+For any decrypt input and paired heaps satisfying \(\Phi\), the real and
+simulated decrypt bodies satisfy a Pythagorean relational judgment with budget
+tuple
 \[
-  \vDash\Pyth\set{i_L=i_R\wedge m_L=m_R\wedge \Phi(m_L)}
-    O_{\mathsf{real}} \approx_{(0,\epsilon_{\mathsf{nf}},0)}
-    O_{\mathsf{sim}}
-    \set{\Phi(m')}.
+ (0,\epsilon_{\mathsf{nf}},0),
+ \qquad \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2},
 \]
+and restore \(\Phi\).
 \end{lemma}
 
-\begin{proof}
-The tuple \((0,\epsilon_{\mathsf{nf}},0)\) separates the call into three
-parts.
-The first and last coordinates are bookkeeping: the decrypt prefix and final
-postprocessing are shared deterministic code and therefore spend no KL budget.
-The middle coordinate is the only random step whose center changes, namely
-the Gaussian sample.
-The proof factors the decryption oracle into a shared deterministic prefix and
-a noisy continuation.
-The prefix reads and increments the decrypt counter, reads the table, checks
-that the requested row exists, and branches on whether the two plaintext labels
-stored in that row are equal.
-Ordinary Hoare reasoning shows that this prefix preserves $\Phi$ and certifies
-the table row for the continuation.
+For the equal-label branch, \(\Phi\) gives \(d(a,m)\leq e\).  Translation of
+charts by \Cref{eq:charts} puts the two answer distributions over the same
+coordinate space.  Applying \Cref{eq:dg-kl} independently in \(n\)
+coordinates and the choice \(\sigma_e=(e^2+1)\gamma\) gives
+\Cref{eq:epsilon-nf}.  The zero entries in the tuple certify that shared
+prefix and postprocessing add no KL cost.  On assertion-failing branches the
+completed distributions place the same mass at \(\bot\).
 
-Unequal labels are the easy branch.
-Both continuations return \texttt{None}, and this branch costs zero.
-If the labels are equal, the real continuation samples around
+The trace-compiler replacement theorem applies \Cref{lem:one-call} to the
+first \(q\) selected calls, preserving dependencies between queries.  It
+accumulates a conditional KL budget \(q\epsilon_{\mathsf{nf}}\), applies the
+Pythagorean final-marginal theorem and Pinsker once, and obtains
 \[
-  \mathsf{deterministic\_dec}(sk,c),
+ \TVD(H_2,H_3)\leq\sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
-while the simulator samples around the table plaintext.
-This is exactly the LMSS noise-flooding move: replace the real approximate
-decryption center by the ideal table plaintext, and hide the displacement by
-adding sufficiently wide discrete Gaussian noise.
-The table invariant and perfect correctness give that these centers are within
-the ciphertext's recorded error bound.
-The chart equation
-$d(a,b)=\|I_a(b)\|$ turns this metric statement into a coordinate bound in
-$\bbZ^n$.
-For each coordinate, the discrete-Gaussian KL calculation gives cost at most
-$1/(2\gamma^2)$, hence the vector cost is
-$\epsilon_{\mathsf{nf}}=n/(2\gamma^2)$.
-The Pythagorean sequencing rules combine the shared prefix, the Gaussian
-sampling step, and the shared postprocessing continuation into the displayed
-tuple budget.
-\end{proof}
-
-\begin{corollary}[Compiled decryption replacement]
-\label{cor:compiled-decryption-replacement}
-Let \(\Phi_0\) be the initial same-input/same-heap condition for the closed
-games.
-Then
+Data processing then projects completed output/heap pairs to the returned
+Boolean.  Triangle composition with the exact steps in
+\Cref{eq:hybrid-chain} gives
 \[
-  \vDash\AEJ\set{\Phi_0}\ 
-    H_2 \approx_{\Delta_{\mathsf{comp}}} H_3
-    \set{o_L=o_R}.
+ \WinProb[H_0]
+ \leq \WinProb[H_6]+\sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
-\end{corollary}
+Finally, the supplied IND-CPA theorem bounds \(\WinProb[H_6]\) by
+\(\beta_{\mathsf{CPA}}(\cB_{\cA,q})\), proving \Cref{thm:main}.
 
-\begin{proof}
-Apply \LabTirName{Compile-Replace} to
-\Cref{lem:one-call-decryption-replacement}, with \(\mathsf{ODec}\) as the
-selected operation.
-The trace compiler has already exposed the first \(q\) selected decrypt calls
-in \(H_2\) and \(H_3\).
-The compiler side conditions are the usual package-validity and memory
-restriction obligations: the adversary locations are separated from the
-challenger invariant footprint, and the non-decrypt oracle calls preserve
-\(\Phi\).
-The tuple compiler theorem sums the local budget over the first \(q\) selected
-decrypt calls and then applies \LabTirName{Micciancio-Walter}, giving
-\[
-  \Delta_{\mathsf{comp}}=\sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-\end{proof}
+\subsection{Why adaptivity matters}
 
-\subsection{The Exact Bridges}
-\label{sec:exact-hops}
+A handwritten proof often says to replace the first \(q\) decryptions even
+though an oracle adversary is a single program whose future control flow
+depends on earlier oracle outputs.  In SSProve, calls are nodes inside that
+program, not an external list.  The compiler makes first \(q\) semantic: run
+to the next selected call, record a replayable trace of the surrounding
+computation, answer the call, and resume.  Invalid replays denote null code
+and are covered by completion.  Compiler correctness then proves that this
+representation neither gains nor loses behaviors.
 
-The remaining hops are exact, but they are not all the same kind of exactness.
-This subsection records what each zero-cost arrow means, so that the single
-nonzero loss above is not hiding any informal oracle-replacement step.
-
-The bridge $H_0\to H_1$ is an exact presentation change.
-It unfolds the IND-CPAD game from \Cref{app:ind-cpad-game} into open
-experiment code linked with the real oracle package.
-
-The bridge $H_1\to H_2$ is ordinary same-package compiler correctness.
-The compiler exposes the first $q$ decrypt calls, but those calls are linked
-back to the real IND-CPAD oracle package, so the compiled presentation has the
-same completed output distribution as the original IND-CPAD game.
-
-The bridge $H_3\to H_4$ is the bounded-query residual-call argument.
-After the first $q$ selected decrypt calls have been compiled, the decrypt
-counter is already at the bound on every residual decrypt path.
-Such calls assert-fail whether they are linked to the real oracle or the
-simulator oracle, so the completed output distribution is unchanged.
-
-The bridge $H_4\to H_5$ is ordinary compiler correctness.
-Once both compiled and residual decrypt calls are linked to the same simulator
-package, removing the compiler wrapper preserves the full completed output,
-including heap.
-
-The bridge $H_5\to H_6$ identifies the simulated-decrypt game with the
-IND-CPA experiment for $\mathcal{B}_{\cA}$.
-Both games sample the same challenge bit and keys, expose the same public keys
-to the adversary, maintain the same logical table and decrypt counter, and
-answer every adversary oracle call with the same distribution.
-The only subtlety is packaging: the direct simulated-decrypt presentation keeps
-state in the IND-CPAD challenger heap, while the reduction presentation stores
-public challenge state in the outer IND-CPA oracle heap and table/decrypt state
-in the reduction heap.
-The invariant therefore relates heaps by their adversary-visible table,
-counter, public keys, evaluation key, and hidden challenge bit.
-Under this relation the final returned predicate is the same Boolean
-statement, namely whether the adversary's guess equals the hidden bit.
-The Coq proof splits this exact bridge through an auxiliary linked game
-$H_6'$ to separate heap-relation reasoning from package-linking correctness;
-the paper-level hop is still the single exact identification
-$H_5\to\mathsf{IND\text{-}CPA}(\mathcal{B}_{\cA})$.
-
-\begin{theorem}[Noise-flooding security]
-\label{thm:noise-flooding-secure}
-Let $\epsilon_{\mathsf{nf}}=n/(2\gamma^2)$.
-For every IND-CPAD adversary $\cA$ making at most $q$ non-failing decrypt
-queries, the verified reduction constructs the IND-CPA adversary
-$\mathcal{B}_{\cA}$
-such that
-\[
-  \WinProb[H_0(\cA)]
-  \le
-  \mathsf{security\_bound}_{\mathsf{IND\text{-}CPA}}(\mathcal{B}_{\cA})
-  + \sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-\end{theorem}
-
-This inequality is exposed in Coq as
-\texttt{NoiseFloodingSecure.is\_secure}.
-The intermediate additive-error theorem is the direct formal counterpart of
-the hybrid chain above: it relates $H_0$ to $H_6$ by additive
-error $\sqrt{q\epsilon_{\mathsf{nf}}/2}$ at the returned-bit postcondition.
-An internal lemma first bounds the IND-CPAD winning probability by the actual
-winning probability of $\mathcal{B}_{\cA}$ plus the loss; the final theorem
-then applies the assumed IND-CPA bound.
+This is also where a naive source-to-source argument would be brittle.  The
+proof must account for adversary and challenger heap separation, unselected
+operations in the residual program, failed selected calls, and the state
+relation after every answer.  These obligations occupy much of the artifact,
+but they are discharged once by the generic compiler theorems rather than
+postulated for this adversary.

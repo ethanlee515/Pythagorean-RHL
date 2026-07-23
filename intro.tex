@@ -1,202 +1,128 @@
 \section{Introduction}
+\label{sec:introduction}
 
-Fully homomorphic encryption (FHE) lets a server compute on encrypted data
-without decrypting it.
-Approximate schemes such as CKKS \cite{ckks} make this idea practical for
-real-valued arithmetic, but they also make security statements more delicate:
-decryption returns an approximate value, and the approximation error itself can
-become a source of information.
-The Li--Micciancio attack \cite{lm} can recover the private decryption key using this information.
-Later work has shown that this decryption-query viewpoint is broader than
-CKKS: exact FHE schemes can also fail IND-CPAD when parameters are pushed so
-aggressively that decryption errors become visible \cite{cheon2024attacks}.
-For exact schemes, the natural response may simply be to restore exact
-correctness by choosing less aggressive parameters.
-For approximate FHE, however, approximate decryption is part of the interface,
-so the security question is how to hide the approximation error while keeping
-the answer useful.
-Li, Micciancio, Schultz-Wu, and Sorrell \cite{lmss} proposed a noise-flooding
-defense and proved that, under suitable parameters, the resulting scheme
-satisfies a stronger decryption-query security notion.
+Approximate homomorphic encryption (FHE) makes encrypted real-number
+computation practical by allowing controlled approximation error.  That error
+is also a security boundary.  Li and Micciancio showed that observing suitably
+chosen approximate decryptions can reveal the secret key of CKKS-like
+schemes~\cite{lm,ckks}; related attacks now reach aggressively parameterized
+exact FHE as well~\cite{cheon2024attacks}.  In approximate FHE one cannot
+simply require every decrypted result to equal an exact message: approximation
+is the advertised interface.
 
-This proof is exactly the kind of cryptographic argument that should benefit
-from mechanization.
-It combines game-hopping, oracle reductions, approximate correctness,
-discrete-Gaussian calculations, and a sharp accounting of many related random
-samples.
-The last point is important.
-A naive hybrid argument would pay linearly for $q$ decryption queries.
-The cryptographic analysis instead uses the Micciancio--Walter
-``Pythagorean'' phenomenon \cite{mw17}: when each step has a bounded
-conditional KL divergence, the final statistical distance is controlled by the
-square root of the sum of the KL costs.
-This is the difference between a linear loss and the expected
-$O(\sqrt q)$ noise-flooding loss.
+Li, Micciancio, Schultz-Wu, and Sorrell (LMSS) formalized this attack surface
+through IND-CPA with decryption queries (IND-CPAD) and analyzed a
+noise-flooding defense~\cite{lmss}.  The defense perturbs each admissible
+decryption answer with a fresh, sufficiently wide discrete Gaussian.  The
+result is useful only when that width is small enough to preserve precision,
+so the reduction's dependence on the number \(q\) of decryption queries is not
+cosmetic.
 
-We formalize this proof in Rocq using SSProve \cite{ssprove}.
-Our theorem is deliberately stated for an abstract approximate-FHE interface
-rather than for a concrete CKKS implementation.
-The interface supplies the IND-CPA assumption for the underlying scheme, a
-support-level correctness assumption, and origin-centered integer-vector
-metric charts that connect plaintext distance to discrete-Gaussian sampling.
-For every adversary in the IND-CPAD game, the formal development constructs
-the usual IND-CPA reduction and proves the bound
-\[
-  \WinProb[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}(\cA)]
-  \leq
-  \mathsf{security\_bound}_{\mathsf{IND\text{-}CPA}}(\mathcal{B}_{\cA})
-  +
-  \frac{\sqrt{qn}}{2\gamma}.
-\]
-Here $q$ is the decryption-query bound, $n$ is the metric-chart dimension, and
-$\gamma$ is the Gaussian-width multiplier.
-The displayed loss should be read as a parameter tradeoff, not only as a
-theorem about distinguishing probabilities.
-The \(q\)-dependence can be cancelled by increasing \(\gamma\) like
-\(\sqrt q\), up to the dimension factor.
-In the construction summarized below, \(\gamma\) scales linearly with the
-standard deviation of the flooding noise, after the flood has already been
-scaled to dominate the allowed correctness error.
-Thus increasing \(\gamma\) is not a harmless proof maneuver: it directly means
-adding wider noise to decryption answers.
+This dependence exposes a mechanization problem.  Suppose a one-query
+replacement costs \(\delta\) in statistical distance.  A routine game hop pays
+\(q\delta\).  The LMSS analysis instead bounds a conditional KL divergence at
+each query and applies the Micciancio--Walter Pythagorean preservation
+argument only after constructing the whole transcript~\cite{mw17}.  The final
+distance is proportional to \(\sqrt q\).  For fixed target advantage, this is
+the difference between choosing flooding width proportional to \(\sqrt q\) and
+to \(q\), with a corresponding impact on precision and FHE parameters.
 
-For intuition, take \(q=2^{64}\) decryption queries and ignore constants and
-the fixed dimension factor.
-The square-root bound asks the flooding width to absorb a factor
-\(\sqrt q=2^{32}\), while a linear hybrid bound would ask it to absorb
-\(q=2^{64}\).
-Thinking of standard deviation as the relevant width, this is roughly the
-difference between losing 32 and 64 extra bits of precision to the flooding
-noise.
-At the extreme, one can make the scheme trivially secure by choosing
-\(\gamma\) so large that the returned approximate plaintext is drowned in
-fresh noise; the message is then effectively masked by the flood.
-Such a defense is useful only if the answer remains accurate enough for the
-application.
-Recovering accuracy after adding more noise pushes cost elsewhere, for
-example into larger parameters, more noise-budget headroom, or additional
-bootstrapping.
-Since these resources are a major source of FHE's runtime cost, avoiding an
-unnecessary \(O(q)\) loss is part of making the security argument compatible
-with usable approximate homomorphic encryption.
+We mechanize that security argument in Rocq on top of SSProve, a framework for
+machine-checked, game-based cryptography~\cite{ssprove}.  The top-level theorem
+has ordinary cryptographic semantics: it bounds the winning probability of a
+concrete IND-CPAD game by the IND-CPA bound of a constructed reduction plus an
+explicit loss.  A new quantitative relational layer, countable
+discrete-Gaussian library, and adaptive-call compiler are proof
+infrastructure, not axioms in the exported result.
 
-This parameter-choice problem is a subject in its own right.
-Recent work has studied precision loss in approximate homomorphic encryption
-and revisited noise-flooding countermeasures from the point of view of
-concrete parameter selection
-\cite{costache2023precision,bergamaschi2025revisiting}.
-Our theorem verifies one sufficient analytic way to choose the flooding width
-and obtain a provable IND-CPAD reduction; it is not meant to be the last word
-on optimizing this tradeoff.
-The theorem is exposed in the artifact as
+\subsection{Result and security significance}
+
+Let \(S\) be an approximate-FHE scheme whose message space has local charts in
+\(\bbZ^n\), let \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform, and
+let \(\cA\) make at most \(q\) non-failing decryption queries in the IND-CPAD
+game.  Under the explicit assumptions summarized in
+\Cref{tab:theorem-boundary}, the formal development constructs an IND-CPA
+adversary \(\cB_{\cA,q}\) and proves
+\begin{equation}
+\label{eq:headline}
+ \WinProb[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S]}(\cA)]
+ \leq
+ \beta_{\mathsf{CPA}}(\cB_{\cA,q})+
+ \frac{\sqrt{qn}}{2\gamma}.
+\end{equation}
+The expression \(\beta_{\mathsf{CPA}}\) is the supplied winning-probability
+bound for the underlying scheme; the artifact does not hide an asymptotic
+advantage convention behind it.  The formal theorem is
 \texttt{NoiseFloodingSecure.is\_secure}.
 
-\subsection{Why a Program Logic?}
-
-The central proof-engineering problem is preserving this
-$O(\sqrt q)$ bound inside the mechanized game-hopping proof.
-Standard approximate relational logics are built around sequencing rules that
-add the error of the first command to the error of the continuation.
-This is exactly right for ordinary statistical-distance or failure-probability
-arguments, but it is too weak for noise flooding: composing $q$ decryption
-replacements with such a rule would pay at least a linear $O(q)$ loss.
-The cryptographic proof gets a sharper result because it does not pay
-statistical distance at each call.
-Instead, it records a KL cost for each conditional sampling step and converts
-the whole tuple of costs to statistical distance only once, using the
-Pythagorean preservation theorem.
-
-Our program logic is designed to expose that accounting discipline at the
-level of SSProve syntax.
-The additive-error judgment is the ordinary cryptographic judgment used for
-game hops.
-The Pythagorean judgment is the nonstandard part: its sequencing rules
-concatenate KL-budget tuples instead of immediately adding statistical-distance
-errors, and the Micciancio--Walter bridge later turns a budget $s$ into the
-single loss $\sqrt{\lVert s\rVert_1/2}$.
-Thus the logic is what makes the formal proof express the same
-``pay once at the end'' idea as the paper cryptographic argument.
-
-\subsection{Paper Organization}
-
-\Cref{sec:prelim-probability-notation} fixes notation for distributions,
-statistical distance, KL divergence, SSProve programs, metric charts, and the
-noise-flooding parameters.
-\Cref{sec:verified-kl-analysis} gives the verified probability facts used by
-the rest of the paper: Pinsker's inequality, the conditional-coordinate
-Pythagorean preservation theorem, and the KL calculation for equal-variance
-integer Gaussians.
-\Cref{sec:program-logic} then explains the program-logic layer that lets those
-probability facts be applied to SSProve games and adaptive oracle code.
-\Cref{sec:noise-flooding-proof} is the cryptographic application: it states
-the abstract approximate-FHE interface, describes the IND-CPAD-to-IND-CPA
-hybrid chain, isolates the one nonzero noise-flooding hop, and records the
-final theorem.
-\Cref{sec:independent-verification} explains how to audit the formal
-artifact, and the appendices reproduce the main game and interface excerpts.
-
-The paper is meant to support more than one reading path.
-Readers interested in the formal program logic should read
-\Cref{sec:verified-kl-analysis,sec:program-logic} before the application.
-Readers whose main interest is the cryptographic theorem can instead read
-\Cref{sec:noise-flooding-proof,sec:artifact-accounting,sec:tcb,sec:crypto-audit-surface}
-as a largely self-contained account of the verified LMSS-style argument and
-its audit surface.
-These parts are of independent interest to theory cryptographers: they are
-written to minimize assumed programming-language or formal-verification
-prerequisites, while assuming standard cryptographic familiarity with games,
-reductions, hybrids, and oracle adversaries.
+The result covers adaptive oracle programs rather than adversaries prewritten
+as \(q\) separate query phases.  Its proof isolates one lossy transition:
+real flooded decryption is replaced by flooding around the plaintext recorded
+in the challenge table.  Every other change---opening and relinking packages,
+compiling calls, replacing unreachable residual decryptions, and identifying
+the reduction game---is proved exact.
 
 \subsection{Contributions}
 
-\paragraph{Verified probability analysis.}
-We formalize the probability facts needed by the program logic over MathComp
-distributions, including KL divergence for countable distributions, absolute
-continuity and finite-KL side conditions, Pinsker's inequality, and a
-conditional-coordinate chain theorem that realizes Pythagorean probability
-preservation.
-We also prove the equal-variance KL formula for discrete Gaussians over the
-integers,
-\[
-  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
-  =
-  \frac{(\nu-\mu)^2}{2\sigma^2},
-\]
-including the summability and moment facts needed by the formal proof.
-Some reusable real-summation lemmas developed for this part were also
-submitted upstream to MathComp Analysis.
+Following SSProve's security-first presentation style, we separate the checked
+cryptographic result from the machinery used to establish it.
 
-\paragraph{Relational reasoning for Pythagorean errors.}
-We define additive-error and Pythagorean relational judgments directly over
-SSProve semantics.
-The judgments use completed output distributions, so missing subdistribution
-mass is represented by an explicit failure point instead of an informal side
-condition.
-We prove the core structural, sampling, sequencing, and
-Micciancio--Walter bridge rules in Rocq.
-The rules are semantic theorems, not axioms.
+\emph{A checked noise-flooding reduction.}
+We define the IND-CPA and IND-CPAD games, the noise-flooded construction, and a
+concrete reduction as SSProve packages.  Rocq checks the complete hybrid chain
+and the loss in \Cref{eq:headline}.  The paper presents the game argument in
+cryptographic terms; selected formal definitions appear in the appendices.
 
-\paragraph{Trace compilation for oracle replacement.}
-SSProve adversaries are concrete programs, not opaque modules.
-We exploit this by verifying a trace compiler that exposes the first $q$ calls
-to a selected oracle and records the residual computation as replayable traces.
-The compiler puts adaptive adversaries into the fixed-call-schedule form
-expected by the Pythagorean logic.
-The main compiler theorem then lifts a one-call Pythagorean replacement proof to a
-whole-adversary additive-error bound of
-$\sqrt{q\lVert s\rVert_1/2}$.
-This is the mechanism that turns the one-decryption Gaussian calculation into
-the $q$-query noise-flooding bound.
+\emph{Pythagorean reasoning over countable distributions.}
+We verify KL divergence, its finiteness obligations, Pinsker's inequality, a
+conditional-coordinate preservation theorem, and the equal-variance KL
+formula for integer discrete Gaussians.  A semantic relational judgment
+records tuples of conditional KL costs and converts to statistical distance
+once, retaining the square-root composition.
 
-\paragraph{Verified LMSS-style noise flooding.}
-Combining the probability library, program logic, and trace compiler, we prove
-the noise-flooding security theorem for an abstract approximate-FHE scheme.
-The final statement is an inequality about the SSProve games' probabilities of
-returning true, not about derivability in our logic.
-Thus the program logic organizes the proof, while the exported theorem remains
-anchored in the standard SSProve game semantics.
-The accompanying Rocq development is available at
-\url{https://github.com/ethanlee515/mending}.
-\Codex{All candidate venues discussed for this draft use double-blind review.
-Replace this URL with an anonymized artifact link in the review version and
-scrub identifying repository metadata.}
+\emph{Adaptive oracle replacement.}
+We verify a trace compiler that exposes the first \(q\) calls to a selected
+operation of an arbitrary concrete SSProve program.  Its replacement theorem
+lifts a one-call Pythagorean judgment to a whole-game additive-error judgment.
+This connects the transcript theorem to adversaries whose next oracle call
+depends on earlier answers.
+
+\emph{An auditable theorem boundary.}
+The 27,986-line artifact is organized so that games, assumptions, loss, and
+final theorem can be reviewed separately from proof scripts.  We report its
+trusted base, distinguish inherited library assumptions from local proof
+obligations, and provide a kernel-checked replacement for the one legacy
+real-summation placeholder inherited through the current SSProve stack.
+
+\subsection{Theorem boundary and conventional obligations}
+\label{sec:scope}
+
+The checked theorem is a \emph{conditional reduction}, not a verified CKKS
+implementation.  It assumes deterministic base decryption, support-level
+correctness of key generation/encryption/evaluation, and an origin-centered
+integer-chart interface.  The support formulation isolates the cryptographic
+core from correctness accounting.  For an imperfectly correct scheme, define
+an execution-wide event \(\mathsf{Bad}_{\mathsf{corr}}\) covering bad keys,
+encryptions, and evaluations.  A standard up-to-bad extension of the game
+chain then adds \(\Pr[\mathsf{Bad}_{\mathsf{corr}}]\), while reusing the checked
+good-execution argument.  Thus the general statement is one standard
+up-to-bad layer away once an aggregate failure bound is supplied.  Deriving
+that bound requires encryption/evaluation call bounds (or an external
+whole-execution bound), but it does not alter the Pythagorean hop.  The wrapper
+itself is not yet mechanized.
+
+The artifact does not instantiate the chart and correctness assumptions for
+CKKS, so we do not claim a verified deployment or concrete parameter set.
+It also follows SSProve's established semantic boundary: probabilistic
+polynomial time is assumed and checked by the usual external reduction audit,
+not internalized in the package semantics~\cite{ssprove}.  The constructed
+reduction runs \(\cA\) once and adds oracle forwarding, table bookkeeping, and
+Gaussian sampling, so no unusual complexity issue is hidden by our extension.
+\Cref{sec:limitations} returns to the remaining concrete-instantiation work.
+
+\subsection{Road map}
+
+\Cref{sec:security-model} defines the construction, attack game, and theorem.
+\Cref{sec:verified-reduction} presents the game hops.
+\Cref{sec:pyth-toolkit} explains the checked quantitative machinery, and
+\Cref{sec:artifact} gives the audit map and trusted base.

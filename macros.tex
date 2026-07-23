@@ -1,40 +1,40 @@
-\newcommand{\Ethan}[1]{{\color{magenta} [Yi: #1]}}
-\newcommand{\Codex}[1]{{\color{blue} [Codex: #1]}}
+\newcommand{\Ethan}[1]{{\color{magenta}[Yi: #1]}}
+\newcommand{\Codex}[1]{{\color{blue}[Codex: #1]}}
 
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
 
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
 \newcommand{\cD}{\mathcal{D}}
 \newcommand{\cP}{\mathcal{P}}
 \newcommand{\cQ}{\mathcal{Q}}
-\newcommand{\dKL}{\delta_{KL}}
-\newcommand{\KL}[2]{\dKL\parens{#1 || #2}}
-\newcommand{\parens}[1]{\left(#1\right)}
-\newcommand{\bbR}{\mathbb{R}}
-\newcommand{\bbN}{\mathbb{N}}
 \newcommand{\cM}{\mathcal{M}}
 \newcommand{\cI}{\mathcal{I}}
-\newcommand{\KLs}{\mathsf{KLs}}
-\newcommand{\DG}[2]{\mathcal{DG}_{#1, #2}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\bbN}{\mathbb{N}}
 \newcommand{\bbZ}{\mathbb{Z}}
-\newcommand{\Pyth}{\mathsf{Pyth}}
-\newcommand{\apRHL}{\mathsf{apRHL}}
+\newcommand{\parens}[1]{\left(#1\right)}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\dKL}{D_{\mathrm{KL}}}
+\newcommand{\KL}[2]{\dKL\!\parens{#1\,\|\,#2}}
+\newcommand{\DG}[2]{D_{\bbZ,#1,#2}}
 \newcommand{\distr}{\mathsf{Distr}}
 \newcommand{\semantic}[1]{\llbracket #1\rrbracket}
-\newcommand{\csemantic}[1]{\llbracket #1\rrbracket^\bot}
+\newcommand{\csemantic}[1]{\llbracket #1\rrbracket^{\bot}}
 \newcommand{\completed}[1]{\mathsf{Comp}\parens{#1}}
 \newcommand{\supp}{\mathsf{supp}}
 \newcommand{\TVD}{\Delta}
+\newcommand{\Pyth}{\mathsf{Pyth}}
 \newcommand{\AEJ}{\mathsf{AE}}
 \newcommand{\WinProb}{\mathsf{WinProb}}
+\newcommand{\apRHL}{\mathsf{apRHL}}
+\newcommand{\KLs}{\mathsf{KLs}}
+\newcommand{\code}{\mathsf{code}}
+\newcommand{\kvalid}{\mathsf{keys\_valid}}
+\newcommand{\tvalid}{\mathsf{table\_valid}}
+\newcommand{\doubleplus}{\mathbin{+\!\!+}}
 \DeclareMathOperator{\Bern}{Bern}
-\usepackage{algpseudocode}
-\usepackage{algorithm}
-\newcommand{\cA}{\mathcal{A}}
-\usepackage[default]{fontsetup}
-\usepackage{unicode-math}
-\newcommand{\kvalid}{keys\_valid}
-\newcommand{\tvalid}{table\_valid}

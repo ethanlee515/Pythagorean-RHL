@@ -1,254 +1,51 @@
-\subsection{Comparison with Other Program Logics}
-\label{sec:related-works}
+\section{Related Work}
+\label{sec:related-work}
 
-This subsection situates the verified logic against nearby relational program
-logics.
-\Codex{The related-work coverage is not yet adequate for PLDI. In particular,
-compare the judgment and sequencing theorem with general divergence-based
-logics (including acRL), quantitative relational logics such as eRHL and
-$\mathbb{E}$pRHL, and recent probabilistic coupling/separation logics. The key
-novelty claim must say why a KL-divergence instance plus an ordinary chain rule
-does not already provide the same compositional result.}
-The short version is that our additive-error layer is close in spirit to
-standard up-to-bad reasoning, while the Pythagorean layer and trace compiler
-are the pieces that are specific to the noise-flooding proof.
-They let us package a one-call KL argument as a whole-game theorem with
-loss $\sqrt{q\lVert s\rVert_1/2}$ for a concrete SSProve adversary
-making up to $q$ selected oracle calls.
+\emph{Approximate-FHE attacks and defenses.}
+Li and Micciancio identified the secret-dependent approximation-error channel
+in CKKS-style decryption~\cite{lm}.  LMSS introduced the IND-CPAD formulation
+and used differential-privacy and noise-flooding techniques to recover
+security under explicit parameter conditions~\cite{lmss}.  Subsequent work
+has sharpened the practical precision tradeoff~\cite{costache2023precision}
+and revisited concrete noise-flooding parameters~\cite{bergamaschi2025revisiting}.
+Attacks against exact FHE at aggressive parameters show that decryption-query
+security is not confined to approximate schemes~\cite{cheon2024attacks}.
+Our contribution is neither a new attack nor a better concrete parameter set:
+it machine-checks the conditional game reduction and the square-root
+composition mechanism on which such parameters rely.
 
-\subsubsection{Additive Error and Up-to-bad Reasoning}
-\label{sec:up-to-bad-event}
+\emph{Mechanized game-based cryptography.}
+SSProve combines state-separating package algebra with a probabilistic
+relational program logic in Rocq and validates the framework on encryption,
+KEM--DEM, and sigma-protocol case studies~\cite{ssprove}.  We retain its
+package semantics and security-proof style, but add quantitative judgments for
+completed countable distributions and a selected-call compiler.  Recent
+Nominal-SSProve work makes package state separation intrinsic and reports
+errors found in an ElGamal mechanization~\cite{nominal-ssprove}; a further
+development mechanizes query-counting, multi-instance, and nested hybrid
+arguments~\cite{nested-hybrids}.  Those results address exact package
+composition and general hybrid structure.  Our compiler instead preserves an
+adaptive sequence of conditional KL costs and derives a sublinear
+statistical-distance loss.  Integrating the two approaches is promising but
+not part of this artifact.
 
-The most familiar cryptographic comparison principle is the up-to-bad
-argument.
-One proves a relational judgment saying that two executions agree unless a bad
-event occurs, and separately proves that the bad event has small probability.
-In an EasyCrypt-style presentation, this often appears as an RHL judgment with
-postcondition $\neg B\Rightarrow\Psi$, followed by a probabilistic Hoare proof
-that $\Pr[B]\leq\varepsilon$.
-The conclusion is a statistical-distance or distinguishing-advantage bound.
+EasyCrypt offers mature adversarial module reasoning; reflection techniques
+can move distribution-level steps into executable proofs~\cite{reflection}.
+Our abstraction boundary differs because SSProve adversaries are concrete
+program syntax: the verified trace compiler factors selected calls before the
+replacement theorem is applied.  We do not claim that trace compilation is
+preferable to opaque adversary rules in general; it is the bridge required by
+the host framework used here.
 
-Our additive-error judgment internalizes this final step.
-The judgment
-\[
-  \vDash\AEJ\set{P}\ c_L
-    \approx_\varepsilon c_R\ \set{Q}
-\]
-directly asserts a coupling of the completed output distributions satisfying
-$Q$ with probability at least $1-\varepsilon$.
-Thus the bad event need not be named when a direct coupling or TVD argument is
-more convenient.
-Conversely, the usual up-to-bad pattern embeds into our judgment: if a coupling
-satisfies $\neg B\Rightarrow Q$ and the coupled probability of $B$ is at most
-$\varepsilon$, then the same coupling witnesses the additive-error judgment
-with loss $\varepsilon$.
-
-This is the role of the additive-error layer in the noise-flooding proof.
-It is not where the sublinear bound is created.
-It provides the completed-output notion of closeness, exact bridge rules, and
-triangle rules used to compose the hybrid chain in \Cref{sec:games}.
-
-\subsubsection{Where Sublinear Error Enters}
-
-Standard relational logics compose approximate judgments linearly.
-If a sequence rule is applied to two fragments with losses $\varepsilon$ and
-$\varepsilon'$, the composed fragment typically has loss
-$\varepsilon+\varepsilon'$.
-This is the right shape for union-bound and up-to-bad proofs, but it does not
-capture the Micciancio-Walter Pythagorean phenomenon used in lattice
-cryptography.
-
-Our Pythagorean judgment records a tuple of conditional KL costs rather than an
-additive TVD cost.
-Only after the relevant transcript has been built do we apply the verified
-Pythagorean preservation theorem, yielding the final-marginal bound
-\[
-  \Delta \leq \sqrt{\frac{\sum_i s_i}{2}}.
-\]
-For the oracle setting, \LabTirName{Compile-Replace} combines this with the
-trace compiler: from a one-call Pythagorean judgment for a selected oracle
-operation, it derives a additive-error judgment for the whole
-compiled adversary, with loss
-\[
-  \sqrt{q\lVert s\rVert_1/2}.
-\]
-This is the proof boundary used by the paid hop $H_2\to H_3$ in
-\Cref{sec:paid-hop}.
-
-\subsubsection{Concrete Adversaries and Trace Compilation}
-
-EasyCrypt-style developments often reason about adversaries through module
-interfaces and adversarial call rules.
-This is a good abstraction for cryptographic proofs, and reflection techniques
-can make distribution-level proof steps available at the program level
-\cite{reflection}.
-SSProve \cite{ssprove} has a different foundation: adversaries and games are
-concrete packages whose semantics are defined in Coq.
-
-The trace compiler is our bridge between these worlds.
-Instead of assuming that an adversary is already written as $q$ decryption
-subroutines, the compiler searches the concrete program for the first $q$
-calls to a selected operation identifier, records the surrounding trace, and
-resumes the residual program.
-The theorem \LabTirName{Compile-Same-Package} says that compiling and then
-linking back to the same package is semantics-preserving.
-The theorem \LabTirName{Compile-Replace} says that replacing those selected
-calls by a Pythagorean-close package changes the completed output distribution
-by the Pythagorean loss above.
-
-This trace-compiler proof is one of the main proof-engineering contributions
-of the development.
-It accounts for invalid replay traces, heap-region invariants, residual
-operation calls, and the fact that an ordinary adversary may decide when to
-query decryption in a data-dependent way.
-
-\subsubsection{Comparison with Approximate Relational Hoare Logic}
-
-Approximate relational Hoare logic and its approximate-coupling extensions
-were designed primarily for differential privacy
-\cite{aprhl-couplings}.
-The related approximate-lifting framework for $f$-divergences gives a broader
-semantic account of the same style of reasoning \cite{aprhl}.
-The characteristic judgment has parameters $(\varepsilon,\delta)$ and supports
-privacy bounds of the form
-\[
-  \Pr[E_1] \leq e^\varepsilon \Pr[E_2]+\delta .
-\]
-This multiplicative component is essential in differential privacy, but it is
-not the usual shape of a game-based cryptographic advantage bound.
-If one wants an ordinary additive distinguishing bound, the multiplicative
-term must be converted away, for instance by the coarse estimate
-\[
-  \Pr[E_1]-\Pr[E_2]
-    \leq (e^\varepsilon-1)\Pr[E_2]+\delta
-    \leq e^\varepsilon-1+\delta,
-\]
-and a symmetric bound requires a corresponding judgment in the other
-direction.
-Moreover, the standard sequential composition of approximate liftings adds
-the privacy parameters linearly.
-This is exactly the behavior our Pythagorean layer is meant to avoid for
-KL-based cryptographic analyses.
-
-The comparison is cleanest at $\varepsilon=0$.
-For clarity, we recall the relevant semantic shape of the apRHL judgment.
-
-\begin{definition}[apRHL judgment]
-  The judgment
-  \[
-    \vDash\apRHL\set{P}\ c_L
-      \sim_{\langle\varepsilon,\delta\rangle} c_R\ \set{Q}
-  \]
-  means that for every pair of initial states satisfying $P$, the output
-  distributions $\mu_L$ and $\mu_R$ of $c_L$ and $c_R$ admit an
-  $(\varepsilon,\delta)$-approximate lifting of $Q$.
-  Concretely, this means there are witness distributions
-  $\eta_L,\eta_R$ over pairs of outputs such that the first marginal of
-  $\eta_L$ is $\mu_L$, the second marginal of $\eta_R$ is $\mu_R$, both
-  witnesses are supported in $Q$, and
-  \[
-    \Delta_\varepsilon(\eta_L,\eta_R)
-      \triangleq
-      \sup_E
-        \left(\Pr_{\eta_L}[E] - e^\varepsilon\Pr_{\eta_R}[E]\right)
-      \leq \delta .
-  \]
-  At $\varepsilon=0$, for full output distributions, this divergence is the
-  usual total-variation distance between the two witnesses.
-\end{definition}
-
-The structural difference from our additive-error judgment is important.
-An apRHL proof uses two coupling-like witnesses, both of which must satisfy
-the postcondition exactly; the error is charged to the distance between those
-two witnesses.
-Our additive-error proof uses one coupling of the actual output distributions;
-the error is charged directly to the probability that the postcondition fails.
-The next two lemmas make this distinction precise at $\varepsilon=0$.
-
-\begin{lemma}[Zero-privacy apRHL implies additive error]
-  If
-  \[
-    \vDash\apRHL\set{P}\ c_L
-      \sim_{\langle 0,\delta\rangle} c_R\ \set{Q},
-  \]
-  then
-  \[
-    \vDash\AEJ\set{P}\ c_L
-      \approx_\delta c_R\ \set{Q}.
-  \]
-\end{lemma}
-
-\begin{proof}
-  Fix related initial states and let $\eta_L$ and $\eta_R$ be the apRHL
-  witnesses for the resulting output distributions.
-  Since $\varepsilon=0$, the definition gives
-  $\TVD(\eta_L,\eta_R)\leq\delta$.
-  Let $\kappa$ be a maximal coupling of $\eta_L$ and $\eta_R$.
-  Thus
-  \[
-    \Pr_{(z_L,z_R)\gets\kappa}[z_L=z_R]
-      = 1-\TVD(\eta_L,\eta_R)
-      \geq 1-\delta .
-  \]
-  Write $z_L=(x_L,y_L)$ and $z_R=(x_R,y_R)$.
-  Define a distribution $\gamma$ over output pairs by sampling
-  $(z_L,z_R)\gets\kappa$ and returning $(x_L,y_R)$.
-  The left marginal of $\gamma$ is the first marginal of $\eta_L$, hence the
-  output distribution of $c_L$; the right marginal of $\gamma$ is the second
-  marginal of $\eta_R$, hence the output distribution of $c_R$.
-  Therefore $\gamma$ is a coupling of the two program outputs.
-  Moreover, whenever $z_L=z_R$, the returned pair is exactly that common
-  witness pair, which lies in $Q$ because both witnesses are supported in $Q$.
-  Hence $\Pr_\gamma[Q]\geq 1-\delta$, as required by
-  $\AEJ$.
-\end{proof}
-
-Thus the old intuition that ``apRHL at $\varepsilon=0$ implies additive
-error'' is correct.
-On the other hand, to highlight the differences between apRHL and our additive error judgments, we show the following separation result.
-
-\begin{lemma}[A same-postcondition separation]
-  Let $0<\delta\leq 1$, let
-  $c_\delta$ be the program that samples $x\gets\Bern(1-\delta)$ and returns
-  $x$, and let $Q(x_L,x_R)$ mean $x_L=x_R=\mathsf{true}$.
-  Then
-  \[
-    \vDash\AEJ\set{\top}\ c_\delta
-      \approx_\delta c_\delta\ \set{Q},
-  \]
-  but for every $\delta'$,
-  \[
-    \not\vDash\apRHL\set{\top}\ c_\delta
-      \sim_{\langle 0,\delta'\rangle} c_\delta\ \set{Q}.
-  \]
-\end{lemma}
-
-\begin{proof}
-  Let $\mu$ be the distribution $\Bern(1-\delta)$.
-  For the additive-error judgment, use the diagonal coupling of $\mu$ with
-  itself: sample $b\gets\mu$ and return $(b,b)$.
-  This is a coupling of the two output distributions of $c_\delta$.
-  It satisfies $Q$ exactly when $b=\mathsf{true}$, which happens with
-  probability $1-\delta$.
-  Therefore the additive-error judgment holds with loss $\delta$.
-
-  For the apRHL judgment, suppose toward contradiction that the judgment held
-  for some $\delta'$.
-  Let $\eta_L$ and $\eta_R$ be its witnesses.
-  Since both witnesses must be supported in $Q$, they are supported only on
-  the single pair $(\mathsf{true},\mathsf{true})$.
-  The first marginal of $\eta_L$ is therefore the point mass at
-  $\mathsf{true}$.
-  But the first marginal is required to be the output distribution $\mu$ of
-  $c_\delta$, and $\mu(\mathsf{false})=\delta>0$.
-  This contradiction is independent of $\delta'$, so no such apRHL judgment
-  exists.
-\end{proof}
-
-This separation should not be read as a broad completeness claim against
-apRHL.
-One can often recover a traditional proof by adding an explicit bad event to
-the postcondition and proving it separately.
-Rather, the point is that our additive-error judgment puts the probability of
-postcondition failure directly in the judgment, which is the form needed by
-the completed-output hybrid proofs in this paper.
+\emph{Approximate relational logics.}
+Approximate relational Hoare logics and approximate liftings were developed
+largely for differential privacy~\cite{aprhl,aprhl-couplings}.  They support
+rich \((\varepsilon,\delta)\) reasoning, but their standard sequential rules
+add privacy or additive-error parameters.  One can instantiate general
+\(f\)-divergence machinery with KL divergence, yet applying Pinsker after each
+program step still loses linearly.  The contribution here is the checked
+combination of (i) a transcript judgment whose sequence rule concatenates
+conditional KL budgets, (ii) a final-marginal bridge that converts once, and
+(iii) an oracle compiler that makes that rule applicable to adaptive SSProve
+games.  The resulting theorem is specialized, deliberately, to the
+game-based statistical-distance conclusion used by noise flooding.

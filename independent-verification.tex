@@ -1,346 +1,136 @@
-\section{Formalization Details}
-\label{sec:independent-verification}
+\section{Artifact and Audit}
+\label{sec:artifact}
 
-A formal theorem is useful only if its statement is the theorem one intended
-to prove.
-For cryptographic verification, this creates two different review tasks.
-First, one should audit the \emph{specification layer}: the games, reduction,
-scheme interface, metric assumptions, and final probability bound.
-Second, one may audit the proof infrastructure that connects those definitions
-to the theorem checked by Rocq.
-This section explains both tasks, with the first three subsections written for
-a cryptographer who wants to understand the formal artifact without first
-learning the details of Rocq proof engineering or program-logical soundness.
+The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding
+the manuscript's copied source excerpts.  Line counts are orientation data,
+not an effort metric; mechanized package and summability proofs contain
+substantial bookkeeping.
 
-The development has three technical layers.
-The probability layer proves the KL, Pinsker, Pythagorean preservation, and
-discrete-Gaussian facts used in the noise-flooding calculation.
-The program-logic layer packages those facts as sound reasoning principles for
-SSProve games.
-The LMSS/noise-flooding layer defines the games, reduction, metric interface,
-and final security theorem.
-The key audit question is whether the top layer says the right cryptographic
-thing; the lower layers should then be read as checked proof infrastructure
-for that statement.
-
-\subsection{Artifact Accounting}
-\label{sec:artifact-accounting}
-
-\Cref{tab:artifact-accounting} is a map of the current Rocq artifact.
-The counts are source lines in the named files, rounded only by the grouping
-choices in the table.
-They are meant to answer a practical question: where does one look for the
-mathematics, where does one look for the program-logic infrastructure, and
-where does one look for the cryptographic statement?
-
-The line counts should not be read as a measure of mathematical complexity or
-human effort.
-Mechanized proofs contain many lines that correspond to routine bookkeeping:
-transporting invariants through syntax, discharging type and support
-conditions, or restating a familiar argument in the library's preferred form.
-This development was also substantially AI-assisted.
-As a result, the code is less proof-golfed than a fully hand-written artifact,
-and it carries more local technical debt than a fully hand-written development
-would usually tolerate before refactoring.
-At the same time, AI assistance changes development speed enough that
-person-month estimates would be especially misleading.
-We therefore report line counts as orientation data, not as a claim about
-proof elegance or implementation effort.
-
-\begin{table}
+\begin{table}[t]
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrl}
-\hline
-Layer & Lines & Representative files \\
-\hline
-KL, Pinsker, Pythagorean probability, discrete Gaussians
-  & 5527
-  & \texttt{Probability/KL/}, \texttt{Probability/DiscreteGaussians/} \\
-Program logics and trace infrastructure
-  & 6919
-  & \texttt{ProgramLogics/}, \texttt{Probability/\{DletTuple,OutputHeap,PythSeq\}.v}, \texttt{NextMessage/Trace.v} \\
-LMSS/noise-flooding games and security proof
-  & 10959
-  & \texttt{Schemes/\{ApproxFHE,Indcpa,Indcpad\}.v}, \texttt{Constructions/NoiseFlooding.v}, \texttt{Security/IndcpadSimulator.v}, \texttt{NoiseFloodingSecurity/} \\
-\hline
-Three main technical layers & 23405 & \\
-Full Rocq development & 27960 & includes local MathComp/SSProve adapters \\
-\hline
+\caption{Rocq source map.}
+\label{tab:artifact-map}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Layer & Lines \\
+\midrule
+Probability, KL, Gaussian analysis & 9,954 \\
+Program logics and trace syntax & 4,365 \\
+Security proofs and reduction & 10,010 \\
+Schemes and construction & 1,049 \\
+MathComp/SSProve adapters & 2,608 \\
+\midrule
+Total & 27,986 \\
+\bottomrule
 \end{tabular}
-}
-\caption{Coarse source-line map of the formal artifact.  These counts are
-orientation data rather than effort metrics.}
-\label{tab:artifact-accounting}
 \end{table}
 
-\subsection{Trusted Computing Base}
+The top-level file is
+\path{theories/Security/NoiseFloodingSecurity/Final.v}.  Its functor
+\texttt{NoiseFloodingSecure} takes the five interfaces in
+\Cref{tab:theorem-boundary}.  It defines the concrete reduction and
+\texttt{security\_bound}, proves the reduction package well typed, derives the
+completed-output inequality, and exports \texttt{is\_secure}.  The proof is
+split as follows:
+
+\begin{itemize}
+\item \path{Schemes/Indcpa.v}, \path{Schemes/Indcpad.v}, and
+\path{Constructions/NoiseFlooding.v} define the games and transform;
+\item \path{Security/IndcpadSimulator.v} defines the concrete reduction;
+\item \path{Security/NoiseFloodingSecurity/GaussianBasics.v} through
+\path{DecryptCompiler.v} establish the invariant, one-call Gaussian step, and
+compiled replacement;
+\item \path{GameReduction.v} and \path{Final.v} prove the exact endpoint
+bridges and compose \Cref{eq:hybrid-chain};
+\item \path{Probability/} and \path{ProgramLogics/} contain the reusable
+analysis and rules from \Cref{sec:pyth-toolkit}.
+\end{itemize}
+
+\subsection{Reproduction and measured check}
+
+With Rocq 9.0.1, \texttt{rocq-ssprove} development version, MathComp Analysis
+1.16.0, and MathComp algebra tactics 1.2.7, the command
+\begin{quote}
+\footnotesize\ttfamily
+make -f Makefile.rocq\\
+theories/Security/\\
+NoiseFloodingSecurity/Final.vo
+\end{quote}
+checks the theorem and its dependencies.  A forced rebuild in the provided
+development environment took 472.54 seconds wall time (421.75 seconds user,
+51.87 seconds system).  An incremental check of an up-to-date build took
+0.25 seconds.  These are single observations, included for reviewer planning
+rather than performance claims.
+
+The repository \texttt{README.md} gives setup, build, theorem-inspection, and
+directory-map instructions.  The manuscript build refreshes appendix excerpts
+from the live sources, preventing displayed formal definitions from silently
+diverging when both repositories are checked out together.
+
+\subsection{Trusted computing base}
 \label{sec:tcb}
 
-The trusted computing base is the part that is accepted rather than proved in
-this paper.
-For this artifact, it is the usual base for a Rocq/SSProve development plus
-the libraries needed to formalize countable probability.
-At the bottom is the Rocq kernel and standard library infrastructure,
-including the construction of real numbers and the classical reasoning
-principles used by imported libraries.
-MathComp and MathComp Analysis provide algebra, finite tuples, real analysis,
-infinite sums, summability, logarithms, exponentials, and the distribution
-interface used for KL divergence and discrete Gaussians.
-SSProve provides the meaning of the pseudocode used for games and reductions:
-probabilistic programs, stateful oracle packages, oracle linking, heaps,
-subdistributions, and completed games.
+The trusted base includes the Rocq kernel and standard library; MathComp,
+MathComp Analysis, and their real-number/classical infrastructure; and
+SSProve's program, heap, package, linking, and subdistribution semantics.  The
+scheme, chart, correctness, parameter, and IND-CPA facts in
+\Cref{tab:theorem-boundary} are theorem parameters and must be discharged by a
+concrete instantiation.
 
-Our claim starts above that foundation.
-Given SSProve's semantics for games and MathComp's semantics for distributions
-and real analysis, the formal artifact checks that the security theorem
-follows from the stated scheme, correctness, metric, and IND-CPA assumptions.
-The proof-specific ingredients are not additional trusted axioms.
-The program-logic rules, trace compiler, KL lemmas, discrete-Gaussian facts,
-and individual game hops are Rocq theorems proved from the underlying
-semantics.
-Thus a crypto reader need not trust a new informal program logic on faith:
-the logic is a proof organization device whose rules are themselves checked
-theorems.
+The new KL, Gaussian, relational, compiler, and game-hop results contain no
+local \texttt{Admitted}.  The installed dependency graph nevertheless reports
+MathComp Analysis's
+\path{realsum.__admitted__interchange_psum}: current SSProve distribution
+semantics are built on these MathComp definitions and reach the upstream
+placeholder~\cite{ssprove}.  This is the host framework's inherited assumption,
+not an axiom introduced by our security development.
 
-If a reader does not accept Rocq, MathComp/Analysis, or SSProve as a
-foundation, this paper cannot remove that concern; many textbooks' worth of
-mathematics and programming-language semantics live below our development.
-Once those foundations and the cryptographic definitions are accepted, the
-remaining machine-checkable claim is deliberately simple: Rocq typechecks the
-proof.
-After applying the parameterized \texttt{NoiseFloodingSecure} module to a
-scheme, metric, correctness proof, IND-CPA interface, and parameter module,
-and binding the result as \texttt{Secure}, the command
-\[
-  \texttt{Print Assumptions Secure.is\_secure}
-\]
-is the machine-checkable summary of what remains outside the proof: the
-scheme/correctness/metric interfaces, the assumed IND-CPA winning-probability
-theorem, positivity of the Gaussian-width multiplier, and the
-library/classical assumptions inherited from Rocq, MathComp, MathComp
-Analysis, and SSProve.
-At present that output also contains MathComp Analysis's admitted
-\path{realsum.__admitted__interchange_psum} axiom, inherited through
-the distribution infrastructure.
-The local \texttt{interchange\_psum\_proved} lemma proves the same statement,
-but the final dependency graph has not yet been refactored to eliminate every
-library path through the admitted version; it therefore remains part of the
-current trusted computing base.
+We independently discharge the mathematical obligation.  The artifact proves
+the same statement as \texttt{interchange\_psum\_proved}, ending in
+\texttt{Qed}; \texttt{Print Assumptions} for this replacement reports only the
+usual extensionality and choice principles and not the admitted upstream
+lemma.  The proof has also been submitted to MathComp Analysis for inclusion
+in a future release.  Until an upstream release replaces the existing call
+sites, \texttt{Print Assumptions} for the top-level theorem will continue to
+display the placeholder's name.  We report that installed-library fact
+explicitly, while distinguishing it from an outstanding local proof
+obligation.  Claiming that the current compiled dependency graph is literally
+axiom-free would still be inaccurate.
 
-\subsection{What a Cryptographer Should Audit}
-\label{sec:crypto-audit-surface}
+For an instantiated module \texttt{Secure}, reviewers can run
+\texttt{Print Assumptions Secure.is\_secure}.  Besides library and classical
+assumptions, expected output includes the concrete scheme/chart/correctness
+interfaces, positivity of \(\gamma\), and the supplied IND-CPA theorem.  It
+should not contain the program-logic rules, trace-compiler correctness, or
+discrete-Gaussian KL identity as assumptions: those are proved in the
+development.
 
-The main theorem is exposed as
-\texttt{NoiseFloodingSecure.is\_secure}.
-The statement itself is the primary cryptographic object to audit.
-It says that for every adversary accepted by the IND-CPAD interface, the
-noise-flooded adversary's probability of guessing the hidden bit is at most
-the supplied IND-CPA security bound for a concrete constructed reduction plus
-the verified noise-flooding loss.
-The word ``package'' in the formal statement should be read simply as
-``stateful oracle program''; the important cryptographic point is that the
-adversary can make adaptive encryption, evaluation, and decryption queries
-subject to the stated decryption-query bound.
+\subsection{A cryptographer's audit path}
 
-A crypto-facing audit can therefore focus on four questions.
-Does the IND-CPAD game encode the intended Li--Micciancio-style decryption
-attack model?
-Does the assumed IND-CPA winning-probability bound match the intended security
-notion for the underlying scheme?
-Is the concrete reduction the expected one, with simulated decrypt queries
-answered by noise flooding the common table plaintext?
-Do the metric, correctness, and Gaussian-width assumptions justify the loss
-\(\sqrt{q\epsilon_{\mathsf{nf}}/2}\), where
-\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\)?
-The appendix excerpts are organized around exactly these questions.
-\Cref{app:ind-cpa-reduction-excerpt} shows the concrete reduction package;
-\Cref{app:security-bound-excerpt} shows the composed bound as the
-definition of \texttt{security\_bound}; \Cref{app:reduction-bound-excerpt}
-shows that the constructed reduction has the IND-CPA adversary interface; and
-\Cref{app:final-reduction-theorem} shows the final theorem statement.
+A reviewer need not inspect 27,986 lines to determine what is claimed.  The
+recommended specification audit is:
 
-The crypto-facing audit surface is small compared with the proof body.
-\Cref{tab:crypto-audit-surface} lists the files whose definitions and
-assumptions determine what the theorem means.
-The line counts are the excerpted appendix lines, included to show the size of
-the human-facing audit surface rather than the size of the proof scripts.
+\begin{enumerate}
+\item inspect \path{Schemes/Indcpad.v} for the attack game, table discipline,
+and query counter;
+\item inspect \path{Constructions/NoiseFlooding.v} for the returned
+distribution and width \((e^2+1)\gamma\);
+\item inspect \path{Security/IndcpadSimulator.v} for the reduction's oracle
+answers;
+\item inspect \path{Schemes/ApproxFHE.v} for the chart and support-correctness
+assumptions, which define the good-execution boundary for the standard
+up-to-bad extension;
+\item inspect the definitions of \texttt{security\_loss},
+\texttt{security\_bound}, and \texttt{is\_secure} in
+\path{NoiseFloodingSecurity/Prelude.v} and \path{Final.v}.
+\end{enumerate}
 
-\begin{table}
-\centering
-\resizebox{\linewidth}{!}{%
-\begin{tabular}{lrl}
-\hline
-File & Excerpt lines & What to audit \\
-\hline
-\texttt{Schemes/ApproxFHE.v} & 83
-  & scheme interface, correctness assumptions, metric charts \\
-\texttt{Probability/DiscreteGaussians/\{DiscreteGaussian,DiscreteGaussianKL\}.v} & 20
-  & normalized mass function and equal-variance KL theorem \\
-\texttt{LibExtras/\{MathcompExtras/DTuple,SSProveExtras/DiscreteGaussian\}.v} & 29
-  & independent product sampler and SSProve integer adapter \\
-\texttt{Schemes/Utils/IntVec.v} & 2
-  & coordinatewise integer-vector addition \\
-\texttt{Schemes/Indcpa.v} & 57
-  & IND-CPA game and adversary-dependent bound interface \\
-\texttt{Schemes/Indcpad.v} & 118
-  & IND-CPAD game, oracle table, decrypt-query behavior \\
-\texttt{Constructions/NoiseFlooding.v} & 47
-  & tuple sampler, transformed scheme, and Gaussian-width parameter \\
-\texttt{Security/IndcpadSimulator.v} & 98
-  & concrete reduction, simulation oracle, and sampler bridge \\
-\texttt{NoiseFloodingSecurity/Prelude.v} & 5
-  & closed-form noise-flooding loss \\
-\texttt{NoiseFloodingSecurity/Final.v} & 14
-  & security bound, reduction validity, final theorem statement \\
-\hline
-Total & 473 & crypto-facing specification layer \\
-\hline
-\end{tabular}
-}
-\caption{Primary cryptographic audit surface.  The files are under
-\texttt{theories/}; \Cref{app:formal-interface-excerpts} includes exactly
-these excerpts, while the rest of the development proves consequences of these
-definitions and assumptions.}
-\label{tab:crypto-audit-surface}
-\end{table}
-
-The appendix therefore includes selected excerpts from the specification layer,
-not the whole proof script.
-This is deliberate: the specification layer is where a cryptographer checks
-that the theorem is about the intended games and assumptions.
-\Cref{app:approximate-homomorphic-encryption-interface,app:metric-chart-excerpt,app:support-correctness-excerpt}
-show the scheme interface and correctness/metric assumptions;
-\Cref{app:discrete-gaussian-definition-excerpt,app:discrete-gaussian-product-excerpt}
-show the normalized one-dimensional Gaussian, its KL theorem, both product
-samplers, and their proved bridge;
-\Cref{app:ind-cpa-game-excerpt,app:ind-cpa-d-game-excerpt} show the two games;
-\Cref{app:noise-flooded-construction-excerpt,app:ind-cpa-reduction-excerpt,app:loss-formula-excerpt,app:security-bound-excerpt}
-show the construction, concrete reduction, closed-form loss, and
-composed security bound.
-\Cref{app:reduction-bound-excerpt} shows reduction validity, and
-\Cref{app:final-reduction-theorem} shows only the final theorem statement.
-The proof scripts are not the part a cryptographer should have to read in
-order to understand what has been proved.
-The full development is about 28,000 lines, with just under 10,000 lines in the
-split noise-flooding security proof alone.
-The artifact is the appropriate medium for that part.
-
-The assumptions that should receive the most cryptographic attention are the
-following.
-The IND-CPA interface in \texttt{Indcpa.v} gives the game used on the
-right-hand side of the reduction theorem.
-One may separately instantiate it with a concrete computational security
-assumption for the underlying scheme.
-The reduction in \texttt{IndcpadSimulator.v} is also on the hot path.
-The formal theorem proves a statement about the concrete SSProve package in
-\Cref{app:ind-cpa-reduction-excerpt}; it is not an existential reduction.
-A computational interpretation still requires the usual runtime audit: the
-reduction should run in time comparable to the original adversary, plus the
-explicit bookkeeping for oracle tables, homomorphic evaluation, and Gaussian
-sampling.
-The Rocq development does not formalize a polynomial-time cost model, so this
-runtime check remains a conventional cryptographic review obligation.
-The IND-CPAD game in \texttt{Indcpad.v} is not assumed secure; it is the game
-proved secure after applying noise flooding.
-The final theorem currently uses the support-level perfect-correctness
-interface in \texttt{ApproxFHE.v}: every ciphertext row that the challenger can
-store decrypts to the deterministic center required by the metric argument.
-Approximate correctness with explicit correctness-error accounting is kept as
-a separate interface.
-The metric interface in \texttt{ApproxFHE.v} assumes origin-centered integer
-charts:
-\[
-  I_a(a)=0,\qquad
-  d(a,b)=\lVert I_a(b)\rVert,\qquad
-  I_b^{-1}(x)=I_a^{-1}(x+I_a(b)).
-\]
-These are the assumptions connecting the abstract plaintext metric to the
-integer-vector Gaussian analysis in \Cref{sec:isometry}.
-Finally, the noise-flooding parameter module assumes only that the Gaussian
-width multiplier is positive; the quantitative dependence on that multiplier
-is the explicit loss formula above.
-
-\subsection{Probability and Discrete-Gaussian Review}
-\label{sec:probability-review}
-
-The probability layer is the part of the artifact that a mathematically minded
-reader should audit as ordinary analysis.
-The relevant human-facing statements are the definitions of KL divergence and
-finite KL, Pinsker's inequality for MathComp distributions, the conditional
-coordinate chain bound used for Pythagorean preservation, and the
-equal-variance KL formula for discrete Gaussians over the integers.
-These are stated in \Cref{sec:verified-kl-analysis}; their Rocq proofs live
-primarily in \texttt{Probability/KL/} and
-\texttt{Probability/DiscreteGaussians/}.
-
-As with the program logic, the full proof scripts are not the intended reading
-order.
-The paper should give pen-and-paper proofs of the mathematical facts that are
-not immediate, especially the chain-rule/summability argument and the
-discrete-Gaussian KL calculation.
-\Codex{Submission blocker: the current draft says these proofs should be
-present but does not yet provide them. For a PLDI/POPL presentation, include at
-least proof sketches for the chain/summability theorem, Pythagorean sequencing,
-final-marginal bridge, and trace-compiler correctness.}
-The formal development then checks the details that are easy to lose in an
-informal proof over countable distributions: absolute continuity,
-positive/negative-part summability, interchange of countable sums, and the
-normalization and moment facts for the integer Gaussian.
-
-This part of the project also produced some library-adjacent ``community
-service'' for MathComp Analysis.
-The local \texttt{RealSumExtras.v} file factors out reusable facts about
-MathComp's experimental \texttt{sum}/\texttt{summable} interface, including the
-proved Fubini-style interchange lemma
-\[
-  \texttt{interchange\_psum\_proved}.
-\]
-Those facts were developed while discharging the summability obligations for
-the KL analysis.
-A version of this material was also submitted upstream to MathComp Analysis,
-where it helps reduce reliance on admitted real-summation infrastructure.
-
-\subsection{Program-Logic Review}
-\label{sec:program-logic-review}
-
-For a PL or verification reader, the audit story is the standard soundness
-story.
-The development defines semantic judgments for support-style Hoare reasoning,
-completed-output additive error, and Pythagorean KL bookkeeping.
-Each inference rule is a theorem about those semantic definitions.
-A human reader should not be expected to step through the corresponding Rocq
-proof scripts line by line.
-The human-facing artifact is the selected collection of semantic definitions
-and rule statements, together with mathematical explanations for the few rules
-whose soundness is not immediate.
-
-The rule statements themselves are compact.
-\Cref{sec:program-logic} displays the core rules used by the security proof:
-completed additive-error rules, Pythagorean sampling and sequencing rules, the
-Micciancio--Walter bridge, and the trace-compiler replacement principles.
-Even conservatively counting around twenty externally meaningful rules at ten
-to twenty lines each, the surface to inspect is on the order of a few hundred
-lines, not thousands of lines of proof script.
-
-The proof scripts remain important, but as the machine-checking substrate.
-For routine rules, soundness is a direct unfolding of the semantic judgment
-plus standard distribution facts.
-For the nontrivial rules---completed-output sequencing, the trace compiler,
-and the Pythagorean final-marginal theorem behind the Micciancio--Walter
-bridge---the paper should provide pen-and-paper arguments at the level of
-mathematics and proof structure.
-The Rocq proofs then check that those arguments have no hidden side conditions.
-
-\Codex{For PLDI, turn this audit narrative into an evaluation: report rule and
-theorem coverage, build/check time and environment, proof decomposition for the
-case study, where the compiler is required, the linear-composition baseline,
-and evidence for reuse beyond this single noise-flooding proof.}
-
-For cryptographers, this part should look familiar at a high level.
-We define judgments by their intended semantics, prove inference rules sound,
-and then use those rules to structure the game-hopping proof.
-The unusual feature is not the soundness methodology itself, but the
-Pythagorean bookkeeping: instead of composing statistical-distance errors
-linearly at each program step, the proof records conditional KL costs and pays
-the square-root loss once at the end.
+The formal excerpts in \Cref{app:formal-interface-excerpts} follow this path.
+The remaining proof scripts establish that those definitions are connected by
+the argument in \Cref{sec:verified-reduction}.  As in SSProve's own formal
+security bounds, probabilistic-polynomial-time preservation is a conventional
+metatheoretic premise rather than an internal semantic judgment~\cite{ssprove}.
+The audit is direct here: the reduction runs the adversary once, forwards its
+oracle calls, and adds table operations and discrete-Gaussian sampling.  The
+artifact therefore exposes all reduction code needed for this audit; it does
+not attempt to add automatic complexity analysis to SSProve.

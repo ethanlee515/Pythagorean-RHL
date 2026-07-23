@@ -1,783 +1,168 @@
-\section{Relational Hoare Logic with Pythagorean Errors}
-\label{sec:program-logic}
+\section{Checked Pythagorean Toolkit}
+\label{sec:pyth-toolkit}
 
-We now describe the program logic used by the formalized noise-flooding proof.
-The development does not introduce a new programming language.
-Instead, it defines semantic judgments over SSProve \cite{ssprove} programs and proves the inference rules in Rocq.
-The central design choice is to keep SSProve's concrete package/linking model, while adding two relational layers: an additive-error judgment for statistical distance arguments and a Pythagorean judgment for conditional KL-divergence bookkeeping.
-The probability facts summarized in \Cref{sec:verified-kl-analysis} provide the distribution-level theorems consumed by these rules.
+SSProve already supplies probabilistic programs, stateful packages, linking,
+and exact relational reasoning~\cite{ssprove}.  The development adds the
+quantitative layer needed by \Cref{eq:hybrid-chain}.  All rules below are Rocq
+theorems over SSProve semantics.
 
-The rules in \Cref{fig:program-logic-core-rules} show the main proof principles used below.
-Base rules are proved directly against the SSProve semantics or the distribution library.
-Derived rules are still fully verified theorems, but their Rocq proofs mainly compose earlier judgment rules.
-The compiler theorems are separated because they are not ordinary structural rules: their soundness rests on an explicit semantic induction over the trace compiler.
+\subsection{Completed additive error}
 
-\subsection{Judgments and Basic Rules}
-
-We use the SSProve syntax, completed semantics, configuration notation, and
-correlated-transcript notation from \Cref{sec:prelim-ssprove-semantics}.
-The Rocq formalization represents correlated transcript families directly as
-joint laws.
-
-SSProve has exact relational Hoare logic.
-For the Pythagorean rules, we use the corresponding one-sided support-style
-judgment to supply invariant-preservation facts for shared code, package
-calls, and trace residuals.
-
-\begin{definition}[Hoare judgment]
-We write
-\begin{equation}
-\label{eq:hoare-judgment}
-    \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
-\end{equation}
-if, for every input $x$ and initial heap $m$ satisfying $P(x,m)$, every output/heap pair in the support of the SSProve semantics of $c(x)$ from $m$ satisfies $Q$:
+SSProve programs denote subdistributions over output/heap pairs.  For a
+subdistribution \(\mu\) on \(X\), its completion is the distribution on
+\(X\cup\{\bot\}\) defined by
 \[
-  \forall x,m.\ 
-  P(x,m)\Rightarrow
-  \forall y,m'.\
-  (y,m')\in\supp\semantic{c(x)}(m)
-  \Rightarrow Q(y,m').
+ \completed{\mu}(x)=\mu(x),\qquad
+ \completed{\mu}(\bot)=1-\sum_x\mu(x).
 \]
-\end{definition}
-
-The additive-error judgment is the canonical approximate-equivalence judgment
-used for game hops in the paper and in the main Rocq development.
-It treats postconditions on successful output/heap pairs as lifted predicates
-on completed outputs when needed.
-Informally, it says that from any related initial configurations, the two
-completed output distributions can be coupled so that the desired relation
-fails with probability at most $\varepsilon$.
-
-\begin{definition}[Additive-error judgment]
-We write
-\begin{equation}
-\label{eq:ae-judgment}
-    \vDash\AEJ\set{P}\ c_L \approx_\varepsilon c_R\ \set{Q}
-\end{equation}
-if $0\leq\varepsilon$ and, for every pair of initial configurations
-$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$, there exists a coupling $d_{\rho_L,\rho_R}$ of the completed output distributions such that $Q$ fails with probability at most $\varepsilon$:
+The additive-error judgment
 \[
-\begin{aligned}
-&\mathsf{Cpl}\!\left(
-  d_{\rho_L,\rho_R};
-  \csemantic{c_L}_{\rho_L},
-  \csemantic{c_R}_{\rho_R}
-\right),
-\\
-&\Pr_{d_{\rho_L,\rho_R}}[Q]\geq 1-\varepsilon .
-\end{aligned}
+ \vDash\AEJ\{P\}\ c_L\approx_\delta c_R\ \{Q\}
 \]
-\end{definition}
+means that for every pair of initial configurations satisfying \(P\), the
+completed output distributions admit a coupling in which \(Q\) fails with
+probability at most \(\delta\).  For equality postconditions, a completed
+statistical-distance bound yields this judgment by maximal coupling.  The
+library proves consequence, sequencing, triangle, output projection, and
+package-oriented variants.
 
-\Cref{fig:program-logic-core-rules} shows the two main ways to prove an additive-error judgment.
-\LabTirName{AE-Couple} constructs the coupling directly, while \LabTirName{AE-TVD-Eq} derives the judgment from a TVD bound on completed outputs.
-The formalization also includes consequence, sequencing, and total-output variants.
+Completion is important for security games with assertions.  Without it, two
+programs could appear close after simply losing different amounts of mass on
+failing executions.  Here failure is an observable outcome in the comparison,
+even when the final cryptographic game later projects to a Boolean.
 
-Compared with EasyCrypt, this is a semantic pRHL/up-to-bad layer with the bad event already internalized into the coupling success probability.
-Compared with SSProve out of the box, we reuse SSProve's distributions, couplings, heaps, packages, and linking semantics, but add a reusable approximate judgment over program fragments.
+\subsection{Conditional KL transcripts}
 
-The Pythagorean judgment records a correlated transcript family over completed
-outputs rather than merely listing syntactic sampling sites.
-Equivalently, and this is how the artifact represents it, it records the
-underlying joint transcript distribution and derives the coordinate
-conditionals from that joint law.
-The transcript is then handed to the probability-level theorem.
-The underlying distribution predicate is the Pythagorean distribution predicate
-described in \Cref{sec:verified-kl-analysis}.
+Let \(\mathcal P,\mathcal Q\) be joint distributions on
+\(\Omega^k\).  Write \(\mathcal P_i\mid a\) for the \(i\)th coordinate
+conditioned on prefix \(a\in\Omega^{i-1}\).  The probability layer proves the
+following countable-distribution form of Pythagorean preservation.
 
-\begin{definition}[Pythagorean judgment]
-Let $s=(s_1,\ldots,s_n)$ be a tuple of real numbers.
-We write
-\begin{equation}
-\label{eq:pyth-judgment}
-    \vDash\Pyth\set{P}\ c_L \approx_s c_R\ \set{Q},
-\end{equation}
-if all entries of $s$ are nonnegative and, for every pair of initial configurations
-$\rho_L=(x_L,m_L)$ and $\rho_R=(x_R,m_R)$ satisfying $P(\rho_L,\rho_R)$,
-there exist weight-one joint transcript distributions
+\begin{theorem}[Conditional-coordinate preservation]
+\label{thm:pyth-probability}
+Suppose \(\mathcal P,\mathcal Q\) have weight one and, for every coordinate
+\(i\) and prefix \(a\), the conditional KL divergence is finite and
 \[
-  \cP(\rho_L,\rho_R),\cQ(\rho_L,\rho_R)\in\distr(\Omega^n)
+ \KL{\mathcal P_i\mid a}{\mathcal Q_i\mid a}\leq s_i,
+ \qquad s_i\geq0.
 \]
-over completed output/heap values such that:
+Then their final-coordinate marginals satisfy
 \[
-\begin{aligned}
-&\mathsf{marg}_n(\cP(\rho_L,\rho_R))=\csemantic{c_L}_{\rho_L},
-\qquad
-\mathsf{marg}_n(\cQ(\rho_L,\rho_R))=\csemantic{c_R}_{\rho_R},
-\\
-&\forall i\in\{1,\ldots,n\},\ 
-  \forall a\in\Omega^{i-1}.\
-  \mathsf{finiteKL}\!\left(
-    \cP_i(\rho_L,\rho_R)\mid a,
-    \cQ_i(\rho_L,\rho_R)\mid a
-  \right),
-\\
-&\forall i\in\{1,\ldots,n\},\ 
-  \forall a\in\Omega^{i-1}.\
-  \KL{\cP_i(\rho_L,\rho_R)\mid a}
-     {\cQ_i(\rho_L,\rho_R)\mid a}
-  \leq s_i,
-\\
-&\forall z\in\supp\semantic{c_L(x_L)}(m_L).\ Q(z),
-\qquad
-\forall z\in\supp\semantic{c_R(x_R)}(m_R).\ Q(z).
-\end{aligned}
+ \TVD(\mathsf{marg}_k\mathcal P,
+      \mathsf{marg}_k\mathcal Q)
+ \leq \sqrt{\frac{\sum_{i=1}^{k}s_i}{2}}.
 \]
-\end{definition}
+\end{theorem}
 
-\begin{figure}
-\centering
-\small
+At pen-and-paper level, the proof expands joint mass as prefix mass times
+conditional mass and groups the log likelihood ratio by coordinate.  The
+resulting chain bound gives
+\(\KL{\mathcal P}{\mathcal Q}\leq\sum_i s_i\).
+Pinsker gives the transcript distance, and data processing under the final
+projection gives the displayed conclusion.  In Rocq, the difficult part is
+not the algebra but the countable analysis: absolute continuity, conditional
+zero-mass prefixes, summability of positive and negative parts, and exchanging
+finite coordinate sums with countable support sums are all explicit.
+
+The semantic Pythagorean judgment
 \[
-\begin{array}{rcll}
-J &::=& \vDash\mathsf{Hoare}\set{P}\ c\ \set{Q}
-  & \text{support-style unary correctness}\\
-  &\mid& \vDash\AEJ\set{P}\ c_L
-    \approx_\varepsilon c_R\ \set{Q}
-  & \text{additive error}\\
-  &\mid& \vDash\Pyth\set{P}\ c_L
-    \approx_s c_R\ \set{Q}
-  & \text{Pythagorean KL budget}
-\end{array}
+ \vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}
 \]
-\begin{mathpar}
-\inferrule*[right=\textsc{AE-Couple}]
-  {
-    0\leq\varepsilon\\
-    P(\rho_L,\rho_R)\Rightarrow
-      \mathsf{Cpl}(d_{\rho_L,\rho_R};
-        \csemantic{c_L}_{\rho_L},
-        \csemantic{c_R}_{\rho_R})\\
-    P(\rho_L,\rho_R)\Rightarrow
-      \Pr_{d_{\rho_L,\rho_R}}[Q]\geq 1-\varepsilon
-  }
-  {
-    \vDash\AEJ\set{P}\ c_L
-      \approx_\varepsilon c_R\ \set{Q}
-  }
+asserts the existence, for each related input pair, of weight-one joint
+completed transcripts whose final marginals are the programs' completed
+outputs, whose conditional coordinate KL costs are bounded by the tuple
+\(s\), and whose supported successful outputs satisfy \(Q\).  This is stronger
+bookkeeping than an immediate statistical-distance judgment: sequencing
+concatenates tuples rather than adding already square-rooted losses.
 
-\inferrule*[right=\textsc{AE-TVD-Eq}]
-  {
-    0\leq\varepsilon\\
-    P(\rho_L,\rho_R)\Rightarrow
-      \Delta(\csemantic{c_L}_{\rho_L},
-             \csemantic{c_R}_{\rho_R})\leq\varepsilon
-  }
-  {
-    \vDash\AEJ\set{P}\ c_L
-      \approx_\varepsilon c_R\ \set{o_L=o_R}
-  }
+The central bridge is the checked rule
+\begin{align}
+\label{eq:mw-rule}
+ &\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}\notag\\
+ &\quad\Longrightarrow\
+ \vDash\AEJ\{P\}\ c_L
+   \approx_{\sqrt{\norm{s}_1/2}}c_R\
+   \{o_L=o_R\}.
+\end{align}
+It instantiates \Cref{thm:pyth-probability} and then uses maximal coupling.
 
-\inferrule*[right=\textsc{Pyth-Seq}]
-  {
-    \vDash\Pyth\set{P}\ c_L\approx_{s_1} c_R\ \set{M}\\
-    \vDash\Pyth
-      \set{y_L=y_R\wedge m_L=m_R\wedge M(y_L,m_L)}
-      k_L\approx_{s_2} k_R\ \set{Q}
-  }
-  {
-    \vDash\Pyth\set{P}
-      (y\gets c_L;\ k_L(y))
-      \approx_{s_1\mathbin{+\!\!+}s_2}
-      (y\gets c_R;\ k_R(y))
-      \set{Q}
-  }
+\subsection{Discrete Gaussians}
 
-\inferrule*[right=\textsc{Micciancio-Walter}]
-  {
-    \vDash\Pyth\set{P}\ c_L\approx_s c_R\ \set{Q}\\
-    \delta=\sqrt{\sum_i s_i/2}
-  }
-  {
-    \vDash\AEJ\set{P}\ c_L
-      \approx_\delta c_R\ \set{o_L=o_R}
-  }
-\end{mathpar}
-\caption{Core judgment forms and representative rules.  The displayed rules are schematic versions of the Rocq lemmas in \texttt{ProgramLogics/Ae.v} and \texttt{ProgramLogics/Pyth.v}; later rules specialize these principles to discrete Gaussians and compiled oracle calls.}
-\label{fig:program-logic-core-rules}
-\end{figure}
-
-\subsection{Pythagorean Proof Rules}
-
-\paragraph{Sampling rules.}
-The primitive sampling rule embeds an ordinary distribution-level KL fact into a one-coordinate Pythagorean judgment:
-\begin{mathpar}
-\inferrule[KL-Samp]
-  {
-    0\leq\varepsilon\\
-    \forall x_L,x_R,m_L,m_R.\
-      P((x_L,m_L),(x_R,m_R))\Rightarrow m_L=m_R\\
-    \forall x_L,x_R.\ \mathsf{finiteKL}(D_L(x_L),D_R(x_R))\\
-    \forall x_L.\ dweight(D_L(x_L))=1\\
-    \forall x_R.\ dweight(D_R(x_R))=1\\
-    \forall x_L,x_R,m_L,m_R.\
-      P((x_L,m_L),(x_R,m_R))
-      \Rightarrow \KL{D_L(x_L)}{D_R(x_R)}\leq\varepsilon\\
-    \forall x_L,x_R,m_L,m_R,y.\
-      P((x_L,m_L),(x_R,m_R))\wedge y\in\supp(D_L(x_L))
-      \Rightarrow Q(y,m_L)\\
-    \forall x_L,x_R,m_L,m_R,y.\
-      P((x_L,m_L),(x_R,m_R))\wedge y\in\supp(D_R(x_R))
-      \Rightarrow Q(y,m_R)
-  }
-  {
-    \vDash\Pyth\set{P}\
-      \mathsf{sample}(D_L)
-      \approx_{[\varepsilon]}
-      \mathsf{sample}(D_R)
-      \set{Q}
-  }.
-\end{mathpar}
-The equal-memory premise is present because sampling returns the sampled value without changing the heap, and the one-step trace encoding packs output/heap pairs.
-
-The discrete-Gaussian specialization used by the noise-flooding proof is the
-vector rule below.  Write
-\(\mathcal{DG}^n_{\vec\mu,\sigma^2}\) for the product of \(n\)
-independent discrete Gaussians with center vector
-\(\vec\mu\in\bbZ^n\).  Applying the verified scalar KL formula to each
-coordinate and then summing the resulting budgets gives:
-\begin{mathpar}
-\inferrule[KL-DGn]
-  {
-    0<\sigma\\
-    0\leq\varepsilon\\
-    \forall i<n.\
-      \frac{(\mu_{R,i}-\mu_{L,i})^2}{2\sigma^2}
-      \leq\varepsilon\\
-    \forall m_L,m_R.\ P(m_L,m_R)\Rightarrow m_L=m_R\\
-    \forall m_L,m_R,\vec y\in\bbZ^n.\
-      P(m_L,m_R)\Rightarrow
-      Q(\vec y,m_L)\wedge Q(\vec y,m_R)
-  }
-  {
-    \vDash\Pyth\set{P}\
-      \vec x\gets
-        \mathcal{DG}^n_{\vec\mu_L,\sigma^2}
-      \approx_{[n\varepsilon]}
-      \vec x\gets
-        \mathcal{DG}^n_{\vec\mu_R,\sigma^2}
-      \set{Q}
-  }.
-\end{mathpar}
-Unlike the generic sampling rule, \LabTirName{KL-DGn} has no support side
-conditions: the product Gaussian has full support on \(\bbZ^n\), so the
-postcondition must hold for every integer-vector output.
-The formal \texttt{dgTuplePythDist} proof constructs the product distribution
-coordinate by coordinate from the scalar discrete-Gaussian KL theorem.
-The \texttt{klDgNRule} then sums the \(n\) coordinate bounds and transports the
-tuple through an injective SSProve encoding.  The noise-flooding development
-instantiates this encoding with its integer-vector representation and uses
-\texttt{klDgNRule} for the vector sampling step.
-
-\paragraph{Structural rules.}
-The reflexivity and consequence rules are proved directly from the transcript semantics:
-\begin{mathpar}
-\inferrule[Pyth-Refl]
-  {
-    \forall i.\ 0\leq s_i\\
-    \forall x_L,x_R,m_L,m_R.\
-      P((x_L,m_L),(x_R,m_R))\Rightarrow x_L=x_R\wedge m_L=m_R\\
-    \forall x,m,y,m'.\
-      P((x,m),(x,m))\wedge (y,m')\in\supp\semantic{c(x)}(m)
-      \Rightarrow Q(y,m')
-  }
-  {
-    \vDash\Pyth\set{P}\ c\approx_s c\ \set{Q}
-  }
-
-\inferrule[Pyth-Conseq]
-  {
-    P'\Rightarrow P\\
-    Q\Rightarrow Q'\\
-    \forall i.\ s_i\leq s'_i\\
-    \vDash\Pyth\set{P}\ c_L\approx_s c_R\ \set{Q}
-  }
-  {
-    \vDash\Pyth\set{P'}\ c_L\approx_{s'} c_R\ \set{Q'}
-  }
-\end{mathpar}
-Notice that \LabTirName{Pyth-Refl} permits any nonnegative budget tuple.
-This is just monotonicity of the KL bounds: identical traces have zero KL, so they fit inside any nonnegative budget.
-
-The main sequencing rule concatenates error tuples:
-\begin{mathpar}
-\inferrule[Pyth-Seq]
-  {
-    \vDash\Pyth\set{P}\ c_L\approx_{s_1} c_R\ \set{M}\\
-    \vDash\Pyth
-      \set{y_L=y_R\wedge m_L=m_R\wedge M(y_L,m_L)}
-      \ k_L \approx_{s_2} k_R\ \set{Q}
-  }
-  {
-    \vDash\Pyth\set{P}\
-      (y\gets c_L;\ k_L(y))
-      \approx_{s_1\mathbin{+\!\!+}s_2}
-      (y\gets c_R;\ k_R(y))
-      \set{Q}
-  }.
-\end{mathpar}
-The second premise is written pointwise: for every intermediate value and heap satisfying $M$, the two continuations are related when run from the same value and heap.
-This pointwise formulation avoids a separate syntactic rule for every command constructor.
-
-The mixed Hoare/Pythagorean sequencing rules let the proof run shared code without spending a KL budget.
-They are used repeatedly in the compiler proof:
-\begin{mathpar}
-\inferrule[Pyth-Hoare-Seq]
-  {
-    P((x_L,m_L),(x_R,m_R))
-      \Rightarrow x_L=x_R\wedge m_L=m_R\wedge P_0(x_L,m_L)\\
-    \vDash\mathsf{Hoare}\set{P_0}\ c\ \set{M}\\
-    \vDash\Pyth
-      \set{y_L=y_R\wedge m_L=m_R\wedge M(y_L,m_L)}
-      \ k_L\approx_s k_R\ \set{Q}
-  }
-  {
-    \vDash\Pyth\set{P}\
-      (y\gets c;\ k_L(y))
-      \approx_{[0]\mathbin{+\!\!+}s}
-      (y\gets c;\ k_R(y))
-      \set{Q}
-  }
-
-\inferrule[Pyth-Shared-Cont]
-  {
-    \vDash\Pyth\set{P}\ c_L\approx_s c_R\ \set{M}\\
-    \vDash\mathsf{Hoare}\set{M}\ k\ \set{Q}
-  }
-  {
-    \vDash\Pyth\set{P}\
-      (y\gets c_L;\ k(y))
-      \approx_{s\mathbin{+\!\!+}[0]}
-      (y\gets c_R;\ k(y))
-      \set{Q}
-  }
-\end{mathpar}
-There are closed-program variants for hiding unit inputs.
-
-\paragraph{Micciancio-Walter bridge.}
-The rule that turns a Pythagorean judgment into an additive-error judgment is:
-\begin{mathpar}
-\inferrule[Micciancio-Walter]
-  {
-    \vDash\Pyth\set{P}\ c_L\approx_s c_R\ \set{Q}\\
-    \delta=\sqrt{\frac{\sum_i s_i}{2}}
-  }
-  {
-    \vDash\AEJ\set{P}\ c_L
-      \approx_\delta c_R\ \set{o_L=o_R}
-  }.
-\end{mathpar}
-The conclusion is intentionally about equality of completed outputs.
-The postcondition $Q$ is part of the Pythagorean judgment and is used by sequencing rules, but the bridge theorem extracts the statistical-distance/equality consequence needed for cryptographic indistinguishability.
-
-This is the point where the formalization realizes Pythagorean probability preservation: the final-marginal TVD theorem bounds the TVD of completed outputs, and \LabTirName{AE-TVD-Eq} turns that TVD bound into the additive-error judgment.
-
-\subsection{Trace Compilation and Oracle Replacement}
-
-The Pythagorean rules above explain how to compose a fixed sequence of
-KL-budgeted program fragments without losing the $O(\sqrt q)$ bound.
-They do not, by themselves, solve the adversarial-oracle problem: an IND-CPAD
-adversary decides adaptively when to call the decryption oracle, and the
-source program is not presented as a list of $q$ decryption subroutines.
-The compiler is the adapter from arbitrary adversary syntax to the fixed-call
-schedule expected by the logic.
-
-The oracle-replacement story is therefore not an EasyCrypt-style rule for
-opaque adversaries.
-Instead, the formalization defines an explicit compilation pass over concrete
-SSProve code.
-It exposes the first $q$ calls to a selected operation, runs the replacement
-proof at those call sites, and replays the residual computation from recorded
-traces.
-Linked back to the same package, the compiler is semantics-preserving.
-Linked to a KL-close replacement package, it gives the quantitative
-oracle-replacement theorem used in the noise-flooding proof.
-
-Conceptually, the object we would like is a next-message function for the
-adversary.
-Such a function would run the adversary until the next selected oracle call,
-return the query, and also return a suspended continuation saying how to resume
-after the oracle answer is supplied.
-For SSProve code, however, the continuation lives inside a monad as a Rocq
-function.
-Serializing that suspended continuation would amount to serializing arbitrary
-Rocq functions, which is not a proof-engineering path we want to take.
-The trace compiler therefore uses a more concrete representation: it records
-the observable effects that led to the selected call and later replays those
-effects against the original program to recover the residual computation.
-
-\begin{definition}[Trace]
-A trace $\tau$ is a finite list of effect entries
+For center \(\mu\in\bbZ\) and \(\sigma>0\), the formal distribution is
 \[
-    e ::= \mathsf{call}(y)\mid \mathsf{get}(v)\mid \mathsf{put}\mid \mathsf{sample}(a).
+ D_{\bbZ,\mu,\sigma^2}(x)
+ =\frac{\exp(-(x-\mu)^2/(2\sigma^2))}
+        {\sum_{z\in\bbZ}\exp(-(z-\mu)^2/(2\sigma^2))}.
 \]
-\end{definition}
+The development proves normalization, translation invariance of the
+normalizer, summability, the centered first moment, full support, and the KL
+identity in \Cref{eq:dg-kl}.  The calculation expands the logarithm of the
+ratio; equal variances cancel both normalizers and the quadratic terms reduce
+to a linear centered moment plus \((\nu-\mu)^2\).  The moment term vanishes by
+pairing \(x\) with \(-x\).  The Rocq proof separately establishes the
+summability needed to justify each rearrangement.
 
-Intuitively, a trace is the evidence needed to replay the part of the program
-that has already been executed.
-It records the return value of each non-selected package call, the value read
-from each heap location, and the value drawn by each sampling command.
-Heap writes are deterministic once the current command is known, so their trace
-entry only records that the write occurred.
-
-\begin{definition}[Replay residual]
-For a program $c$ and a trace $\tau$, define the partial residual operation
-$\operatorname{cont}(c,\tau)$ by replaying $\tau$ against $c$:
+Independent product samplers lift the scalar identity to \(\bbZ^n\):
 \[
-\begin{array}{rcl}
-\operatorname{cont}(c,[\,])&=&c,\\
-\operatorname{cont}(\mathsf{ret}(v),e::\tau)&=&\bot,\\
-\operatorname{cont}(\mathsf{opr}(o,x,k),\mathsf{call}(y)::\tau)
-  &=&\operatorname{cont}(k(y),\tau),\\
-\operatorname{cont}(\mathsf{get}(l,k),\mathsf{get}(v)::\tau)
-  &=&\operatorname{cont}(k(v),\tau),\\
-\operatorname{cont}(\mathsf{put}(l,v,k),\mathsf{put}::\tau)
-  &=&\operatorname{cont}(k,\tau),\\
-\operatorname{cont}(\mathsf{sample}(D,k),\mathsf{sample}(a)::\tau)
-  &=&\operatorname{cont}(k(a),\tau),
-\end{array}
+ \KL{D_{\bbZ^n,u,\sigma^2}}{D_{\bbZ^n,v,\sigma^2}}
+ =\frac{\norm{u-v}_2^2}{2\sigma^2}.
 \]
-with result $\bot$ when the next trace entry has the wrong tag or payload type.
-\end{definition}
+A verified adapter relates the MathComp tuple distribution used by the
+analysis to the SSProve sampler used by the game.  Thus the one-call proof
+does not assume a Gaussian axiom at the program level.
 
-The residual operation replays a trace through the original code and returns
-the program that remains to be run.
-Invalid traces produce $\bot$.
-This explicit invalid case lets the Rocq compiler be stated as a total
-function, even though intended executions only generate feasible traces.
+\subsection{Trace compilation}
+\label{sec:trace-compiler}
 
-\begin{definition}[Run to selected call]
-Fix an operation identifier $fn$.
-Define $\operatorname{runToCall}(c,fn,\tau)$ recursively by executing $c$ until
-it either returns or reaches the next call whose identifier is $fn$:
+The Pythagorean sequence rule handles a fixed list of fragments; an oracle
+program does not expose such a list.  The trace compiler traverses concrete
+SSProve syntax until a selected operation is reached.  A trace records results
+of unselected calls, heap reads and writes, and samples.  Replaying those
+effects against the original program recovers its residual continuation.
+Malformed traces denote null code, whose behavior is covered by completion.
+
+Two generic checked theorems are used in the security proof.
+
+\begin{theorem}[Same-package compilation]
+\label{thm:compile-same}
+Subject to package typing and memory-separation conditions, exposing the first
+\(q\) selected calls and resolving both selected and residual calls against
+the original package preserves completed output/heap semantics.
+\end{theorem}
+
+The proof is an induction on the call bound nested with structural reasoning
+about search and replay.  Each syntax constructor either extends the trace,
+performs a shared state effect, or reaches the selected call.  Replay lemmas
+show that valid traces recover the same residual computation, while invalid
+traces have zero mass on both presentations.
+
+\begin{theorem}[Quantitative oracle replacement]
+\label{thm:compile-replace}
+Let two implementations of a selected operation satisfy a one-call
+Pythagorean judgment with nonnegative tuple \(s\), preserve invariant \(I\),
+and obey the compiler's typing and memory restrictions.  Replacing the first
+\(q\) selected calls inside a compiled program gives
 \[
-\begin{array}{rcl}
-\operatorname{runToCall}(\mathsf{ret}(v),fn,\tau)
-  &=& \mathsf{ret}(\mathsf{done}(v),\tau),\\
-\operatorname{runToCall}(\mathsf{opr}((fn,S,T),x,k),fn,\tau)
-  &=& \mathsf{ret}(\mathsf{query}(x),\tau),\\
-\operatorname{runToCall}(\mathsf{opr}(o,x,k),fn,\tau)
-  &=& y\gets o(x);\ 
-      \operatorname{runToCall}(k(y),fn,\tau\cdot\mathsf{call}(y)),\\
-\operatorname{runToCall}(\mathsf{get}(l,k),fn,\tau)
-  &=& v\gets \mathsf{get}(l);\ 
-      \operatorname{runToCall}(k(v),fn,\tau\cdot\mathsf{get}(v)),\\
-\operatorname{runToCall}(\mathsf{put}(l,v,k),fn,\tau)
-  &=& \mathsf{put}(l,v);\ 
-      \operatorname{runToCall}(k,fn,\tau\cdot\mathsf{put}),\\
-\operatorname{runToCall}(\mathsf{sample}(D,k),fn,\tau)
-  &=& a\gets D;\ 
-      \operatorname{runToCall}(k(a),fn,\tau\cdot\mathsf{sample}(a)).
-\end{array}
+ \vDash\AEJ\{P_I\}\ A_{P}^{(q)}
+ \approx_{\sqrt{q\norm{s}_1/2}}A_{P'}^{(q)}\ \{o_L=o_R\},
 \]
-\end{definition}
+where \(P_I\) synchronizes inputs and heaps satisfying \(I\).
+\end{theorem}
 
-The run-to-call pass is the compiler's scanner.
-It executes ordinary commands and records them in the trace, but stops just
-before the selected operation call.
-Thus its result is either $\mathsf{done}(v)$, meaning the program returned, or
-$\mathsf{query}(x)$, meaning the next selected call wants input $x$.
+The proof inducts over \(q\).  One selected call contributes \(s\); shared
+search and replay contribute zero-budget coordinates; sequencing concatenates
+the tuples.  After \(q\) calls the tuple norm is
+\(q\norm{s}_1\), so applying \Cref{eq:mw-rule} once yields the stated loss.
+This theorem is instantiated with \(s=(0,\epsilon_{\mathsf{nf}},0)\) in
+\Cref{lem:one-call}.
 
-\begin{definition}[Factoring selected calls]
-Fix an operation identifier $fn$ and a package $P$ implementing that operation.
-The trace-producing helper
-\[
-  \operatorname{factorCalls}_q(P,fn,c,\tau)
-\]
-is the procedure in
-\Cref{alg:factor-calls}.
-\end{definition}
+\subsection{Why ordinary approximate logics are insufficient here}
 
-\begin{algorithm}[H]
-\caption{Factoring selected calls}
-\label{alg:factor-calls}
-\begin{algorithmic}[1]
-  \Procedure{$\operatorname{factorCalls}_q$}{$P,fn,c,\tau$}
-    \If{$q=0$}
-      \State \Return $\tau$
-    \EndIf
-    \State $c' \gets \operatorname{cont}(c,\tau)$
-    \If{$c'=\bot$}
-      \State \Return $\mathsf{bad}$
-    \EndIf
-    \State $(r,\tau') \gets \operatorname{runToCall}(c',fn,[\,])$
-    \If{$r=\mathsf{done}(v)$}
-      \State \Return $\tau\cdot\tau'$
-    \Else
-      \State let $r=\mathsf{query}(x)$
-      \State $y\gets P.fn(x)$
-      \State \Return
-        $\operatorname{factorCalls}_{q-1}
-          (P,fn,c,\tau\cdot\tau'\cdot\mathsf{call}(y))$
-    \EndIf
-  \EndProcedure
-\end{algorithmic}
-\end{algorithm}
-
-Factoring repeats the scanner at most $q$ times.
-When the scanner finds a selected call, the helper calls \(P.fn\), appends the
-observed answer to the trace, and continues scanning the original program from
-the resulting residual.
-If the program returns before all $q$ calls are found, the current trace is
-returned.
-
-\begin{definition}[Trace compiler]
-Fix an operation identifier $fn$ and a package $P$ implementing that operation.
-The compiled program is
-\[
-    \operatorname{compileCalls}_q(P,fn,c)
-    =
-    \tau\gets\operatorname{factorCalls}_q(P,fn,c,[\,]);\
-    \begin{cases}
-      c',& \operatorname{cont}(c,\tau)=c',\\
-      \mathsf{bad},& \operatorname{cont}(c,\tau)=\bot.
-    \end{cases}
-\]
-\end{definition}
-
-The compiler first produces a trace exposing the first $q$ selected calls and
-then replays that trace against the source program to obtain the residual code.
-This is the point where an adaptive adversary is put into the fixed-call form
-expected by the Pythagorean rules.
-
-The formal definitions pack traces and call inputs into SSProve choice types, but the mathematical control flow is the one above.
-
-The same-package correctness theorem is:
-\begin{mathpar}
-\inferrule[Compile-Same-Package]
-  {
-    \mathsf{ValidPackage}_{L_P,\emptyset,M}(P)\\
-    \mathsf{fhas}(M,fn:X\to Y)\\
-    \mathsf{ValidCode}_{L,M}(c)
-  }
-  {
-    \mathsf{codeLink}(
-      \operatorname{compileCalls}_q(P,fn,c),P)
-    =
-    \mathsf{codeLink}(c,P)
-  }.
-\end{mathpar}
-Thus the compiler is not an additional cryptographic assumption; linked with the same package, it is semantics-preserving.
-
-The formalization proves the quantitative replacement theorem for this compiled form.
-Write $\mathcal{O}_{P'}(x)$ for \(P'.fn(x)\), and write
-$A_{P'}^{(q)}$ for the linked adversary obtained by compiling the first $q$
-selected calls through $P'$.
-The local assumption is a one-call Pythagorean judgment for the selected operation.
-The public replacement rule is stated in its tuple-budget form:
-\[
-    \vDash\Pyth
-      \set{x_L=x_R\wedge m_L=m_R\wedge I(m_L)}
-      \mathcal{O}_{P'} \approx_s \mathcal{O}_{P''}
-      \set{I(m')}.
-\]
-The singleton tuple $s=(\varepsilon)$ recovers the scalar one-call rule.
-The displayed rules are schematic only in the SSProve packaging parameters.
-
-The remaining side conditions are the SSProve version of what EasyCrypt-style
-proofs often call memory restrictions.
-They identify the heap region on which the invariant \(I\) is allowed to
-depend, and they say that the ordinary package calls made while searching for
-the selected call preserve that invariant.
-
-\begin{definition}[Heap agreement on a region]
-For heaps \(m_0,m_1\) and a set of locations \(K\), write
-\[
-m_0\equiv_K m_1
-\]
-if the heaps agree on every location in \(K\):
-\[
-\forall \ell.\ \ell\in K\Rightarrow m_0[\ell]=m_1[\ell].
-\]
-\end{definition}
-
-The set \(K\) is the footprint of the invariant.
-If the compiler or adversary changes locations outside \(K\), such changes
-should be invisible to \(I\).
-
-\begin{definition}[Invariant footprint]
-For a heap predicate \(I\), write
-\[
-  \mathsf{DependsOnlyOn}_K(I)
-\]
-if
-\[
-  \forall m_0,m_1.\ 
-  m_0\equiv_K m_1
-  \Rightarrow
-  (I(m_0)\Leftrightarrow I(m_1)).
-\]
-\end{definition}
-
-The compiler also executes package calls that are not the selected operation
-\(fn\).
-Those calls are shared bookkeeping from the point of view of the replacement
-proof, so they must preserve the invariant rather than consume Pythagorean
-budget.
-The selected operation itself is excluded: it is handled by the local
-Pythagorean premise.
-
-\begin{definition}[Preservation except at the selected operation]
-For an interface \(M\), package \(P'\), operation identifier \(fn\), and heap
-predicate \(I\), write \(\mathsf{PresExcept}_{M,P',fn}(I)\) if every operation
-in \(M\) other than \(fn\) preserves \(I\):
-\[
-\begin{aligned}
-&\forall o\in M.\ \mathsf{id}(o)\neq fn\Rightarrow\\
-&\quad
-  \vDash\mathsf{Hoare}
-    \set{(u,m)\mapsto I(m)}
-\\
-&\quad\quad
-    (u\mapsto P'.o(u))
-\\
-&\quad\quad
-    \set{(v,m')\mapsto I(m')}.
-\end{aligned}
-\]
-\end{definition}
-
-\begin{definition}[Separated memory regions]
-For location sets \(K\) and \(L\), write \(\mathsf{fseparate}(K,L)\) if the
-two sets are disjoint:
-\[
-  K\cap L=\emptyset .
-\]
-\end{definition}
-
-This is the usual memory-restriction condition.
-The adversary code may use the locations in \(L\), while the challenger
-invariant \(I\) may depend on the protected footprint \(K\).
-Separation says that adversary-local state cannot directly read or overwrite
-the challenger's internal memory.
-
-\begin{definition}[Compiler side conditions]
-Let $\mathcal{H}_{\mathsf{cmp}}$ abbreviate the following conjunction:
-\[
-\begin{aligned}
-\mathcal{H}_{\mathsf{cmp}}
-\Longleftrightarrow{}&
-(\forall x.\ \mathsf{ValidCode}_{L,M}(\mathsf{prog}(x)))\\
-&{}\wedge
-\mathsf{ValidPackage}_{L',\emptyset,M}(P')
-\wedge
-\mathsf{ValidPackage}_{L'',\emptyset,M}(P'')\\
-&{}\wedge
-\mathsf{fseparate}(K,L)
-\wedge
-\mathsf{fhas}(M,fn:X\to Y)\\
-&{}\wedge
-\mathsf{DependsOnlyOn}_K(I)
-\wedge
-\mathsf{PresExcept}_{M,P',fn}(I).
-\end{aligned}
-\]
-\end{definition}
-
-Thus \(\mathcal{H}_{\mathsf{cmp}}\) collects the well-formedness obligations
-for the source code and packages, the disjointness condition saying that the
-compiled code's locations \(L\) are separate from the invariant footprint
-\(K\), the presence of the selected operation \(fn\), and the two memory
-restriction predicates above.
-The fully quantified theorem keeps the SSProve location, interface, and package-validity parameters explicit.
-
-Let \(P_I\) abbreviate the synchronized initial condition
-\[
-  x_L=x_R\wedge m_L=m_R\wedge I(m_L).
-\]
-The compiler rules also use a small amount of budget notation.
-For a Pythagorean budget tuple \(s\), write
-\[
-  \lVert s\rVert_1 \triangleq \sum_i s_i .
-\]
-This is the ordinary \(\ell_1\) norm because the judgment requires every
-coordinate of \(s\) to be nonnegative.
-For a scalar one-call budget \(\varepsilon\), define
-\[
-\begin{aligned}
-\operatorname{callErr}_0(\varepsilon)
-  &= (0,\varepsilon,0),\\
-\operatorname{callErr}_{q+1}(\varepsilon)
-  &= (0,\varepsilon)\mathbin{+\!\!+}
-     \operatorname{callErr}_q(\varepsilon).
-\end{aligned}
-\]
-Thus \(\operatorname{callErr}_q(\varepsilon)\) contains \(q+1\) copies of
-\(\varepsilon\) separated by zero-budget bookkeeping steps.
-Its final-marginal total-variation bookkeeping lemma is
-\[
-    \operatorname{pythTV}
-      (\operatorname{callErr}_q(\varepsilon))
-    =
-    \sqrt{\frac{(q+1)\varepsilon}{2}}.
-\]
-The oracle-replacement theorem below phrases the bound with a direct call
-budget \(q\), hence \(\sqrt{q\varepsilon/2}\).
-
-For readability, the intermediate Pythagorean compiler rule is shown as a
-scalar instance of the tuple-budget theorem used by
-\LabTirName{Compile-Replace}.
-\begin{mathpar}
-\inferrule[Pyth-Compile-Calls]
-  {
-    \mathcal{H}_{\mathsf{cmp}}\\
-    \vDash\Pyth_1\set{P_I}\ \mathcal{O}_{P'}
-      \approx_\varepsilon \mathcal{O}_{P''}\ \set{I(m')}
-  }
-  {
-    \vDash\Pyth\set{P_I}
-      \ A_{P'}^{(q+1)}
-      \approx_{\operatorname{callErr}_q(\varepsilon)}
-      \ A_{P''}^{(q+1)}
-      \set{I(m')}
-  }.
-\end{mathpar}
-The proof is by induction over the call bound.
-Each inductive step spends one $\varepsilon$ entry for the selected package
-call.
-Hoare rules handle the shared search/resume code around it.
-This compiler family is the most involved program-logic proof in the
-development: it combines the call-bound induction with residual/replay
-correctness, invalid-trace cases, heap-region preservation, and tuple-budget
-bookkeeping.
-
-This is the oracle-replacement statement needed by the noise-flooding proof.
-Informally, if one selected oracle implementation is Pythagorean-close to
-another with tuple budget \(s\), then replacing the first \(q\) selected calls
-inside a compiled adversary changes the final experiment by at most
-\[
-    O_i\sim_s O_i'
-    \quad\Longrightarrow\quad
-    A^{O_1,\ldots,O_i,\ldots}
-    \sim_{\sqrt{q\lVert s\rVert_1/2}}
-    A^{O_1,\ldots,O_i',\ldots}.
-\]
-The tuple form is the one used below: the selected decryption body is factored
-into a shared deterministic prefix, one discrete-Gaussian sampling coordinate,
-and a shared deterministic continuation.
-
-Composing the compiler theorem with \LabTirName{Micciancio-Walter} gives the
-formal rule:
-\begin{mathpar}
-\inferrule[Compile-Replace]
-  {
-    \mathcal{H}_{\mathsf{cmp}}\\
-    \vDash\Pyth\set{P_I}\ \mathcal{O}_{P'}
-      \approx_s \mathcal{O}_{P''}\ \set{I(m')}
-  }
-  {
-    \vDash\AEJ
-      \set{P_I}
-      \ A_{P'}^{(q)}
-      \approx_{\sqrt{q\lVert s\rVert_1/2}}
-      \ A_{P''}^{(q)}
-      \set{o_L=o_R}
-  }.
-\end{mathpar}
-
-Compared with EasyCrypt, the difference is mostly where the abstraction boundary sits.
-EasyCrypt's adversarial call rules reason about opaque adversary modules.
-Here the adversary is executable syntax, so the proof factors the adversary by a verified trace compiler.
-Compared with stock SSProve, the same-package theorem is ordinary package-linking correctness, while \LabTirName{Compile-Replace} adds the quantitative statement that replacing one selected operation by a KL-close implementation changes the compiled adversary's completed output distribution by at most $\sqrt{q\lVert s\rVert_1/2}$.
-
-\input{related-works}
+An additive-error logic remains necessary for exact hops, up-to-bad arguments,
+and the final triangle calculation.  Its standard sequence rule, however,
+maps losses \(\delta_1,\delta_2\) to \(\delta_1+\delta_2\).  If Pinsker were
+applied to each decrypt query separately, the proof would pay
+\(q\sqrt{\epsilon_{\mathsf{nf}}/2}\).  The Pythagorean layer deliberately
+delays that nonlinear conversion.  This is not a new security definition; it
+is a verified way to retain a known KL-based cryptographic analysis when
+moving from distributions to adaptive stateful programs.

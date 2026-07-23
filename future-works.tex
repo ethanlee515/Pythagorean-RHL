@@ -1,23 +1,56 @@
-\section{Future Work}
+\section{Extensions and Conclusion}
+\label{sec:limitations}
 
-The verified noise-flooding reduction gives a reusable formal theorem, but
-the surrounding cryptographic applications are still only a first step.
-In particular, there is more to verify for the CKKS approximate homomorphic
-encryption scheme itself.
-A major next step is to instantiate the abstract interface with CKKS and verify
-the concrete scheme's IND-CPA security and approximate correctness obligations.
-Another natural direction is to verify other strategies for choosing
-noise-flooding parameters.
-The present theorem formalizes one sufficient choice: choose the flooding
-width large enough that the Pythagorean KL calculation yields the stated
-IND-CPAD loss.
-Existing work studies related choices through precision-loss analysis and
-concrete reassessments of noise-flooding countermeasures
-\cite{costache2023precision,bergamaschi2025revisiting}.
-Formalizing such alternative analytic or heuristic parameter choices would
-make it possible to compare security loss, output accuracy, and implementation
-cost inside the same checked framework.
+The theorem deliberately factors correctness failures from the quantitative
+noise-flooding argument.  Its support-level hypotheses prove the good-execution
+case.  For an imperfectly correct instantiation, let
+\(\mathsf{Bad}_{\mathrm{corr}}\) be the event that any key-generation,
+encryption, or evaluation result used by the execution violates the current
+support invariant.  One standard up-to-bad transition from the real game to
+the good-execution game then gives
+\[
+  \Pr[\mathsf{IND\text{-}CPAD}=1]
+  \leq \beta + \frac{\sqrt{qn}}{2\gamma}
+      + \Pr[\mathsf{Bad}_{\mathrm{corr}}].
+\]
+Thus the imperfect-correctness result is one modular game hop away from
+\Cref{thm:main}, not a redesign of its Pythagorean argument.  What remains for
+a concrete instantiation is an aggregate bound on
+\(\Pr[\mathsf{Bad}_{\mathrm{corr}}]\).  Such a bound may be supplied directly;
+if it is derived from per-operation failure probabilities, the surrounding
+security experiment must also account for encryption and evaluation calls.
 
-Finally, we can attempt to apply our program logic to the floating point computation setting as described by \cite{mw17}.
-For instance, one can consider the Falcon post-quantum digital signature which was selected by NIST,
-which has resisted formal verification partially due to its use of floating point numbers as opposed to finite fields.
+The local charts in \Cref{eq:charts} need a concrete construction and
+proof for the intended plaintext representation, including wraparound and
+decoding behavior.  A CKKS-level result also requires connecting the abstract
+scheme operations and stored error field to an implementation and parameter
+analysis.  As in SSProve's own computational-security interpretations, the
+probabilistic-polynomial-time condition is a conventional metatheoretic audit,
+because the package semantics do not internalize a runtime model~\cite{ssprove}.
+That audit is routine here: the reduction invokes the adversary once, forwards
+its encryption and evaluation calls, answers at most \(q\) selected decryption
+calls, and performs table bookkeeping and Gaussian sampling.  Formal automatic
+complexity analysis would be useful, but is orthogonal to this work.  Finally,
+the released SSProve/MathComp dependency graph still names an admitted
+real-summation lemma.  The artifact supplies a kernel-checked proof of that
+exact statement, and the proof has been submitted upstream.  No further local
+mathematical obligation remains; a future dependency update can remove the
+name from the top-level assumption report without changing the security proof.
+
+Within this boundary, the artifact checks the central security argument: a
+one-call discrete-Gaussian KL bound can be lifted through adaptive, stateful
+decryption queries without collapsing to a linear hybrid loss.  The resulting
+IND-CPAD-to-IND-CPA reduction is stated over concrete SSProve games, with one
+quantitative hop and explicit assumptions.  This provides a reusable route for
+other cryptographic proofs whose useful parameters depend on paying divergence
+once at the end of an adaptive transcript.
+
+\section*{Ethics Considerations}
+
+This work studies and verifies a published defense against an already public
+decryption attack.  It performs no experiments on deployed systems, users, or
+private data and introduces no new exploit.  Its principal risk is
+overconfidence: treating the conditional theorem as a verified concrete CKKS
+deployment could encourage unsafe parameters.  We mitigate that risk by
+stating the good-execution boundary, required correctness-failure term, chart
+and instantiation obligations, semantic model, and trusted base explicitly.
