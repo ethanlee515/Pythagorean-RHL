@@ -214,6 +214,15 @@ and writes, and samples; replaying it recovers the residual continuation.
 Malformed traces denote null code, whose behavior is accounted for by
 completion.
 
+The na\"ive construction would run \(A\) to its next selected call and return
+the query together with a suspended continuation.  In SSProve, however, that
+continuation is a Rocq function inside the program monad: storing it would
+require serializing arbitrary Rocq functions and leave the first-order program
+syntax.  A trace is a finite, first-order substitute.  It records the effects
+that select a branch, and replay against the original syntax reconstructs the
+residual continuation.  The same-package theorem below proves this
+representation exact.
+
 Write
 \(\mathsf{Comp}_q(A;P_s,P_r)\) for the program obtained by exposing the first
 \(q\) calls made by \(A\) to a selected operation, resolving those calls with
