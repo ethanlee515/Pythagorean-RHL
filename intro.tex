@@ -13,17 +13,19 @@ is the advertised interface.
 Li, Micciancio, Schultz-Wu, and Sorrell (LMSS) formalized this attack surface
 through IND-CPA with decryption queries (IND-CPAD) and analyzed a
 noise-flooding defense~\cite{lmss}.  The defense perturbs each admissible
-decryption answer with a fresh, sufficiently wide discrete Gaussian.  The
+decryption answer with a fresh, sufficiently wide discrete Gaussian.
+On the other hand, the
 result is useful only when that width is small enough to preserve precision,
-so the reduction's dependence on the number \(q\) of decryption queries is not
-cosmetic.
+so this parameter trade-off has become a interesting research topic itself
+\cite{costache2023precision, bergamaschi2025revisiting}.
 
-This dependence exposes a mechanization problem.  Suppose a one-query
+This parameter trade-off exposes a mechanization problem.
+Suppose a one-query
 replacement costs \(\delta\) in statistical distance.  A routine game hop pays
 \(q\delta\).  The LMSS analysis instead bounds a conditional KL divergence at
 each query and applies the Micciancio--Walter Pythagorean preservation
 argument only after constructing the whole transcript~\cite{mw17}.  The final
-distance is proportional to \(\sqrt q\).  For fixed target advantage, this is
+distance is \(O(\sqrt q)\).  For fixed target advantage, this is
 the difference between choosing flooding width proportional to \(\sqrt q\) and
 to \(q\), with a corresponding impact on precision and FHE parameters.
 
@@ -51,8 +53,7 @@ adversary \(\cB_{\cA,q}\) and proves
  \frac{\sqrt{qn}}{2\gamma}.
 \end{equation}
 The expression \(\beta_{\mathsf{CPA}}\) is the supplied winning-probability
-bound for the underlying scheme; the artifact does not hide an asymptotic
-advantage convention behind it.  The formal theorem is
+bound for the underlying scheme. The formal theorem is given in the artifact as
 \texttt{NoiseFloodingSecure.is\_secure}.
 
 The result covers adaptive oracle programs rather than adversaries prewritten
@@ -105,9 +106,10 @@ cryptographic terms; selected formal definitions appear in the appendices.
 We define completed-output additive-error and Pythagorean judgments and prove
 their semantic rules in Rocq.  The logic combines unary invariant reasoning,
 direct coupling and additive-error rules, KL sampling rules, tuple-concatenating
-sequencing, and a final bridge to statistical distance.  Missing
-subdistribution mass is an explicit outcome, so assertions cannot make a
-comparison spuriously easier.
+sequencing, and a final bridge to statistical distance.
+% Missing
+% subdistribution mass is an explicit outcome, so assertions cannot make a
+% comparison spuriously easier.
 
 \emph{A verified local-to-adaptive oracle rule.}
 We verify a trace compiler that exposes selected calls in an arbitrary
