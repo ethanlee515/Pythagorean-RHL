@@ -46,6 +46,34 @@ bridges and compose \Cref{eq:hybrid-chain};
 analysis and rules from \Cref{sec:pyth-toolkit}.
 \end{itemize}
 
+\subsection{Program-logic audit path}
+
+The reusable logic contribution has a short theorem spine.  A reviewer can
+inspect it independently of the FHE development:
+
+\begin{itemize}\raggedright
+\item \textit{Completed semantics:}
+\path{Probability/Ae.v} defines completion, maximal-coupling support, and
+additive-error probability lemmas;
+\path{ProgramLogics/Ae.v} defines \texttt{additiveErrorJudgment} and proves
+consequence, triangle, and \texttt{additiveErrorSeqRule};
+\item \textit{Relational rules:}
+\path{ProgramLogics/Pyth.v} defines \texttt{pythJudgment} and proves
+\texttt{klSampRule}, \texttt{pythSeqRule}, the mixed Hoare rules, the vector
+Gaussian rule, and \texttt{MicciancioWalterRule};
+\item \textit{Soundness:}
+\path{Probability/PythSeq.v} proves the completed semantic-bind construction
+and its conditional-KL and final-margin properties;
+\item \textit{Adaptive lifting:}
+\path{NextMessage/Trace.v} proves \texttt{compile\_calls\_correct}, while
+\path{ProgramLogics/PythCompile.v} culminates in \texttt{compileRule}, the
+Rocq theorem underlying \Cref{thm:compile-replace}.
+\end{itemize}
+
+These are definitions and proved theorems, not parameters of
+\texttt{NoiseFloodingSecure}.  The security proof instantiates this theorem
+spine with its decryption invariant and one-call Gaussian judgment.
+
 \subsection{Reproduction and measured check}
 
 With Rocq 9.0.1, \texttt{rocq-ssprove} development version, MathComp Analysis

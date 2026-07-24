@@ -34,9 +34,12 @@ IND-CPA reduction for every \(q\)-query IND-CPAD adversary and proves
 \]
 
 Here \(n\) is the plaintext-chart dimension and \(\gamma\) is the flooding-width
-multiplier.  The proof extends SSProve with countable discrete-Gaussian
-analysis, completed-output quantitative judgments, and a trace compiler that
-lifts one-call KL bounds to adaptive oracle programs.  The checked theorem
+multiplier.  The proof contributes a quantitative relational program logic
+over completed SSProve semantics.  Its Pythagorean judgment composes
+conditional KL budgets without converting them to statistical distance, and a
+verified trace compiler lifts a local oracle rule to arbitrary adaptive
+programs with a single final conversion.  The development also supplies the
+required countable discrete-Gaussian analysis.  The checked theorem
 isolates the good-execution reduction: imperfect correctness can be added by
 one standard up-to-bad layer once an aggregate failure bound is supplied.
 As in SSProve, polynomial-time preservation remains the conventional
@@ -45,7 +48,8 @@ metatheoretic audit outside the program semantics.
 
 \begin{IEEEkeywords}
 approximate homomorphic encryption, noise flooding, IND-CPAD, SSProve,
-Rocq, game-based cryptography, Kullback--Leibler divergence
+Rocq, relational program logic, game-based cryptography,
+Kullback--Leibler divergence
 \end{IEEEkeywords}
 
 \input{intro}

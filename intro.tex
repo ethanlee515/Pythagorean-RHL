@@ -62,6 +62,34 @@ in the challenge table.  Every other change---opening and relinking packages,
 compiling calls, replacing unreachable residual decryptions, and identifying
 the reduction game---is proved exact.
 
+\subsection{Why a quantitative program logic?}
+
+SSProve's original architecture connects two proof styles: high-level
+equational reasoning about cryptographic packages and low-level relational
+reasoning about their procedures~\cite{ssprove}.  Noise flooding needs a new
+quantitative connection of the same kind.  The local fact is a KL-divergence
+bound between two implementations of one decryption call; the security claim
+is an additive bound between two complete games containing an adaptive
+adversary.
+
+An ordinary approximate-equivalence judgment does not preserve the required
+parameter dependence.  Its sequence rule adds scalar errors, so applying
+Pinsker at every oracle call turns a one-call cost
+\(\sqrt{\epsilon/2}\) into \(q\sqrt{\epsilon/2}\).  Our Pythagorean judgment
+instead records a tuple of conditional KL costs.  Sequencing concatenates
+tuples, and a checked Micciancio--Walter rule converts the accumulated tuple
+to additive error only once.  After \(q\) calls of KL cost \(\epsilon\), this
+gives \(\sqrt{q\epsilon/2}\).
+
+The remaining obstacle is adaptivity: a concrete SSProve adversary is one
+stateful oracle program, not a syntactic list of \(q\) calls.  We therefore
+verify a trace compiler that exposes selected oracle calls and prove a generic
+local-to-adaptive lifting theorem.  Together, the judgment and compiler form a
+reusable program-logic interface: prove one invariant-preserving oracle rule,
+then obtain a whole-program additive bound for arbitrary well-typed adaptive
+code.  Noise flooding is the first substantial application of this interface;
+\Cref{thm:compile-replace} states the general theorem.
+
 \subsection{Contributions}
 
 Following SSProve's security-first presentation style, we separate the checked
@@ -73,19 +101,27 @@ concrete reduction as SSProve packages.  Rocq checks the complete hybrid chain
 and the loss in \Cref{eq:headline}.  The paper presents the game argument in
 cryptographic terms; selected formal definitions appear in the appendices.
 
-\emph{Pythagorean reasoning over countable distributions.}
-We verify KL divergence, its finiteness obligations, Pinsker's inequality, a
-conditional-coordinate preservation theorem, and the equal-variance KL
-formula for integer discrete Gaussians.  A semantic relational judgment
-records tuples of conditional KL costs and converts to statistical distance
-once, retaining the square-root composition.
+\emph{A quantitative relational program logic for SSProve.}
+We define completed-output additive-error and Pythagorean judgments and prove
+their semantic rules in Rocq.  The logic combines unary invariant reasoning,
+direct coupling and additive-error rules, KL sampling rules, tuple-concatenating
+sequencing, and a final bridge to statistical distance.  Missing
+subdistribution mass is an explicit outcome, so assertions cannot make a
+comparison spuriously easier.
 
-\emph{Adaptive oracle replacement.}
-We verify a trace compiler that exposes the first \(q\) calls to a selected
-operation of an arbitrary concrete SSProve program.  Its replacement theorem
-lifts a one-call Pythagorean judgment to a whole-game additive-error judgment.
-This connects the transcript theorem to adversaries whose next oracle call
-depends on earlier answers.
+\emph{A verified local-to-adaptive oracle rule.}
+We verify a trace compiler that exposes selected calls in an arbitrary
+concrete SSProve program.  Its main theorem lifts one invariant-preserving
+Pythagorean oracle judgment to a whole-program additive-error judgment with
+loss \(\sqrt{q\norm{s}_1/2}\).  This is a program-logic result independent of
+the particular FHE game.
+
+\emph{Countable probability and discrete-Gaussian analysis.}
+We verify KL divergence and its finiteness obligations, Pinsker's inequality,
+a conditional-coordinate preservation theorem, and the equal-variance KL
+formula for integer discrete Gaussians.  These results provide the semantic
+soundness argument and the derived vector-Gaussian sampling rule used by the
+logic.
 
 \emph{An auditable theorem boundary.}
 The 27,986-line artifact is organized so that games, assumptions, loss, and
@@ -124,5 +160,6 @@ Gaussian sampling, so no unusual complexity issue is hidden by our extension.
 
 \Cref{sec:security-model} defines the construction, attack game, and theorem.
 \Cref{sec:verified-reduction} presents the game hops.
-\Cref{sec:pyth-toolkit} explains the checked quantitative machinery, and
+\Cref{sec:pyth-toolkit} presents the quantitative program logic and its
+local-to-adaptive lifting theorem, and
 \Cref{sec:artifact} gives the audit map and trusted base.

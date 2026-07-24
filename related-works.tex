@@ -17,9 +17,15 @@ composition mechanism on which such parameters rely.
 \emph{Mechanized game-based cryptography.}
 SSProve combines state-separating package algebra with a probabilistic
 relational program logic in Rocq and validates the framework on encryption,
-KEM--DEM, and sigma-protocol case studies~\cite{ssprove}.  We retain its
-package semantics and security-proof style, but add quantitative judgments for
-completed countable distributions and a selected-call compiler.  Recent
+KEM--DEM, and sigma-protocol case studies~\cite{ssprove}.  Its central bridge
+lifts invariant-preserving exact judgments for individual procedures to
+perfect indistinguishability of packages.  Our result follows the same
+security-facing pattern at a different quantitative boundary: it lifts a
+conditional-KL judgment for one oracle implementation to additive
+indistinguishability of a complete adaptive program.  We retain SSProve's
+syntax, package algebra, heaps, linking, and subdistribution semantics, while
+adding completed-output quantitative judgments and a selected-call compiler.
+Recent
 Nominal-SSProve work makes package state separation intrinsic and reports
 errors found in an ElGamal mechanization~\cite{nominal-ssprove}; a further
 development mechanizes query-counting, multi-instance, and nested hybrid
@@ -33,19 +39,22 @@ EasyCrypt offers mature adversarial module reasoning; reflection techniques
 can move distribution-level steps into executable proofs~\cite{reflection}.
 Our abstraction boundary differs because SSProve adversaries are concrete
 program syntax: the verified trace compiler factors selected calls before the
-replacement theorem is applied.  We do not claim that trace compilation is
-preferable to opaque adversary rules in general; it is the bridge required by
-the host framework used here.
+replacement theorem is applied.  EasyCrypt also offers a unary logic for bad
+events, whereas our additive-error judgment internalizes failure probability
+in a coupling over completed outputs.  We do not claim that trace compilation
+is preferable to opaque adversary rules in general; it is what permits a
+checked local-to-adaptive theorem over the concrete host language used here.
 
 \emph{Approximate relational logics.}
 Approximate relational Hoare logics and approximate liftings were developed
 largely for differential privacy~\cite{aprhl,aprhl-couplings}.  They support
 rich \((\varepsilon,\delta)\) reasoning, but their standard sequential rules
 add privacy or additive-error parameters.  One can instantiate general
-\(f\)-divergence machinery with KL divergence, yet applying Pinsker after each
-program step still loses linearly.  The contribution here is the checked
-combination of (i) a transcript judgment whose sequence rule concatenates
-conditional KL budgets, (ii) a final-marginal bridge that converts once, and
-(iii) an oracle compiler that makes that rule applicable to adaptive SSProve
-games.  The resulting theorem is specialized, deliberately, to the
-game-based statistical-distance conclusion used by noise flooding.
+\(f\)-divergence machinery with KL divergence.  The issue here is where the
+nonlinear conversion occurs: applying Pinsker at each command boundary loses
+linearly.  Our semantic transcript judgment exposes conditional KL budgets to
+its sequence rule, concatenates them, and converts only at the final marginal.
+The compiler then makes that rule applicable to adaptive oracle syntax.  The
+resulting logic is deliberately specialized to completed discrete semantics
+and the game-based additive conclusion used by noise flooding; it is not a
+general replacement for differential-privacy logics.
