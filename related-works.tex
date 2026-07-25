@@ -11,7 +11,7 @@ and revisited concrete noise-flooding parameters~\cite{bergamaschi2025revisiting
 Attacks against exact FHE at aggressive parameters show that decryption-query
 security is not confined to approximate schemes~\cite{cheon2024attacks}.
 Our contribution is neither a new attack nor a better concrete parameter set:
-it machine-checks the conditional game reduction and the square-root
+it machine-checks an existing reduction and the square-root
 composition mechanism on which such parameters rely.
 
 \emph{Mechanized game-based cryptography.}
@@ -24,7 +24,7 @@ security-facing pattern at a different quantitative boundary: it lifts a
 conditional-KL judgment for one oracle implementation to additive
 indistinguishability of a complete adaptive program.  We retain SSProve's
 syntax, package algebra, heaps, linking, and subdistribution semantics, while
-adding completed-output quantitative judgments and a selected-call compiler.
+adding judgments and a selected-call compiler.
 Recent
 Nominal-SSProve work makes package state separation intrinsic and reports
 errors found in an ElGamal mechanization~\cite{nominal-ssprove}; a further
@@ -32,18 +32,16 @@ development mechanizes query-counting, multi-instance, and nested hybrid
 arguments~\cite{nested-hybrids}.  Those results address exact package
 composition and general hybrid structure.  Our compiler instead preserves an
 adaptive sequence of conditional KL costs and derives a sublinear
-statistical-distance loss.  Integrating the two approaches is promising but
-not part of this artifact.
+statistical-distance loss.
 
-EasyCrypt offers mature adversarial module reasoning; reflection techniques
-can move distribution-level steps into executable proofs~\cite{reflection}.
+EasyCrypt is another popular framework for game-based cryptographic proofs.
+Adversary are treated as opaque modules, and reflection techniques \cite{reflection}
+can be used to extract the adversary's semantics.
 Our abstraction boundary differs because SSProve adversaries are concrete
 program syntax: the verified trace compiler factors selected calls before the
-replacement theorem is applied.  EasyCrypt also offers a unary logic for bad
-events, whereas our additive-error judgment internalizes failure probability
-in a coupling over completed outputs.  We do not claim that trace compilation
-is preferable to opaque adversary rules in general; it is what permits a
-checked local-to-adaptive theorem over the concrete host language used here.
+replacement theorem is applied.
+It is not immediately clear whether EasyCrypt's reflection machinery suffices to formalize the FHE sub-linear security bound.
+We leave this matter as another interesting open question.
 
 \emph{Approximate relational logics.}
 Approximate relational Hoare logics and approximate liftings were developed

@@ -1,4 +1,4 @@
-\section{A Quantitative Program Logic for Adaptive Games}
+\section{A Program Logic for Adaptive Games}
 \label{sec:pyth-toolkit}
 
 SSProve combines high-level algebraic reasoning about packages with a
@@ -11,8 +11,9 @@ complete adaptive program.  This section presents that contribution
 independently of the FHE instantiation.
 
 The development introduces no new programming language and assumes no logic
-rules.  It defines semantic judgments over SSProve's existing program and heap
-semantics, then proves every rule below in Rocq.  The resulting interface has
+rules.  It defines semantic judgments over SSProve's existing
+semantics, then verifies the soundness of every rule below.
+The resulting interface has
 three layers: unary Hoare reasoning establishes support invariants; an
 additive-error judgment handles conventional game hops; and a Pythagorean
 judgment retains conditional KL information until the end of a computation.
@@ -26,17 +27,16 @@ subdistribution \(\mu\) on \(X\), define its completion on
  \completed{\mu}(x)=\mu(x),\qquad
  \completed{\mu}(\bot)=1-\sum_x\mu(x).
 \]
-Completion makes assertion failure observable.  Without it, two programs
-could appear close merely because they lose different amounts of mass; all
-our quantitative judgments instead compare weight-one distributions.
+Completion makes assertion failure observable.
+Without this, its becomes tedious (and sometimes tricky) to write down couplings for sub-distributions and then estimate the probabilities of post-conditions.
 
 The unary judgment
 \[
  \vDash\mathsf{Hoare}\{P\}\ c\ \{Q\}
 \]
-states that every successful output/heap pair reachable from an input
-satisfying \(P\) satisfies \(Q\).  It is used for invariant preservation by
-shared code that should spend no quantitative budget.
+is the standard Hoare triple over the SSProve code.
+It states that whenever the pre-condition $P$ is satisfied,
+the post-condition $Q$ would be satisfied with certainty (i.e. with probability $1$).
 
 The additive-error judgment
 \[
@@ -44,9 +44,10 @@ The additive-error judgment
 \]
 states that, from any pair of initial configurations satisfying \(P\), the
 completed outputs of \(c_L\) and \(c_R\) admit a coupling in which \(Q\) fails
-with probability at most \(\delta\).  For equality postconditions this is the
-ordinary statistical-distance judgment used by the hybrid chain.  The
-library proves consequence, sequencing with loss \(\delta_1+\delta_2\),
+with probability at most \(\delta\).
+For equality post-conditions, this is the
+ordinary statistical-distance bound.
+We prove consequence, sequencing with loss \(\delta_1+\delta_2\),
 triangle, projection, and direct-coupling rules.
 
 The Pythagorean judgment
@@ -54,17 +55,19 @@ The Pythagorean judgment
 \label{eq:pyth-judgment}
  \vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}
 \end{equation}
-uses a nonnegative tuple \(s=(s_1,\ldots,s_k)\).  For every related input pair,
-it supplies two weight-one joint transcript distributions whose final
-marginals are the programs' completed outputs.  At coordinate \(i\), for
+captures the Micciancio-Walter \cite{mw17} Pythagorean prerequisites for KL divergence.
+It uses a nonnegative tuple \(s=(s_1,\ldots,s_k)\).  For every related input pair,
+it supplies two joint transcript distributions whose final
+marginals are the programs' outputs.  At coordinate \(i\), for
 every common prefix, the conditional KL divergence is finite and at most
-\(s_i\).  Successful outputs on both sides satisfy \(Q\).  The transcript is
-semantic rather than a list of syntactic sampling sites: it may record a
-whole program fragment as one coordinate or expose multiple coordinates for
+\(s_i\).
+Outputs on both sides additionally satisfy the post-condition \(Q\).
+The transcript is semantic rather than a list of syntactic sampling sites: it may record a
+whole program fragment as one coordinate, or expose multiple coordinates for
 composition.
 
 This judgment deliberately stores more information than an immediate
-statistical-distance bound.  Its sequence rule concatenates tuples rather
+statistical-distance bound.  Its sequence rule concatenates tuples (i.e. $s\doubleplus s'$) rather
 than adding square roots, allowing one nonlinear conversion after the full
 adaptive transcript has been constructed.
 
@@ -73,7 +76,7 @@ adaptive transcript has been constructed.
 
 \Cref{fig:logic-rules} shows the rules that drive the generic development.
 They are schematic to suppress SSProve typing, full-mass, support, and heap
-side conditions; the artifact contains their quantified statements.
+side conditions; the artifact contains their concrete statements.
 
 \begin{figure*}[t]
 \centering
@@ -121,28 +124,29 @@ support, invariant, and nonnegativity premises.}
 \label{fig:logic-rules}
 \end{figure*}
 
-\textsc{KL-Sample} embeds a distribution-level KL bound as a one-coordinate
-program judgment.  \textsc{Pyth-Refl} relates shared code at zero cost (or any
-larger nonnegative budget).  \textsc{Pyth-Seq} is the essential rule: its proof
+\textsc{KL-Sample} embeds a distribution-level KL bound as a program judgment.
+\textsc{Pyth-Refl} relates a program to itself at zero cost.
+\textsc{Pyth-Seq} is the essential rule: its proof
 constructs a joint transcript for semantic bind and proves conditional bounds
 for both valid and zero-mass prefixes.  The development also contains a
-dual shared-continuation rule, consequence rules, closed-program variants,
+shared-continuation rule, consequence rules, closed-program variants,
 and the additive-error rules mentioned above.
 
-The mixed Hoare/Pythagorean rules are important in practice.  Deterministic
-prefixes, table operations, unselected calls, and postprocessing are proved to
-preserve an invariant with the unary logic and inserted as zero-cost
-coordinates.  Only the sampling fragment whose distribution changes consumes
+The mixed Hoare/Pythagorean rules have been useful in practice.  Deterministic
+prefixes, table operations, other oracle calls, and postprocessing are proved to
+preserve an invariant with the unary Hoare logic and inserted as zero-cost
+coordinates in the Pythagorean judgment.
+Only the sampling fragment whose distribution changes consumes
 KL budget.  In \Cref{lem:one-call}, this decomposition produces the tuple
 \((0,\epsilon_{\mathsf{nf}},0)\).
 
-\subsection{Soundness of the nonlinear bridge}
+\subsection{The Micciancio-Walter Probability Lemma}
 
+We discuss the probabilistic Pythagorean preservation lemma used to justify the Micciancio-Walter rule in
+\Cref{fig:logic-rules}.
 Let \(\mathcal P,\mathcal Q\) be joint distributions on \(\Omega^k\), and
 write \(\mathcal P_i\mid a\) for coordinate \(i\) conditioned on prefix
-\(a\in\Omega^{i-1}\).  The probability layer proves the countable form of the
-Pythagorean preservation theorem used to justify the final rule in
-\Cref{fig:logic-rules}.
+\(a\in\Omega^{i-1}\). 
 
 \begin{theorem}[Conditional-coordinate preservation]
 \label{thm:pyth-probability}
@@ -154,8 +158,8 @@ Suppose \(\mathcal P,\mathcal Q\) have weight one and, for every coordinate
 \]
 Then their final-coordinate marginals satisfy
 \[
- \TVD(\mathsf{marg}_k\mathcal P,
-      \mathsf{marg}_k\mathcal Q)
+ \TVD(\mathcal{P}_k,
+      \mathcal{Q}_k)
  \leq \sqrt{\frac{\sum_{i=1}^{k}s_i}{2}}.
 \]
 \end{theorem}
@@ -168,15 +172,15 @@ bound.  The Rocq proof makes explicit absolute continuity, conditional
 zero-mass prefixes, summability of positive and negative parts, and exchanges
 between finite coordinate sums and countable support sums.
 
-The checked \textsc{Micciancio--Walter} rule instantiates this theorem with the
-witnesses carried by \Cref{eq:pyth-judgment}, then uses maximal coupling to
-obtain the additive-error equality judgment.  Thus the Pythagorean rule is
-sound directly in SSProve's completed program semantics; it is not a
-trusted analytic axiom.
+Our \textsc{Micciancio--Walter} rule instantiates this theorem with the
+transcripts from \Cref{eq:pyth-judgment}, then uses maximal coupling to
+obtain the additive-error equality judgment.
+As with all of our inference rules,
+we verify it to be sound with respect to SSProve's program semantics.
 
 \subsection{A derived discrete-Gaussian rule}
 
-For center \(\mu\in\bbZ\) and \(\sigma>0\), the formal distribution is
+For center \(\mu\in\bbZ\) and \(\sigma>0\), we denote the discrete Gaussian distribution by
 \[
  D_{\bbZ,\mu,\sigma^2}(x)
  =\frac{\exp(-(x-\mu)^2/(2\sigma^2))}
@@ -193,35 +197,31 @@ These facts yield a reusable program rule for vector sampling.  If
 \[
  \frac{(v_i-u_i)^2}{2\sigma^2}\leq\epsilon,
 \]
-then the encoded product samplers satisfy a one-coordinate Pythagorean
-judgment with budget \([n\epsilon]\).  The theorem includes injectivity of the
-SSProve encoding and heap/postcondition premises.  Its proof first constructs
+then the $n$-fold product sampler satisfy a Pythagorean
+judgment with budget \([n\epsilon]\).
+% The theorem includes injectivity of the SSProve encoding and heap/postcondition premises.
+The analysis first constructs
 an \(n\)-coordinate transcript, proves the scalar bound coordinatewise, and
 then transports and aggregates it into the program-level sampling rule.  The
 noise-flooding proof instantiates \(\epsilon=1/(2\gamma^2)\), obtaining
-\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) without a Gaussian axiom at the
-program level.
+\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) without introducing any unverified assumptions.
 
 \subsection{From one oracle call to an adaptive program}
 \label{sec:trace-compiler}
 
-The rules above compose an exposed sequence of fragments.  An oracle program
+The rules above compose a sequence of sampling operations. An oracle program
 does not provide such a sequence: the location and arguments of its next call
-may depend on previous answers.  Our trace compiler is the verified adapter
-between these views.  It traverses concrete SSProve syntax until a selected
-operation is reached.  A trace records results of unselected calls, heap reads
-and writes, and samples; replaying it recovers the residual continuation.
-Malformed traces denote null code, whose behavior is accounted for by
-completion.
+may depend on previous answers.  Our compiler is the verified adapter
+between these views.  
 
-The na\"ive construction would run \(A\) to its next selected call and return
-the query together with a suspended continuation.  In SSProve, however, that
-continuation is a Rocq function inside the program monad: storing it would
-require serializing arbitrary Rocq functions and leave the first-order program
-syntax.  A trace is a finite, first-order substitute.  It records the effects
-that select a branch, and replay against the original syntax reconstructs the
-residual continuation.  The same-package theorem below proves this
-representation exact.
+Intuitively speaking, the pen-and-paper analysis would run the adversary to its next oracle call and return
+its query together with a suspended execution.
+In SSProve, however, a suspended program is a \emph{continuation} inside the program monad: storing it directly would
+require serializing arbitrary Rocq functions into SSProve-compatible data types.
+Instead, as an simpler alternative, we choose to record execution traces.
+In particular, we record the results of other oracle calls, heap reads
+and writes, and samples; replaying them recovers the continuation.
+The same-package theorem below proves this representation exact.
 
 Write
 \(\mathsf{Comp}_q(A;P_s,P_r)\) for the program obtained by exposing the first
@@ -240,9 +240,9 @@ Subject to package typing and memory-separation conditions,
 have identical SSProve output/heap semantics.
 \end{theorem}
 
-The quantitative theorem is the main program-logic bridge.
+The following theorem is the main program-logic bridge.
 
-\begin{theorem}[Local-to-adaptive quantitative lifting]
+\begin{theorem}[Replace $q$ calls]
 \label{thm:compile-replace}
 Suppose two implementations \(P,P'\) of a selected operation satisfy a
 one-call Pythagorean judgment with nonnegative tuple \(s\), preserve invariant
@@ -258,23 +258,22 @@ conditions.  For every concrete SSProve program \(A\), replacing its first
 \]
 where \(P_I\) synchronizes inputs and heaps satisfying \(I\).
 \end{theorem}
+\begin{proof}[Proof sketch]
+We first show that $\mathsf{Comp}_q(A;P,P)$ and $\mathsf{Comp}_q(A;P',P)$
+satisfy the expected Pythagorean judgment (i.e. differ by the tuple $s^q$)
+by induction on $q$ and applying our Pythagorean sequence rule.
+The $q$-th call contributes \(s\) and preserves the invariant \(I\).
 
-\emph{Proof sketch.}
-The proof inducts on \(q\), with a nested semantic analysis of search and
-replay.  Before the next selected call, both executions follow the same trace;
-unselected calls and heap effects use the mixed Hoare/Pythagorean rules and
-spend zero.  At the selected call, the one-call premise contributes \(s\) and
-restores \(I\).  The sequence rule concatenates that tuple with the induction
-hypothesis.  After \(q\) calls, the accumulated tuple has norm
+After \(q\) calls, the accumulated tuple has norm
 \(q\norm{s}_1\); \textsc{Micciancio--Walter} is applied once, giving the
-displayed additive error.  Invalid traces and assertion failures are compared
-as explicit \(\bot\) outcomes.
+desired additive error bound.
+\end{proof}
 
-The theorem is generic in the program, packages, selected operation,
+The theorem is generic in the program, packages, selected oracle,
 invariant, and budget tuple.  The noise-flooding game supplies only the
 one-call premise from \Cref{lem:one-call}; the program logic and compiler then
 handle adversarial control flow.  Combined with
-\Cref{thm:compile-same}, this is the quantitative counterpart of SSProve's
+\Cref{thm:compile-same}, this is our quantitative counterpart of SSProve's
 local relational reasoning for package indistinguishability.
 
 \subsection{Why the extra judgment is necessary}

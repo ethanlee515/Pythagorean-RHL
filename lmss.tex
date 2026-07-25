@@ -11,30 +11,30 @@ then describes the reusable machinery that Rocq uses to check the nonzero hop.
 Let \(C_{\cA}^{\mathsf{open}}\) be the IND-CPAD experiment with calls to its
 oracle interface left unresolved.  Let \(P_{\mathsf{real}}\) implement the
 real encryption, evaluation, and flooded-decryption oracles, and let
-\(P_{\mathsf{sim}}\) differ only by flooding around the table plaintext on an
-equal-label decrypt query.  If \(P_s\) answers selected decrypt calls and
-\(P_r\) answers operations remaining in the residual program, abbreviate
+\(P_{\mathsf{sim}}\) differ only by flooding around the table plaintext on decryption queries.
+Denote by \(P_s\) the code for answering the first $q$ decrypt calls,
+and \(P_r\) for the remaining calls.
+We write
 \[
  G(P_s,P_r)=
  \mathsf{Link}\bigl(
   \mathsf{compile}_{q}(P_s,\mathsf{ODec},C_{\cA}^{\mathsf{open}}),P_r
  \bigr).
 \]
-The compiler exposes the first \(q\) calls to the selected operation
-\(\mathsf{ODec}\); it does not assume that the adversary has a fixed query
+That is, $\mathsf{compile}_{q}$ ``factors out" the first \(q\) calls to the oracle
+\(\mathsf{ODec}\), without assuming that $C_{\cA}^{\mathsf{open}}$ has a fixed query
 schedule.
 
 The proof maintains an invariant \(\Phi\) over challenger state.  It records
 initialized, good keys; agreement of public data and the challenge bit; table
-validity under encryption and evaluation; and the decrypt counter.  In
+validity under encryption and evaluation; and the decryption query counter.  In
 particular, each supported table row \((m_0,m_1,c)\), viewed on the selected
 branch \(b\), satisfies
 \[
  d(\mathsf{dec}_0(sk,c),m_b)\leq e_c.
 \]
-Support correctness proves that initialization establishes \(\Phi\) and that
-encryption/evaluation preserve it.  The selected decrypt prefix preserves it
-while incrementing the counter.
+Initialization establishes \(\Phi\), and encryption/evaluation preserve it.
+The selected decrypt prefix preserves it as well, while incrementing the counter.
 
 \subsection{Hybrid chain}
 
@@ -48,47 +48,38 @@ The paper-level games are
  H_5 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{sim}}),\\
  H_6 &= \mathsf{IND\text{-}CPA}_{S}(\cB_{\cA,q}).
 \end{align*}
-Rocq checks the chain
+We verify the chain of hybrids
 \begin{equation}
 \label{eq:hybrid-chain}
  H_0\xrightarrow{0}H_1\xrightarrow{0}H_2
  \xrightarrow{\sqrt{q\epsilon_{\mathsf{nf}}/2}}H_3
  \xrightarrow{0}H_4\xrightarrow{0}H_5\xrightarrow{0}H_6.
 \end{equation}
-The labels are completed-output statistical-distance bounds.  Completion adds
-an explicit \(\bot\) outcome for missing subdistribution mass, so an assertion
-failure cannot silently disappear from either an equality or a distance
-claim.
-
+The labels are statistical-distance bounds.
 The zero-cost steps have distinct roles:
-
 \begin{itemize}
 \item \(H_0=H_1\) unfolds package linking.
 \item \(H_1=H_2\) is same-package compiler correctness: exposing selected
 calls and answering them with the package they originally called preserves
 semantics.
-\item \(H_3=H_4\) changes the residual decrypt implementation.  After \(q\)
-selected decrypt entries, the shared counter makes every residual decrypt
-assertion fail on both sides; all other operations agree.
+\item \(H_3=H_4\) changes the residual decrypt $P_r$ implementation.
+After \(q\) selected decrypt entries, the shared counter makes every $P_r$ call
+assert fail on both sides.
 \item \(H_4=H_5\) removes the compiler after selected and residual calls use
 the same simulated package.
-\item \(H_5=H_6\) relates package layouts by a heap invariant.  Both games
-sample the same key and hidden bit, expose the same public values, maintain
-the same logical table, answer calls with the same distributions, and return
-whether the same guess equals that bit.  The Rocq proof factors this through
-one auxiliary linked game.
+\item \(H_5=H_6\) unfolds package linking again, connecting the experiment back to the IND-CPA game.
 \end{itemize}
-
-Thus the final loss is not concealing unproved probabilistic changes in
-package algebra.  Each such change is a theorem over SSProve semantics.
+Each game hop is formalized as a theorem over SSProve semantics.
 
 \subsection{The single paid hop}
 \label{sec:paid-hop}
 
 The selected decrypt body factors into a deterministic prefix, one Gaussian
-sample, and deterministic postprocessing.  On a row whose labels differ, both
-oracles return \(\mathsf{None}\) and spend zero.  On an equal-label row with
-common plaintext \(m\), the real continuation samples around
+sample, and deterministic postprocessing.
+% On a row whose labels differ, both
+% oracles return \(\mathsf{None}\) and spend zero.  On an equal-label
+Concretely, on a row with
+plaintext \(m\), the real continuation samples around
 \(a=\mathsf{dec}_0(sk,c)\), while the simulator samples around \(m\).
 
 \begin{lemma}[One-call replacement]
@@ -103,13 +94,13 @@ tuple
 and restore \(\Phi\).
 \end{lemma}
 
-For the equal-label branch, \(\Phi\) gives \(d(a,m)\leq e\).  Translation of
+On valid oracle inputs, \(\Phi\) gives \(d(a,m)\leq e\).  Translation of
 charts by \Cref{eq:charts} puts the two answer distributions over the same
 coordinate space.  Applying \Cref{eq:dg-kl} independently in \(n\)
 coordinates and the choice \(\sigma_e=(e^2+1)\gamma\) gives
 \Cref{eq:epsilon-nf}.  The zero entries in the tuple certify that shared
-prefix and postprocessing add no KL cost.  On assertion-failing branches the
-completed distributions place the same mass at \(\bot\).
+prefix and postprocessing add no KL cost.
+On the other hand, the assertion-failing case places the same mass at \(\bot\).
 
 The trace-compiler replacement theorem applies \Cref{lem:one-call} to the
 first \(q\) selected calls, preserving dependencies between queries.  It
@@ -134,14 +125,17 @@ A handwritten proof often says to replace the first \(q\) decryptions even
 though an oracle adversary is a single program whose future control flow
 depends on earlier oracle outputs.  In SSProve, calls are nodes inside that
 program, not an external list.  The compiler makes first \(q\) semantic: run
-to the next selected call, record a replayable trace of the surrounding
-computation, answer the call, and resume.  Invalid replays denote null code
-and are covered by completion.  Compiler correctness then proves that this
-representation neither gains nor loses behaviors.
+to the next selected call, answer the call, and resume.
+We have verified the correctness of our compiler;
+that is, compilation neither gains nor loses behaviors.
+We further discuss our compiler in \Cref{sec:trace-compiler}.
+%Invalid replays denote null code and are covered by completion.
+% Compiler correctness then proves that this
+% representation neither gains nor loses behaviors.
 
-This is also where a naive source-to-source argument would be brittle.  The
-proof must account for adversary and challenger heap separation, unselected
-operations in the residual program, failed selected calls, and the state
-relation after every answer.  These obligations occupy much of the artifact,
-but they are discharged once by the generic compiler theorems rather than
-postulated for this adversary.
+% This is also where a na\"ive source-to-source argument would be brittle.  The
+% proof must account for adversary and challenger heap separation, unselected
+% operations in the residual program, failed selected calls, and the state
+% relation after every answer.  These obligations occupy much of the artifact,
+% but they are discharged once by the generic compiler theorems rather than
+% postulated for this adversary.
