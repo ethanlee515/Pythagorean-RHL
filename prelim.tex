@@ -49,9 +49,9 @@ Input & What Rocq assumes & Consequence used by the proof \\
 \midrule
 Scheme \(S\) & Typed, distribution-valued algorithms; key generation returns
 with probability one & Defines the IND-CPA game and noise-flooded scheme \\
-Distance and charts & Dimension \(n\) and the three laws in
-\Cref{eq:charts} & Turns message distance into integer-coordinate
-displacement \\
+Noise coordinates & Dimension \(n\), chart maps, and the three laws in
+\Cref{eq:charts} & Transports product discrete-Gaussian noise from
+\(\bbZ^n\) to messages and measures the displacement between its centers \\
 Probability-one correctness & Deterministic decryption; every output having
 nonzero probability satisfies \Cref{eq:approx-correctness} & Every reachable
 table ciphertext is within its recorded error bound \\
@@ -82,13 +82,18 @@ terms, the bound holds with probability one.
 Nonzero correctness error would require the additional up-to-bad hop discussed
 in \Cref{sec:scope}.
 
-LMSS state approximate correctness using a message space embedded in a normed
-space~\cite{lmss}.
-The following smaller distance-and-chart interface is specific to our
-formalization.
-The message space carries a distance
-\(d:M\times M\to\bbN\).
-For each center \(a\in M\), there are chart maps
+LMSS's noise-flooding defense postprocesses approximate decryption with fresh
+Gaussian noise~\cite{lmss}.
+On a concrete plaintext ring, adding such noise to a plaintext is an ordinary
+algebraic operation.
+For an abstract message type \(M\), however, a product discrete Gaussian is
+supported on \(\bbZ^n\), not on \(M\); it cannot be used as message-valued
+noise without first supplying integer coordinates.
+
+Our formalization therefore packages the metric and the coordinates needed
+for noise flooding as one interface.
+The message space carries a distance \(d:M\times M\to\bbN\), and for each
+center \(a\in M\) it has maps
 \[
  I_a:M\rightarrow\bbZ^n,
  \qquad J_a:\bbZ^n\rightarrow M
@@ -101,15 +106,18 @@ satisfying
  \quad J_b(v)=J_a(v+I_a(b)).
 \end{equation}
 Here \(I_a(b)\) is the integer displacement from \(a\) to \(b\), while
-\(J_a(v)\) applies displacement \(v\) at \(a\).
-The laws say that these coordinates are centered, preserve distance, and
-change base point by translation.
-This proof-specific interface is easier to audit than committing the generic
-theorem to a concrete CKKS polynomial quotient ring.
+\(J_a(v)\) interprets the integer displacement \(v\) as a message based at
+\(a\).
+Thus \(J_a\) transports a distribution on \(\bbZ^n\) to a distribution on
+messages.
+The three laws say that the coordinates are centered, that their
+\(\ell_\infty\) norm agrees with message distance, and that changing the base
+point translates the integer coordinates.
+In particular, they let the proof compare flooding around two messages as
+centered and shifted Gaussians in one common copy of \(\bbZ^n\).
 
-LMSS's noise-flooding defense postprocesses approximate decryption with fresh
-Gaussian noise~\cite{lmss}.
-For \(\gamma>0\), define
+For \(\gamma>0\), noise flooding around \(x\in M\) is consequently the
+following single construction:
 \begin{equation}
 \label{eq:flood}
 \begin{aligned}
@@ -119,7 +127,13 @@ For \(\gamma>0\), define
  \mathsf{return}\;&J_x(\eta).
 \end{aligned}
 \end{equation}
-Here the tuple Gaussian has \(n\) independent integer coordinates.
+Here \(D_{\bbZ^n,0,\sigma_e^2}\) is the product of \(n\) independent
+integer discrete Gaussians.
+The sampling step lives in \(\bbZ^n\), and \(J_x\) makes its result a message;
+an arbitrary metric space without such maps would not support
+\Cref{eq:flood}.
+This proof-specific interface is easier to audit than committing the generic
+theorem to a concrete CKKS polynomial quotient ring.
 The noise-flooded transform \(\mathsf{NF}_{\gamma}[S]\) keeps key generation,
 encryption, and evaluation unchanged and decrypts a valid tagged ciphertext by
 \[
@@ -169,8 +183,11 @@ The simulated answer needs neither \(sk\) nor \(b\): the common plaintext
 The probability-one correctness assumption in \Cref{eq:approx-correctness}
 gives
 \(d(\mathsf{dec}_0(sk,c),m)\leq e\).
-By \Cref{eq:charts}, the two Gaussian centers differ by at most \(e\) in every
-coordinate.
+By the change-of-basepoint law in \Cref{eq:charts}, the simulated answer can
+be expressed in the real answer's chart by shifting the integer Gaussian by
+\(I_{\mathsf{dec}_0(sk,c)}(m)\).
+The distance law bounds the \(\ell_\infty\) norm of this shift by \(e\), so
+each of its \(n\) coordinates has magnitude at most \(e\).
 The equal-variance discrete-Gaussian identity
 \begin{equation}
 \label{eq:dg-kl}
@@ -202,7 +219,7 @@ Our contribution is to express its assumptions as the explicit interface in
 
 \begin{theorem}[Checked noise-flooding reduction]
 \label{thm:main}
-Let \(S\), its distance-and-chart interface, probability-one correctness proof,
+Let \(S\), its noise-coordinate interface, probability-one correctness proof,
 IND-CPA security interface, and \(\gamma>0\) satisfy
 \Cref{tab:theorem-boundary}.
 For every IND-CPAD adversary \(\cA\) represented as a well-typed SSProve oracle
