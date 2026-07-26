@@ -1,0 +1,123 @@
+\section{SSProve Syntax and Semantics}
+\label[appendix]{app:ssprove-substrate}
+
+This appendix recalls the fragment of SSProve on which the program logic is
+built~\cite{ssprove}.
+SSProve embeds pure expressions shallowly in Rocq and
+represents effects by a free monad.
+Fix a result type \(A\).
+Its raw code has
+the following constructors:
+\begin{equation}
+\label{eq:ssprove-syntax}
+\begin{split}
+c ::= {}& \mathsf{return}(a)
+ \mid \mathsf{call}(p,x,\kappa)
+ \mid \mathsf{get}(\ell,\kappa)\\
+ &{}\mid \mathsf{put}(\ell,v,c)
+ \mid \mathsf{sample}(D,\kappa).
+\end{split}
+\end{equation}
+Here \(a:A\).
+An operation signature \(p:S\to T\) contains a procedure
+identifier as well as its argument and result types; a call has \(x:S\) and
+\(\kappa:T\to\mathsf{RawCode}(A)\).
+A typed location
+\(\ell:T_\ell\) is read into a continuation
+\(\kappa:T_\ell\to\mathsf{RawCode}(A)\), or updated with \(v:T_\ell\).
+Finally, sampling takes \(D\in\mathsf{SD}(X)\) and
+\(\kappa:X\to\mathsf{RawCode}(A)\), where \(\mathsf{SD}(X)\) denotes discrete
+subdistributions on \(X\).
+Continuations are Rocq functions, so conditionals,
+pure local computation, and structurally terminating loops are supplied by
+the ambient language rather than by additional constructors.
+Monadic bind
+recursively pushes a continuation through this syntax.
+We use the customary
+notations
+\begin{equation}
+\label{eq:ssprove-notation}
+\begin{aligned}
+ x\leftarrow c_1;c_2
+   &\equiv\mathsf{bind}(c_1,\lambda x.c_2),\\
+ x\leftarrow p(a);c
+   &\equiv\mathsf{call}(p,a,\lambda x.c),\\
+ x\leftarrow\mathsf{get}\,\ell;c
+   &\equiv\mathsf{get}(\ell,\lambda x.c),\\
+ \mathsf{put}\,\ell:=v;c
+   &\equiv\mathsf{put}(\ell,v,c),\\
+ x\leftarrow D;c
+   &\equiv\mathsf{sample}(D,\lambda x.c).
+\end{aligned}
+\end{equation}
+
+An interface is a finite set of typed operation signatures.
+The checked type
+\(\mathsf{Code}_{L,I}(A)\) pairs raw code with a proof that every accessed
+location belongs to the footprint \(L\) and every external call belongs to
+the import interface \(I\).
+A package \(P:I\to E\) is a finite map from the
+procedure names in its export interface \(E\) to well-scoped implementations
+\(S\to\mathsf{Code}_{L,I}(T)\).
+Sequential composition \(P\circ Q\)
+links \(P\)'s calls to procedures implemented by \(Q\).
+At code level, the
+essential clause is
+\begin{equation}
+\label{eq:ssprove-link}
+\begin{aligned}
+ &\mathsf{codeLink}(\mathsf{call}(p,a,\kappa),Q)\\
+ &\qquad =
+ x\leftarrow Q.p(a);
+ \mathsf{codeLink}(\kappa(x),Q),
+\end{aligned}
+\end{equation}
+with \(\mathsf{codeLink}\) acting recursively on the remaining constructors.
+Parallel composition combines disjoint export interfaces, while the identity
+package forwards every call.
+Package validity tracks the import, export, and
+memory-footprint side conditions used by these operations.
+
+Each location carries a type and a default initial value.
+A heap \(h\) maps
+locations to values of their declared types; lookup of an unset location
+returns its default.
+After linking has eliminated external calls, fully linked code denotes a
+state-transforming subdistribution
+\begin{equation}
+\label{eq:ssprove-denotation}
+ \semantic{c}:\mathsf{Heap}\longrightarrow
+  \mathsf{SD}(A\times\mathsf{Heap}).
+\end{equation}
+Writing \(\delta_z\) for the point distribution at \(z\), its defining
+equations are
+\begin{align}
+ \semantic{\mathsf{return}(a)}_h
+   &=\delta_{(a,h)},\notag\\
+ \semantic{\mathsf{get}(\ell,\kappa)}_h
+   &=\semantic{\kappa(h(\ell))}_h,\notag\\
+ \semantic{\mathsf{put}(\ell,v,c)}_h
+   &=\semantic{c}_{h[\ell\mapsto v]},\notag\\
+ \semantic{\mathsf{sample}(D,\kappa)}_h
+   &=\sum_{x}D(x)\,\semantic{\kappa(x)}_h.
+\label{eq:ssprove-effect-semantics}
+\end{align}
+The sums are pointwise sums of subdistributions.
+In particular, semantic
+bind threads both the returned value and the updated heap:
+\begin{align}
+ \semantic{x\leftarrow c;\kappa(x)}_h
+ &=
+ \sum_{(a,h')}
+   \semantic{c}_h(a,h')\,
+   \semantic{\kappa(a)}_{h'}.
+\label{eq:ssprove-bind-semantics}
+\end{align}
+SSProve defines failure by sampling the null subdistribution, and
+\(\mathsf{assert}(b)\) as \(\mathsf{return}(())\) when \(b\) holds and failure
+otherwise.
+Thus failed assertions have the zero subdistribution and their
+continuations are not run.
+A fully linked game, with no unresolved oracle calls, is evaluated by resolving
+its \(\mathsf{Run}\) procedure, starting from the default heap, and projecting
+the result component of \Cref{eq:ssprove-denotation}.
