@@ -79,7 +79,7 @@ It stores the same logical table as the IND-CPAD challenger, but obtains
 challenge encryptions from the outer IND-CPA encryption oracle.
 \begin{algorithmic}[1]
   \Procedure{$\mathsf{Flood}$}{$m,e$}
-    \State $\eta \gets D_{\bbZ^n,(e^2+1)\gamma}$
+    \State $\eta \gets D_{\bbZ^n,\max\{1,e\}\gamma}$
     \State \Return $I_m^{-1}(\eta+I_m(m))$
   \EndProcedure
   \Statex

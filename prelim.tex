@@ -40,10 +40,12 @@ To make use of this isometry, the noise-flooding decryption algorithm samples
 \begin{align}
 \label{eq:flood}
  m&\leftarrow\mathsf{Dec}(sk,c),&
- \sigma_e&=(e^2+1)\gamma,\notag\\
+ \sigma_e&=\max\{1,e\}\gamma,\notag\\
  \eta&\leftarrow D_{\bbZ^n,0,\sigma_e^2},&
  \mathsf{out}&=J_m(\eta+I_m(m)).
 \end{align}
+The maximum only keeps the Gaussian standard deviation positive when the
+stored error bound is zero; for every \(e>0\), the width is \(e\gamma\).
 
 \subsection{IND-CPAD game}
 \label{sec:ind-cpad}
@@ -97,7 +99,7 @@ therefore bounds the \(n\)-coordinate KL cost of one replacement by
 \begin{equation}
 \label{eq:epsilon-nf}
  \epsilon_{\mathsf{nf}}
- \leq \frac{ne^2}{2(e^2+1)^2\gamma^2}
+ \leq \frac{ne^2}{2\max\{1,e\}^2\gamma^2}
  \leq \frac{n}{2\gamma^2}.
 \end{equation}
 
