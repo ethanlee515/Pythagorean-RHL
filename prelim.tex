@@ -1,12 +1,10 @@
 \section{Security Model and Checked Theorem}
 \label{sec:security-model}
 
-We first state the result without program-logic notation.  All distributions
-are discrete.  Games return a Boolean, and
-\(\WinProb[G]=\Pr[G=\mathsf{true}]\).  Statistical distance is
-\(\TVD(P,Q)=\tfrac12\sum_x|P(x)-Q(x)|\), and \(\KL{P}{Q}\) denotes KL
-divergence when the defining series is summable and \(P\) is absolutely
-continuous with respect to \(Q\).
+We first state the result without program-logic notation.
+All distributions are discrete.
+Games return a Boolean, and \(\WinProb[G]=\Pr[G=\mathsf{true}]\).
+Statistical distance is \(\TVD(P,Q)=\tfrac12\sum_x|P(x)-Q(x)|\), and \(\KL{P}{Q}\) denotes KL divergence when the defining series is summable and \(P\) is absolutely continuous with respect to \(Q\).
 
 \subsection{Approximate FHE and noise flooding}
 
@@ -16,7 +14,8 @@ The formal scheme interface contains
        \mathsf{Eval}_2,\mathsf{Dec}).
 \]
 Ciphertexts are either invalid or pairs \(\mathsf{Some}(c,e)\), where \(e\) is
-an explicit error bound.  Unary and binary gates suffice to describe
+an explicit error bound.
+Unary and binary gates suffice to describe
 arbitrary computations while keeping the package interface small.
 The decryption algorithm is generally randomized,
 though for simplicity we assume it can be characterized by a pure (and deterministic) function \(\mathsf{dec}_0(sk,c)\) before noise flooding.
@@ -49,9 +48,8 @@ To make use of this isometry, the noise-flooding decryption algorithm samples
 \subsection{IND-CPAD game}
 \label{sec:ind-cpad}
 
-IND-CPAD augments the usual left-or-right encryption game with homomorphic
-evaluation and restricted decryption~\cite{lmss}.  The challenger samples a
-hidden bit \(b\), generates \((pk,evk,sk)\), and gives \((pk,evk)\) to \(\cA\).
+IND-CPAD augments the usual left-or-right encryption game with homomorphic evaluation and restricted decryption~\cite{lmss}.
+The challenger samples a hidden bit \(b\), generates \((pk,evk,sk)\), and gives \((pk,evk)\) to \(\cA\).
 It maintains a table of triples \((m_0,m_1,c)\):
 
 \begin{itemize}
@@ -59,30 +57,26 @@ It maintains a table of triples \((m_0,m_1,c)\):
 and resulting ciphertext;
 \item \(\mathsf{OEval}\) evaluates indexed table ciphertexts and applies the
 same gate to their left and right labels before appending a row;
-\item \(\mathsf{ODec}(i)\) consumes one of \(q\) decryption credits.  It
+\item \(\mathsf{ODec}(i)\) consumes one of \(q\) decryption credits.
+It
 returns no plaintext when the row's labels differ and otherwise returns the
 decryption of its ciphertext.
 \end{itemize}
 
-The final result is whether \(\cA\)'s guess equals \(b\).  Thus decryption is
-available only when it cannot trivially reveal which challenge message was
-selected, but its approximation error may still depend on the secret key.
+The final result is whether \(\cA\)'s guess equals \(b\).
+Thus decryption is available only when it cannot trivially reveal which challenge message was selected, but its approximation error may still depend on the secret key.
 The full oracle pseudocode is in \Cref{app:ind-cpad-game}.
 
-The Rocq adversary is a concrete stateful oracle program with the required
-SSProve interface.  It may choose queries adaptively and may make arbitrary
-numbers of encryption and evaluation calls.  The counter limits successful
-entries into \(\mathsf{ODec}\) to \(q\); subsequent calls assertion-fail and
-contribute failure mass.
+The Rocq adversary is a concrete stateful oracle program with the required SSProve interface.
+It may choose queries adaptively and may make arbitrary numbers of encryption and evaluation calls.
+The counter limits successful entries into \(\mathsf{ODec}\) to \(q\); subsequent calls assertion-fail and contribute failure mass.
 
 \subsection{Simulation and reduction}
 
-The IND-CPA reduction \(\cB_{\cA,q}\) runs \(\cA\), forwards pairs to its own
-left-or-right encryption oracle, and reproduces evaluation and table updates
-locally.  For a decrypt query on a row with equal labels \(m_0=m_1=m\), it
-does not know \(sk\), so it samples a flooded answer centered directly at
-\(m\).  When the labels differ it returns no plaintext, exactly as the real
-game.  \Cref{alg:ind-cpa-reduction} gives executable-style pseudocode.
+The IND-CPA reduction \(\cB_{\cA,q}\) runs \(\cA\), forwards pairs to its own left-or-right encryption oracle, and reproduces evaluation and table updates locally.
+For a decrypt query on a row with equal labels \(m_0=m_1=m\), it does not know \(sk\), so it samples a flooded answer centered directly at \(m\).
+When the labels differ it returns no plaintext, exactly as the real game.
+\Cref{alg:ind-cpa-reduction} gives executable-style pseudocode.
 
 The lossy proof step compares the two centers
 \(\mathsf{dec}_0(sk,c)\) and \(m\).
@@ -92,7 +86,8 @@ Approximate correctness gives
 \]
 with probability $1$.
 By \Cref{eq:charts}, every coordinate displacement has magnitude at most
-\(e\).  The equal-variance Gaussian identity
+\(e\).
+The equal-variance Gaussian identity
 \begin{equation}
 \label{eq:dg-kl}
  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
@@ -110,7 +105,8 @@ therefore bounds the \(n\)-coordinate KL cost of one replacement by
 
 \begin{table*}[t]
 \centering
-\caption{Inputs and obligations of the checked security theorem.  The first
+\caption{Inputs and obligations of the checked security theorem.
+The first
 five rows are explicit functor parameters; the last row delimits its
 computational interpretation.}
 \label{tab:theorem-boundary}
@@ -140,7 +136,8 @@ probabilistic polynomial time~\cite{ssprove} \\
 \begin{theorem}[Checked noise-flooding reduction]
 \label{thm:main}
 Let \(S\), its metric charts, support-correctness proof, IND-CPA security
-interface, and \(\gamma>0\) satisfy \Cref{tab:theorem-boundary}.  For every
+interface, and \(\gamma>0\) satisfy \Cref{tab:theorem-boundary}.
+For every
 valid IND-CPAD adversary package \(\cA\) and \(q\in\bbN\), the concrete package
 \(\cB_{\cA,q}\) is a valid IND-CPA adversary and
 \begin{align*}
@@ -153,14 +150,10 @@ valid IND-CPAD adversary package \(\cA\) and \(q\in\bbN\), the concrete package
 \end{align*}
 \end{theorem}
 
-The first inequality is the shape used internally.  In the artifact,
-\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) is already the uniform bound from
-\Cref{eq:epsilon-nf}, so the exported loss is written directly as
-\(\sqrt{q(n/(2\gamma^2))/2}\).  The final theorem applies the assumed IND-CPA
-bound to the checked reduction package; it does not assume IND-CPAD security.
+The first inequality is the shape used internally.
+In the artifact, \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) is already the uniform bound from \Cref{eq:epsilon-nf}, so the exported loss is written directly as \(\sqrt{q(n/(2\gamma^2))/2}\).
+The final theorem applies the assumed IND-CPA bound to the checked reduction package; it does not assume IND-CPAD security.
 
-For fixed \(n\) and target loss, \Cref{thm:main} requires
-\(\gamma=\Theta(\sqrt q)\).  A statistical-distance hybrid using the same
-one-call facts would require \(\gamma=\Theta(q)\).  Because \(\gamma\) scales
-the noise actually returned by decryption, the improvement directly affects
-precision rather than only proof aesthetics.
+For fixed \(n\) and target loss, \Cref{thm:main} requires \(\gamma=\Theta(\sqrt q)\).
+A statistical-distance hybrid using the same one-call facts would require \(\gamma=\Theta(q)\).
+Because \(\gamma\) scales the noise actually returned by decryption, the improvement directly affects precision rather than only proof aesthetics.

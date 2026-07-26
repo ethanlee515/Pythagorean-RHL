@@ -2,8 +2,7 @@
 
 \input{packages}
 
-\title{Machine-Checked Noise-Flooding Security\\
-for Adaptive Decryption Queries}
+\title{Machine-Checked Noise-Flooding Security\\ for Adaptive Decryption Queries}
 
 \author{\IEEEauthorblockN{Anonymous submission}}
 
@@ -16,16 +15,16 @@ for Adaptive Decryption Queries}
 \begin{abstract}
 Noise flooding is a standard defense against decryption attacks on approximate
 homomorphic encryption, but its security proof is unusually sensitive to
-composition.  Replacing each of \(q\) adaptive decryption answers with a
+composition.
+Replacing each of \(q\) adaptive decryption answers with a
 statistically close simulation and applying an ordinary hybrid argument loses
-linearly in \(q\).  The cryptographic proof instead accumulates conditional
+linearly in \(q\).
+The cryptographic proof instead accumulates conditional
 Kullback--Leibler (KL) costs and converts to statistical distance once, giving
 the parameter-critical square-root loss.
 
-We give a machine-checked, game-based account of this argument in Rocq and
-SSProve.  For an abstract approximate-FHE scheme satisfying explicit metric,
-support-correctness, and IND-CPA assumptions, the development constructs a
-reduction for every \(q\)-query IND-CPAD adversary and proves
+We give a machine-checked, game-based account of this argument in Rocq and SSProve.
+For an abstract approximate-FHE scheme satisfying explicit metric, support-correctness, and IND-CPA assumptions, the development constructs a reduction for every \(q\)-query IND-CPAD adversary and proves
 
 \[
  \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}^{\mathcal A}=1]
@@ -34,12 +33,16 @@ reduction for every \(q\)-query IND-CPAD adversary and proves
 \]
 
 Here \(n\) is the plaintext-chart dimension and \(\gamma\) is the flooding-width
-multiplier.  The proof constructs a new relational program logic
-over SSProve semantics.  Its Pythagorean judgment composes
+multiplier.
+The proof constructs a new relational program logic
+over SSProve semantics.
+Its Pythagorean judgment composes
 conditional KL budgets without converting them to statistical distance, and a
 verified trace compiler lifts a local oracle rule to arbitrary adaptive
-programs with a single final conversion.  The development also supplies the
-required discrete-Gaussian analysis.  The checked theorem
+programs with a single final conversion.
+The development also supplies the
+required discrete-Gaussian analysis.
+The checked theorem
 isolates the ``good key pair" game hop: imperfect correctness can later be captured
 using an additional standard up-to-bad game hop.
 As in SSProve, polynomial-time preservation remains the conventional
@@ -67,12 +70,8 @@ OpenAI Codex was used to draft prose throughout this manuscript.
 The Rocq development was also substantially AI-assisted.
 Both have been audited and revised by the authors accordingly.
 
-\bibliographystyle{IEEEtran}
-\bibliography{reference}
+\bibliographystyle{IEEEtran} \bibliography{reference}
 
-\appendices
-\input{appendix-security-games}
-\input{discrete-gaussian-analysis}
-\input{appendix-formal-interface-excerpts}
+\appendices \input{appendix-security-games} \input{discrete-gaussian-analysis} \input{appendix-formal-interface-excerpts}
 
 \end{document}

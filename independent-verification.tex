@@ -1,10 +1,8 @@
 \section{Artifact and Audit}
 \label{sec:artifact}
 
-The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding
-the manuscript's copied source excerpts. 
-Since a majority of the codebase has been written with AI,
-the line count does not reflect the amount of human efforts involved.
+The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding the manuscript's copied source excerpts.
+Since a majority of the codebase has been written with AI, the line count does not reflect the amount of human efforts involved.
 
 \begin{table}[t]
 \centering
@@ -25,13 +23,10 @@ Total & 27,986 \\
 \end{tabular}
 \end{table}
 
-The top-level file is
-\path{theories/Security/NoiseFloodingSecurity/Final.v}.  Its functor
-\texttt{NoiseFloodingSecure} takes the five interfaces in
-\Cref{tab:theorem-boundary}.  It defines the concrete reduction and
-\texttt{security\_bound}, proves the reduction package well typed, derives the
-completed-output inequality, and exports \texttt{is\_secure}.  The proof is
-split as follows:
+The top-level file is \path{theories/Security/NoiseFloodingSecurity/Final.v}.
+Its functor \texttt{NoiseFloodingSecure} takes the five interfaces in \Cref{tab:theorem-boundary}.
+It defines the concrete reduction and \texttt{security\_bound}, proves the reduction package well typed, derives the completed-output inequality, and exports \texttt{is\_secure}.
+The proof is split as follows:
 
 \begin{itemize}
 \item \path{Schemes/Indcpa.v}, \path{Schemes/Indcpad.v}, and
@@ -48,8 +43,8 @@ analysis and rules from \Cref{sec:pyth-toolkit}.
 
 \subsection{Program-logic audit path}
 
-The reusable logic contribution has a short theorem spine.  A reviewer can
-inspect it independently of the FHE development:
+The reusable logic contribution has a short theorem spine.
+A reviewer can inspect it independently of the FHE development:
 
 \begin{itemize}\raggedright
 \item \textit{Completed semantics:}
@@ -70,9 +65,8 @@ and its conditional-KL and final-margin properties;
 Rocq theorem underlying \Cref{thm:compile-replace}.
 \end{itemize}
 
-These are definitions and proved theorems, not parameters of
-\texttt{NoiseFloodingSecure}.  The security proof instantiates this theorem
-spine with its decryption invariant and one-call Gaussian judgment.
+These are definitions and proved theorems, not parameters of \texttt{NoiseFloodingSecure}.
+The security proof instantiates this theorem spine with its decryption invariant and one-call Gaussian judgment.
 
 \subsection{Reproduction and measured check}
 
@@ -84,46 +78,41 @@ make -f Makefile.rocq\\
 theories/Security/\\
 NoiseFloodingSecurity/Final.vo
 \end{quote}
-checks the theorem and its dependencies.  A forced rebuild in the provided
+checks the theorem and its dependencies.
+A forced rebuild in the provided
 development environment took 472.54 seconds wall time (421.75 seconds user,
 51.87 seconds system).
 These are single observations, included for reviewer planning
 rather than performance claims.
 
-The repository \texttt{README.md} gives setup, build, theorem-inspection, and
-directory-map instructions.  The manuscript build refreshes appendix excerpts
-from the live sources, preventing displayed formal definitions from silently
-diverging when both repositories are checked out together.
+The repository \texttt{README.md} gives setup, build, theorem-inspection, and directory-map instructions.
+The manuscript build refreshes appendix excerpts from the live sources, preventing displayed formal definitions from silently diverging when both repositories are checked out together.
 
 \subsection{Trusted computing base}
 \label{sec:tcb}
 
-The trusted base includes the Rocq kernel and standard library; MathComp,
-MathComp Analysis, and their real-number/classical infrastructure; and
-SSProve's program, heap, package, linking, and subdistribution semantics.  The
-scheme, chart, correctness, parameter, and IND-CPA facts in
-\Cref{tab:theorem-boundary} are theorem parameters and must be discharged by a
-concrete instantiation.
+The trusted base includes the Rocq kernel and standard library; MathComp, MathComp Analysis, and their real-number/classical infrastructure; and SSProve's program, heap, package, linking, and subdistribution semantics.
+The scheme, chart, correctness, parameter, and IND-CPA facts in \Cref{tab:theorem-boundary} are theorem parameters and must be discharged by a concrete instantiation.
 
-The new KL, Gaussian, relational, compiler, and game-hop results contain no
-local \texttt{Admitted}.  The installed dependency graph nevertheless reports
-MathComp Analysis's
-\path{realsum.__admitted__interchange_psum}: current SSProve distribution
-semantics are built on these MathComp definitions and reach the upstream
-placeholder~\cite{ssprove}.  This is an inherited assumption,
-not an axiom introduced by our security development.
+The new KL, Gaussian, relational, compiler, and game-hop results contain no local \texttt{Admitted}.
+The installed dependency graph nevertheless reports MathComp Analysis's \path{realsum.__admitted__interchange_psum}: current SSProve distribution semantics are built on these MathComp definitions and reach the upstream placeholder~\cite{ssprove}.
+This is an inherited assumption, not an axiom introduced by our security development.
 
-We independently discharge the mathematical obligation.  The artifact proves
+We independently discharge the mathematical obligation.
+The artifact proves
 the same statement as \texttt{interchange\_psum\_proved};
 \texttt{Print Assumptions} for this replacement reports only the
 usual extensionality and choice principles and not the admitted upstream
-lemma.  The proof has also been submitted to MathComp Analysis for inclusion
-in a future release.  Until an upstream release replaces the existing call
+lemma.
+The proof has also been submitted to MathComp Analysis for inclusion
+in a future release.
+Until an upstream release replaces the existing call
 sites, \texttt{Print Assumptions} for the top-level theorem will continue to
 display the placeholder's name.
 % We report that installed-library fact
 % explicitly, while distinguishing it from an outstanding local proof
-% obligation.  Claiming that the current compiled dependency graph is literally
+% obligation.
+Claiming that the current compiled dependency graph is literally
 % axiom-free would still be inaccurate.
 
 % For an instantiated module \texttt{Secure}, reviewers can run
@@ -137,8 +126,8 @@ discrete-Gaussian KL identity; these are fully verified in the artifact.
 
 \subsection{A cryptographer's audit path}
 
-A reviewer need not inspect 27,986 lines to determine what is claimed.  The
-recommended specification audit is:
+A reviewer need not inspect 27,986 lines to determine what is claimed.
+The recommended specification audit is:
 
 \begin{enumerate}
 \item inspect \path{Schemes/Indcpad.v} for the attack game, table discipline,
@@ -156,9 +145,6 @@ up-to-bad extension;
 \end{enumerate}
 
 The formal excerpts in \Cref{app:formal-interface-excerpts} follow this path.
-The remaining proof scripts establish that those definitions are connected by
-the argument in \Cref{sec:verified-reduction}.
-As conventional in SSProve (as well as the wider cryptographic verification community such as EasyCrypt),
-running time is not modeled as part of the program semantic and must be audited separately.
-The audit is direct here as well: the reduction runs the adversary once, forwards its
-oracle calls, and adds table operations and discrete-Gaussian sampling.
+The remaining proof scripts establish that those definitions are connected by the argument in \Cref{sec:verified-reduction}.
+As conventional in SSProve (as well as the wider cryptographic verification community such as EasyCrypt), running time is not modeled as part of the program semantic and must be audited separately.
+The audit is direct here as well: the reduction runs the adversary once, forwards its oracle calls, and adds table operations and discrete-Gaussian sampling.

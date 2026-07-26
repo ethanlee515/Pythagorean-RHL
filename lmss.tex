@@ -1,15 +1,15 @@
 \section{Verified Reduction}
 \label{sec:verified-reduction}
 
-The formal proof follows a conventional sequence of games.  Its additional
-structure exists to justify adaptive replacement without paying a linear
-loss.  This section gives the cryptographic argument; \Cref{sec:pyth-toolkit}
-then describes the reusable machinery that Rocq uses to check the nonzero hop.
+The formal proof follows a conventional sequence of games.
+Its additional structure exists to justify adaptive replacement without paying a linear loss.
+This section gives the cryptographic argument; \Cref{sec:pyth-toolkit} then describes the reusable machinery that Rocq uses to check the nonzero hop.
 
 \subsection{Games and invariant}
 
 Let \(C_{\cA}^{\mathsf{open}}\) be the IND-CPAD experiment with calls to its
-oracle interface left unresolved.  Let \(P_{\mathsf{real}}\) implement the
+oracle interface left unresolved.
+Let \(P_{\mathsf{real}}\) implement the
 real encryption, evaluation, and flooded-decryption oracles, and let
 \(P_{\mathsf{sim}}\) differ only by flooding around the table plaintext on decryption queries.
 Denote by \(P_s\) the code for answering the first $q$ decrypt calls,
@@ -25,9 +25,11 @@ That is, $\mathsf{compile}_{q}$ ``factors out" the first \(q\) calls to the orac
 \(\mathsf{ODec}\), without assuming that $C_{\cA}^{\mathsf{open}}$ has a fixed query
 schedule.
 
-The proof maintains an invariant \(\Phi\) over challenger state.  It records
+The proof maintains an invariant \(\Phi\) over challenger state.
+It records
 initialized, good keys; agreement of public data and the challenge bit; table
-validity under encryption and evaluation; and the decryption query counter.  In
+validity under encryption and evaluation; and the decryption query counter.
+In
 particular, each supported table row \((m_0,m_1,c)\), viewed on the selected
 branch \(b\), satisfies
 \[
@@ -77,7 +79,8 @@ Each game hop is formalized as a theorem over SSProve semantics.
 The selected decrypt body factors into a deterministic prefix, one Gaussian
 sample, and deterministic postprocessing.
 % On a row whose labels differ, both
-% oracles return \(\mathsf{None}\) and spend zero.  On an equal-label
+% oracles return \(\mathsf{None}\) and spend zero.
+On an equal-label
 Concretely, on a row with
 plaintext \(m\), the real continuation samples around
 \(a=\mathsf{dec}_0(sk,c)\), while the simulator samples around \(m\).
@@ -94,23 +97,23 @@ tuple
 and restore \(\Phi\).
 \end{lemma}
 
-On valid oracle inputs, \(\Phi\) gives \(d(a,m)\leq e\).  Translation of
-charts by \Cref{eq:charts} puts the two answer distributions over the same
-coordinate space.  Applying \Cref{eq:dg-kl} independently in \(n\)
-coordinates and the choice \(\sigma_e=(e^2+1)\gamma\) gives
-\Cref{eq:epsilon-nf}.  The zero entries in the tuple certify that shared
-prefix and postprocessing add no KL cost.
+On valid oracle inputs, \(\Phi\) gives \(d(a,m)\leq e\).
+Translation of charts by \Cref{eq:charts} puts the two answer distributions over the same coordinate space.
+Applying \Cref{eq:dg-kl} independently in \(n\) coordinates and the choice \(\sigma_e=(e^2+1)\gamma\) gives \Cref{eq:epsilon-nf}.
+The zero entries in the tuple certify that shared prefix and postprocessing add no KL cost.
 On the other hand, the assertion-failing case places the same mass at \(\bot\).
 
 The trace-compiler replacement theorem applies \Cref{lem:one-call} to the
-first \(q\) selected calls, preserving dependencies between queries.  It
+first \(q\) selected calls, preserving dependencies between queries.
+It
 accumulates a conditional KL budget \(q\epsilon_{\mathsf{nf}}\), applies the
 Pythagorean final-marginal theorem and Pinsker once, and obtains
 \[
  \TVD(H_2,H_3)\leq\sqrt{q\epsilon_{\mathsf{nf}}/2}.
 \]
 Data processing then projects completed output/heap pairs to the returned
-Boolean.  Triangle composition with the exact steps in
+Boolean.
+Triangle composition with the exact steps in
 \Cref{eq:hybrid-chain} gives
 \[
  \WinProb[H_0]
@@ -123,8 +126,10 @@ Finally, the supplied IND-CPA theorem bounds \(\WinProb[H_6]\) by
 
 A handwritten proof often says to replace the first \(q\) decryptions even
 though an oracle adversary is a single program whose future control flow
-depends on earlier oracle outputs.  In SSProve, calls are nodes inside that
-program, not an external list.  The compiler makes first \(q\) semantic: run
+depends on earlier oracle outputs.
+In SSProve, calls are nodes inside that
+program, not an external list.
+The compiler makes first \(q\) semantic: run
 to the next selected call, answer the call, and resume.
 We have verified the correctness of our compiler;
 that is, compilation neither gains nor loses behaviors.
@@ -133,9 +138,11 @@ We further discuss our compiler in \Cref{sec:trace-compiler}.
 % Compiler correctness then proves that this
 % representation neither gains nor loses behaviors.
 
-% This is also where a na\"ive source-to-source argument would be brittle.  The
+% This is also where a na\"ive source-to-source argument would be brittle.
+The
 % proof must account for adversary and challenger heap separation, unselected
 % operations in the residual program, failed selected calls, and the state
-% relation after every answer.  These obligations occupy much of the artifact,
+% relation after every answer.
+These obligations occupy much of the artifact,
 % but they are discharged once by the generic compiler theorems rather than
 % postulated for this adversary.

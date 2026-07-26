@@ -1,30 +1,22 @@
 \section{Conclusion and Future Works}
 \label{sec:limitations}
 
-Our formalization deliberately factors correctness failures from the quantitative
-noise-flooding argument.  Its support-level hypotheses prove the good-execution
-case.
-For an imperfectly correct FHE such as CKKS,
-one more standard up-to-bad game hop must be formalized before instantiation,
-and the probability of generating ``bad" key pairs must be carefully accounted for.
+Our formalization deliberately factors correctness failures from the quantitative noise-flooding argument.
+Its support-level hypotheses prove the good-execution case.
+For an imperfectly correct FHE such as CKKS, one more standard up-to-bad game hop must be formalized before instantiation, and the probability of generating ``bad" key pairs must be carefully accounted for.
 
 Our formalization has also left the set of plaintext abstract as a metric space with a $\bbZ^n$ chart.
-For the current result,
-we believe this is a simpler interface to audit than the ``usual" lattice setting involving polynomial rings modulo ideals.
+For the current result, we believe this is a simpler interface to audit than the ``usual" lattice setting involving polynomial rings modulo ideals.
 
 Modulo the above proof engineering items, we have formally verified the central LMSS game hop \cite{lmss}.
 That is, an IND-CPA and approximately correct FHE scheme can be made IND-CPAD through noise flooding.
 The natural next step then, is to verify that the CKKS scheme is indeed both IND-CPA and approximately correct.
 That will certainly come with its own set of other interesting challenges.
-For instance, such an effort will no doubt contend with the use of randomized versus deterministic rounding,
-as well as the (difficult to formalize) heuristics involved in the deterministic case as found ``in the wilds".
+For instance, such an effort will no doubt contend with the use of randomized versus deterministic rounding, as well as the (difficult to formalize) heuristics involved in the deterministic case as found ``in the wilds".
 
 \section*{Ethics Considerations}
 
-This work studies and verifies a published defense against an already public
-decryption attack.  It performs no experiments on deployed systems, users, or
-private data and introduces no new exploit.  Its principal risk is
-overconfidence: treating the conditional theorem as a verified concrete CKKS
-deployment could encourage unsafe parameters.  We mitigate that risk by
-stating the good key-pair boundary, chart and instantiation obligations,
-semantic model, and trusted base explicitly.
+This work studies and verifies a published defense against an already public decryption attack.
+It performs no experiments on deployed systems, users, or private data and introduces no new exploit.
+Its principal risk is overconfidence: treating the conditional theorem as a verified concrete CKKS deployment could encourage unsafe parameters.
+We mitigate that risk by stating the good key-pair boundary, chart and instantiation obligations, semantic model, and trusted base explicitly.

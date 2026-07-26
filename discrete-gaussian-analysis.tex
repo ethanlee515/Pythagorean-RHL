@@ -7,9 +7,7 @@ Its role is deliberately supporting: here we explain the mathematical facts that
 
 \subsection{Kullback-Leibler Infrastructure}
 
-The formalization defines KL divergence, absolute continuity, and the
-\(\mathsf{finiteKL}\) predicate from \Cref{sec:security-model}
-for MathComp distributions.
+The formalization defines KL divergence, absolute continuity, and the \(\mathsf{finiteKL}\) predicate from \Cref{sec:security-model} for MathComp distributions.
 The summability component matters in Rocq because many of the distributions in the development are countable rather than finite.
 The core library also proves the log-sum inequality, KL preservation under injective pushforwards, and the summability facts used by the chain-rule proof.
 
@@ -29,7 +27,8 @@ The proof reduces total variation to a binary event, proves the binary quadratic
 We also prove the chain-rule for the conditional-coordinate KL bound.
 This is the result used by Pythagorean probability preservation.
 \begin{lemma}
-Let $\cP$ and $\cQ$ be distributions over $n$-tuples. Assume
+Let $\cP$ and $\cQ$ be distributions over $n$-tuples.
+Assume
 \begin{itemize}
     \item The distributions are lossless: $dweight(\cP)=dweight(\cQ)=1$.
     \item The relevant KL divergences are all finite:
@@ -44,8 +43,7 @@ We then have
 \]
 \end{lemma}
 
-The proof is the technical heart of the probability development:
-it decomposes the KL integrand pointwise over tuple prefixes, controls both positive and negative parts of the resulting series, and then reassembles the bound.
+The proof is the technical heart of the probability development: it decomposes the KL integrand pointwise over tuple prefixes, controls both positive and negative parts of the resulting series, and then reassembles the bound.
 The value-level inequality and the summability obligation are proved in parallel.
 Both use the same grouping step: for each coordinate, traces are grouped by their prefix and current coordinate value, while the suffix is summed away.
 For the value theorem this produces an expectation of conditional KL divergences; for summability the same grouping is applied to finite positive-part sums, with one negative-part slack term per coordinate.
@@ -75,7 +73,8 @@ The discrete-Gaussian development is now one ingredient of the KL story rather t
 It proves the equal-variance KL formula used in \Cref{eq:dg-kl}:
 \begin{lemma}[KL Divergence between discrete Gaussians]
 \label{lem:dg-kl}
-Let $\sigma\in\bbR$ be positive. For all $\mu, \nu\in\bbZ$, we have
+Let $\sigma\in\bbR$ be positive.
+For all $\mu, \nu\in\bbZ$, we have
 \[
   \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
   =

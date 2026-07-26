@@ -1,10 +1,8 @@
 \section{IND-CPA with Decryption Game Details}
 \label{app:ind-cpad-game}
 
-This appendix records the game syntax suppressed in
-\Cref{sec:verified-reduction}.
-It is not meant to be a second proof outline; the main text reasons about the
-named Coq games and their hybrid relations.
+This appendix records the game syntax suppressed in \Cref{sec:verified-reduction}.
+It is not meant to be a second proof outline; the main text reasons about the named Coq games and their hybrid relations.
 
 \begin{algorithm}
 \caption{IND-CPAD Challenger Skeleton}
@@ -69,13 +67,9 @@ The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
 \end{algorithm}
 
 Here \(\mathsf{SampleCurrent}\) is instantiated by the surrounding game.
-The real game returns a noise-flooded sample centered at
-$Dec(sk,T_i.c)$.
-The simulated-decrypt game returns a noise-flooded sample centered at the
-stored plaintext $T_i.m_b$.
-The formal proof factors the deterministic prefix of \textsc{ODec} from this
-last noisy continuation, which is why the one-call replacement theorem can
-focus only on the two Gaussian centers.
+The real game returns a noise-flooded sample centered at $Dec(sk,T_i.c)$.
+The simulated-decrypt game returns a noise-flooded sample centered at the stored plaintext $T_i.m_b$.
+The formal proof factors the deterministic prefix of \textsc{ODec} from this last noisy continuation, which is why the one-call replacement theorem can focus only on the two Gaussian centers.
 
 \begin{algorithm}
 \caption{IND-CPA reduction adversary $\mathcal{B}_{\cA}$}
@@ -129,6 +123,4 @@ challenge encryptions from the outer IND-CPA encryption oracle.
 \end{algorithm}
 
 The reduction does not know the IND-CPA challenge bit.
-This is harmless for decryption queries that return a value: the simulator
-only returns a flooded plaintext when the stored labels agree, $m_0=m_1$, so
-there is no bit-dependent plaintext choice left to make.
+This is harmless for decryption queries that return a value: the simulator only returns a flooded plaintext when the stored labels agree, $m_0=m_1$, so there is no bit-dependent plaintext choice left to make.

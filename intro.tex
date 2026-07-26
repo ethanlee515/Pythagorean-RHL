@@ -1,49 +1,31 @@
 \section{Introduction}
 \label{sec:introduction}
 
-Approximate homomorphic encryption (FHE) makes encrypted real-number
-computation practical by allowing controlled approximation error.  That error
-is also relevant in the context of security analysis.
-Li and Micciancio showed that observing suitably
-chosen approximate decryptions can reveal the secret key of CKKS-like
-schemes~\cite{lm,ckks}; related attacks now reach aggressively parameterized
-exact FHE as well~\cite{cheon2024attacks}.  In approximate FHE one cannot
-simply require every decrypted result to equal an exact message: approximation
-is the advertised interface.
+Approximate homomorphic encryption (FHE) makes encrypted real-number computation practical by allowing controlled approximation error.
+That error is also relevant in the context of security analysis.
+Li and Micciancio showed that observing suitably chosen approximate decryptions can reveal the secret key of CKKS-like schemes~\cite{lm,ckks}; related attacks now reach aggressively parameterized exact FHE as well~\cite{cheon2024attacks}.
+In approximate FHE one cannot simply require every decrypted result to equal an exact message: approximation is the advertised interface.
 
-Li, Micciancio, Schultz-Wu, and Sorrell (LMSS) formalized this attack vector
-through the \emph{IND-CPAD} security game, and analyzed a
-noise-flooding defense~\cite{lmss}.  The defense perturbs each admissible
-decryption answer with a fresh, sufficiently wide discrete Gaussian.
-On the other hand, the decryption result is useful only when that Gaussian width is small enough to preserve precision,
-so this parameter choice has itself become a research topic
-\cite{costache2023precision, bergamaschi2025revisiting}.
+Li, Micciancio, Schultz-Wu, and Sorrell (LMSS) formalized this attack vector through the \emph{IND-CPAD} security game, and analyzed a noise-flooding defense~\cite{lmss}.
+The defense perturbs each admissible decryption answer with a fresh, sufficiently wide discrete Gaussian.
+On the other hand, the decryption result is useful only when that Gaussian width is small enough to preserve precision, so this parameter choice has itself become a research topic \cite{costache2023precision, bergamaschi2025revisiting}.
 
 The parameter trade-off also exposes a mechanization problem.
-Suppose a one-query
-replacement costs \(\delta\) in statistical distance, then
-a standard game hop argument (i.e. using data processing inequality) would pay
-\(q\delta\).  The LMSS analysis instead bounds a conditional KL divergence at
-each query and applies the Micciancio--Walter Pythagorean preservation
-argument only after constructing the whole transcript~\cite{mw17}, paying \(O(\sqrt q)\) in statistical distance instead.
-For fixed target advantage, this is
-the difference between choosing flooding width proportional to \(\sqrt q\) and
-to \(q\), with a corresponding impact on precision and FHE parameters.
+Suppose a one-query replacement costs \(\delta\) in statistical distance, then a standard game hop argument (i.e. using data processing inequality) would pay \(q\delta\).
+The LMSS analysis instead bounds a conditional KL divergence at each query and applies the Micciancio--Walter Pythagorean preservation argument only after constructing the whole transcript~\cite{mw17}, paying \(O(\sqrt q)\) in statistical distance instead.
+For fixed target advantage, this is the difference between choosing flooding width proportional to \(\sqrt q\) and to \(q\), with a corresponding impact on precision and FHE parameters.
 
-We verify that security argument in Rocq on top of SSProve, a framework for
-machine-checked, game-based cryptography~\cite{ssprove}.  The top-level theorem
-has ordinary cryptographic semantics: it bounds the winning probability of a
-concrete IND-CPAD game by the IND-CPA bound of a constructed reduction plus an
-explicit loss.
-Along the way, we construct a new relational program logic and verify its soundness,
-and implement a verified compiler that transforms arbitrary SSProve code into those compatible with our program logic.
+We verify that security argument in Rocq on top of SSProve, a framework for machine-checked, game-based cryptography~\cite{ssprove}.
+The top-level theorem has ordinary cryptographic semantics: it bounds the winning probability of a concrete IND-CPAD game by the IND-CPA bound of a constructed reduction plus an explicit loss.
+Along the way, we construct a new relational program logic and verify its soundness, and implement a verified compiler that transforms arbitrary SSProve code into those compatible with our program logic.
 
 \subsection{Result and security significance}
 
 Let \(S\) be an approximate-FHE scheme whose message space has local charts in
 \(\bbZ^n\), let \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform, and
 let \(\cA\) make at most \(q\) non-failing decryption queries in the IND-CPAD
-game.  Under the explicit assumptions summarized in
+game.
+Under the explicit assumptions summarized in
 \Cref{tab:theorem-boundary}, the formal development constructs an IND-CPA
 adversary \(\cB_{\cA,q}\) and proves
 \begin{equation}
@@ -54,119 +36,80 @@ adversary \(\cB_{\cA,q}\) and proves
  \frac{\sqrt{qn}}{2\gamma}.
 \end{equation}
 The expression \(\beta_{\mathsf{CPA}}\) is the supplied winning-probability
-bound for the underlying scheme. The formal theorem is given in the artifact as
+bound for the underlying scheme.
+The formal theorem is given in the artifact as
 \texttt{NoiseFloodingSecure.is\_secure}.
 
-The result covers adaptive oracle programs rather than adversaries prewritten
-as \(q\) separate query phases.  Its proof isolates one lossy transition:
-real flooded decryption is replaced by flooding around the plaintext recorded
-in the challenge table.  Every other change---opening and relinking packages,
-compiling calls, replacing unreachable residual decryptions, and identifying
-the reduction game---is proved exact.
+The result covers adaptive oracle programs rather than adversaries prewritten as \(q\) separate query phases.
+Its proof isolates one lossy transition: real flooded decryption is replaced by flooding around the plaintext recorded in the challenge table.
+Every other change---opening and relinking packages, compiling calls, replacing unreachable residual decryptions, and identifying the reduction game---is proved exact.
 
 \subsection{Why a program logic?}
 
-SSProve's original architecture connects two proof styles: high-level
-equational reasoning about cryptographic packages and low-level relational
-reasoning about their procedures~\cite{ssprove}.  Noise flooding needs a new
-quantitative connection of the same kind.  The local fact is a KL-divergence
-bound between two implementations of one decryption call; the security claim
-is an additive bound between two games containing an adaptive
-adversary.
+SSProve's original architecture connects two proof styles: high-level equational reasoning about cryptographic packages and low-level relational reasoning about their procedures~\cite{ssprove}.
+Noise flooding needs a new quantitative connection of the same kind.
+The local fact is a KL-divergence bound between two implementations of one decryption call; the security claim is an additive bound between two games containing an adaptive adversary.
 
-An ordinary approximate-equivalence judgment does not preserve the required
-parameter dependence.  Its sequence rule adds scalar errors, so applying
-Pinsker at every oracle call turns a one-call cost
-\(\sqrt{\epsilon/2}\) into \(q\sqrt{\epsilon/2}\).  Our Pythagorean judgment
-instead records a tuple of conditional KL costs.  Sequencing concatenates
-tuples, and a checked Micciancio--Walter rule converts the accumulated tuple
-to additive error only once.  After \(q\) calls of KL cost \(\epsilon\), this
-gives \(\sqrt{q\epsilon/2}\).
+An ordinary approximate-equivalence judgment does not preserve the required parameter dependence.
+Its sequence rule adds scalar errors, so applying Pinsker at every oracle call turns a one-call cost \(\sqrt{\epsilon/2}\) into \(q\sqrt{\epsilon/2}\).
+Our Pythagorean judgment instead records a tuple of conditional KL costs.
+Sequencing concatenates tuples, and a checked Micciancio--Walter rule converts the accumulated tuple to additive error only once.
+After \(q\) calls of KL cost \(\epsilon\), this gives \(\sqrt{q\epsilon/2}\).
 
-The remaining obstacle is adaptivity: a concrete SSProve adversary is one
-stateful oracle program, not a syntactic list of \(q\) calls.  We therefore
-verify a compiler that exposes selected oracle calls and prove a generic
-local-to-adaptive lifting theorem.  Together, the judgment and compiler form a
-reusable program-logic interface: prove one invariant-preserving oracle rule,
-then obtain a whole-program additive bound for arbitrary well-typed adaptive
-code.  Noise flooding is the first substantial application of this interface;
-\Cref{thm:compile-replace} states the general theorem.
+The remaining obstacle is adaptivity: a concrete SSProve adversary is one stateful oracle program, not a syntactic list of \(q\) calls.
+We therefore verify a compiler that exposes selected oracle calls and prove a generic local-to-adaptive lifting theorem.
+Together, the judgment and compiler form a reusable program-logic interface: prove one invariant-preserving oracle rule, then obtain a whole-program additive bound for arbitrary well-typed adaptive code.
+Noise flooding is the first substantial application of this interface; \Cref{thm:compile-replace} states the general theorem.
 
 \subsection{Contributions}
 
 We separate the cryptographic result from the machinery used to establish it.
 
-\emph{A checked noise-flooding reduction.}
-We define the IND-CPA and IND-CPAD games, the noise-flooded construction, and a
-concrete reduction as SSProve packages.  Rocq checks the complete hybrid chain
-and the loss in \Cref{eq:headline}.  The paper presents the game argument in
-cryptographic terms; selected formal definitions appear in the appendices.
+\emph{A checked noise-flooding reduction.} We define the IND-CPA and IND-CPAD games, the noise-flooded construction, and a concrete reduction as SSProve packages.
+Rocq checks the complete hybrid chain and the loss in \Cref{eq:headline}.
+The paper presents the game argument in cryptographic terms; selected formal definitions appear in the appendices.
 
 \emph{A relational program logic for SSProve.}
 We define \emph{additive-error} and \emph{Pythagorean} judgments, and prove
-several inference rules in Rocq.  The logic combines unary invariant reasoning,
+several inference rules in Rocq.
+The logic combines unary invariant reasoning,
 direct coupling and additive-error rules, KL sampling rules, tuple-concatenating
 sequencing, and a final bridge to statistical distance.
 % Missing
 % subdistribution mass is an explicit outcome, so assertions cannot make a
 % comparison spuriously easier.
 
-\emph{A verified local-to-adaptive oracle rule.}
-We verify a compiler that exposes selected calls in an arbitrary
-concrete SSProve program.  Its main theorem lifts one invariant-preserving
-Pythagorean oracle judgment to a whole-program additive-error judgment with
-loss \(\sqrt{q\norm{s}_1/2}\).  This is a program-logic result independent of
-the particular FHE game.
+\emph{A verified local-to-adaptive oracle rule.} We verify a compiler that exposes selected calls in an arbitrary concrete SSProve program.
+Its main theorem lifts one invariant-preserving Pythagorean oracle judgment to a whole-program additive-error judgment with loss \(\sqrt{q\norm{s}_1/2}\).
+This is a program-logic result independent of the particular FHE game.
 
-\emph{Probability and discrete-Gaussian analysis.}
-We verify KL divergence and its finiteness obligations, Pinsker's inequality,
-a conditional-coordinate preservation theorem, and the equal-variance KL
-formula for integer discrete Gaussians.  These results provide the semantic
-soundness argument and the derived vector-Gaussian sampling rule used by the
-logic.
+\emph{Probability and discrete-Gaussian analysis.} We verify KL divergence and its finiteness obligations, Pinsker's inequality, a conditional-coordinate preservation theorem, and the equal-variance KL formula for integer discrete Gaussians.
+These results provide the semantic soundness argument and the derived vector-Gaussian sampling rule used by the logic.
 
-\emph{An auditable theorem boundary.}
-The 27,986-line artifact is organized so that games, assumptions, loss, and
-final theorem can be reviewed separately from proof scripts.  We report its
-trusted base, distinguish inherited library assumptions from local proof
-obligations, and provide a verified replacement for the one unverified
-real analysis lemma inherited through the current SSProve stack.
+\emph{An auditable theorem boundary.} The 27,986-line artifact is organized so that games, assumptions, loss, and final theorem can be reviewed separately from proof scripts.
+We report its trusted base, distinguish inherited library assumptions from local proof obligations, and provide a verified replacement for the one unverified real analysis lemma inherited through the current SSProve stack.
 
 \subsection{Theorem boundary and conventional obligations}
 \label{sec:scope}
 
-The formally verified theorem roughly says that,
-given any \emph{approximately correct} and \emph{IND-CPA secure} FHE scheme,
-noise flooding can transform such a scheme to become IND-CPAD secure.
-In particular, we assume the underlying FHE scheme includes deterministic decryption,
-approximate correctness with certainty (i.e. no bad key pairs exist),
-and a particular metric space structure for plaintexts.
+The formally verified theorem roughly says that, given any \emph{approximately correct} and \emph{IND-CPA secure} FHE scheme, noise flooding can transform such a scheme to become IND-CPAD secure.
+In particular, we assume the underlying FHE scheme includes deterministic decryption, approximate correctness with certainty (i.e. no bad key pairs exist), and a particular metric space structure for plaintexts.
 Our formulation cleanly isolates one step in the entire FHE security analysis.
-For an imperfectly correct scheme such as CKKS,
-one must add a standard game hop to capture the corresponding correctness error;
-this does not alter our Pythagorean hop.
+For an imperfectly correct scheme such as CKKS, one must add a standard game hop to capture the corresponding correctness error; this does not alter our Pythagorean hop.
 We have not yet formalized this additional ``up-to-bad" game hop.
 
-For the current stage of the project,
-we also assume the message space is locally isometric to $\bbZ^n$.
-This captures the usual instantiation
-(i.e. polynomial rings over ideals) while being simpler to audit.
+For the current stage of the project, we also assume the message space is locally isometric to $\bbZ^n$.
+This captures the usual instantiation (i.e. polynomial rings over ideals) while being simpler to audit.
 
 We have not yet formally verified any concrete FHE scheme to be IND-CPA secure or approximately correct.
-Instead, we discuss the CKKS scheme in \Cref{sec:limitations},
-and leave its formalization and proof engineering for future work.
+Instead, we discuss the CKKS scheme in \Cref{sec:limitations}, and leave its formalization and proof engineering for future work.
 As a result, we do not claim a verified deployment or concrete parameter set.
 
-Our result also follows SSProve's usual convention: probabilistic
-polynomial time is not formalized in the Rocq/SSProve semantics~\cite{ssprove},
-and should be checked by the usual external audit.
-For the LMSS noise flooding, the standard reduction runs \(\cA\) once and adds oracle forwarding,
-table bookkeeping, and Gaussian sampling; no unusual complexity issue is hidden here.
+Our result also follows SSProve's usual convention: probabilistic polynomial time is not formalized in the Rocq/SSProve semantics~\cite{ssprove}, and should be checked by the usual external audit.
+For the LMSS noise flooding, the standard reduction runs \(\cA\) once and adds oracle forwarding, table bookkeeping, and Gaussian sampling; no unusual complexity issue is hidden here.
 
 \subsection{Road map}
 
 \Cref{sec:security-model} defines the construction, attack game, and theorem.
 \Cref{sec:verified-reduction} presents the game hops.
-\Cref{sec:pyth-toolkit} presents the program logic and its
-local-to-adaptive lifting theorem, and
-\Cref{sec:artifact} gives the audit map and trusted base.
+\Cref{sec:pyth-toolkit} presents the program logic and its local-to-adaptive lifting theorem, and \Cref{sec:artifact} gives the audit map and trusted base.
