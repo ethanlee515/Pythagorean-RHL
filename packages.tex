@@ -25,4 +25,13 @@
 \makeatother
 
 % Keep code excerpts compact enough for the IEEE two-column appendix.
-\setminted{fontsize=\scriptsize,breaklines=true,breakanywhere=true,autogobble=true}
+% Reserve space inside the column for line numbers; FancyVerb otherwise puts
+% them in the outer margin, where right-column listings overlap the left column.
+\setminted{
+  fontsize=\scriptsize,
+  breaklines=true,
+  breakanywhere=true,
+  autogobble=true,
+  xleftmargin=2em,
+  numbersep=0.5em
+}
