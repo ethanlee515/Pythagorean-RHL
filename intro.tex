@@ -51,8 +51,8 @@ The precision lost to noise flooding depends critically on how the security loss
 composes across repeated decryptions.
 An attacker may make up to \(q\) queries, choosing each one after seeing the
 previous answers, so the analysis must compare entire adaptive transcripts.
-An ordinary hybrid argument---replacing one answer at a time and adding the
-resulting statistical distances---turns a one-query loss proportional to
+An ordinary hybrid argument (i.e. based on data-processing inequality)
+turns a one-query loss proportional to
 \(1/\gamma\) into a total loss proportional to \(q/\gamma\), where \(\gamma\)
 controls the flooding width.
 To keep a fixed security bound, this would require flooding width proportional

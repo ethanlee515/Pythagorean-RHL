@@ -159,12 +159,13 @@ The additive-error judgment
 \[
  \vDash\AEJ\{P\}\ c_L\approx_\delta c_R\ \{Q\}
 \]
-states that, from any pair of initial configurations satisfying \(P\), the
+and its inference rules are heavily inspired by EasyCrypt style ``up-to-bad" arguments.
+It states that, from any pair of initial configurations satisfying \(P\), the
 completed outputs of \(c_L\) and \(c_R\) admit a coupling in which \(Q\) fails
 with probability at most \(\delta\).
-For equality post-conditions, this is the
-ordinary statistical-distance bound.
-We prove consequence, sequencing with loss \(\delta_1+\delta_2\),
+For equality post-conditions, this is the ordinary statistical-distance bound.
+Unlike EasyCrypt, SSProve allows its users to supply soundness proofs;
+here we verify consequence, sequencing with loss \(\delta_1+\delta_2\),
 triangle, projection, and direct-coupling rules.
 
 The Pythagorean judgment

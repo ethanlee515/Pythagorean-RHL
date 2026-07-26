@@ -1,9 +1,13 @@
 \section{Verified Reduction}
 \label{sec:verified-reduction}
 
-The formal proof follows a conventional sequence of games.
-Its additional structure exists to justify adaptive replacement without paying a linear loss.
-This section gives the cryptographic argument; \Cref{sec:pyth-toolkit} then describes the reusable machinery that Rocq uses to check the nonzero hop.
+We now present our analysis of the standard reduction from IND-CPAD to IND-CPA.
+We use the literature \cite{lmss} as a blueprint,
+but re-state the analysis in a way that is more amenable to SSProve formalization.
+
+% The formal proof follows a conventional sequence of games.
+% Its additional structure exists to justify adaptive replacement without paying a linear loss.
+% This section gives the cryptographic argument; \Cref{sec:pyth-toolkit} then describes the reusable machinery that Rocq uses to check the nonzero hop.
 
 \subsection{Games and invariant}
 
@@ -21,7 +25,7 @@ We write
   \mathsf{compile}_{q}(P_s,\mathsf{ODec},C_{\cA}^{\mathsf{open}}),P_r
  \bigr).
 \]
-That is, $\mathsf{compile}_{q}$ ``factors out" the first \(q\) calls to the oracle
+where $\mathsf{compile}_{q}$ ``factors out" the first \(q\) calls to the oracle
 \(\mathsf{ODec}\), without assuming that $C_{\cA}^{\mathsf{open}}$ has a fixed query
 schedule.
 
@@ -40,7 +44,7 @@ The selected decrypt prefix preserves it as well, while incrementing the counter
 
 \subsection{Hybrid chain}
 
-The paper-level games are
+We define the following sequence of hybrid games:
 \begin{align*}
  H_0 &= \mathsf{IND\text{-}CPAD}_{\mathsf{NF}[S],q}(\cA),\\
  H_1 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{real}}),\\
@@ -88,8 +92,9 @@ plaintext \(m\), the real continuation samples around
 \begin{lemma}[One-call replacement]
 \label{lem:one-call}
 For any decrypt input and paired heaps satisfying \(\Phi\), the real and
-simulated decrypt bodies satisfy a Pythagorean relational judgment with budget
-tuple
+simulated decrypt bodies satisfy a Pythagorean relational judgment
+\Ethan{This is not defined yet. We need to restructure.}
+with budget tuple
 \[
  (0,\epsilon_{\mathsf{nf}},0),
  \qquad \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2},
