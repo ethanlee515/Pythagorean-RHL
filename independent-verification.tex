@@ -4,7 +4,7 @@
 The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding the manuscript's copied source excerpts.
 Since a majority of the codebase has been written with AI, the line count does not reflect the amount of human efforts involved.
 
-\begin{table}[t]
+\begin{table}[b]
 \centering
 \caption{Rocq source map.}
 \label{tab:artifact-map}
@@ -136,7 +136,8 @@ and query counter;
 distribution and width \(\max\{1,e\}\gamma\);
 \item inspect \path{Security/IndcpadSimulator.v} for the reduction's oracle
 answers;
-\item inspect \path{Schemes/ApproxFHE.v} for the chart and support-correctness
+\item inspect \path{Schemes/ApproxFHE.v} for the chart and probability-one
+correctness
 assumptions, which define the good-execution boundary for the standard
 up-to-bad extension;
 \item inspect the definitions of \texttt{security\_loss},

@@ -1,12 +1,16 @@
 \section{Conclusion and Future Works}
 \label{sec:limitations}
 
-Our formalization deliberately factors correctness failures from the quantitative noise-flooding argument.
-Its support-level hypotheses prove the good-execution case.
+Our formalization deliberately factors correctness failures from the
+quantitative noise-flooding argument.
+Its probability-one hypotheses prove the good-execution case.
 For an imperfectly correct FHE such as CKKS, one more standard up-to-bad game hop must be formalized before instantiation, and the probability of generating ``bad" key pairs must be carefully accounted for.
 
-Our formalization has also left the set of plaintext abstract as a metric space with a $\bbZ^n$ chart.
-For the current result, we believe this is a simpler interface to audit than the ``usual" lattice setting involving polynomial rings modulo ideals.
+The chart interface from \Cref{eq:charts} also remains abstract.
+A concrete CKKS instantiation must connect its plaintext ring and norm to those
+distance-and-translation laws.
+Keeping that obligation separate makes the generic reduction easier to audit,
+but does not discharge it.
 
 Modulo the above proof engineering items, we have formally verified the central LMSS game hop \cite{lmss}.
 That is, an IND-CPA and approximately correct FHE scheme can be made IND-CPAD through noise flooding.

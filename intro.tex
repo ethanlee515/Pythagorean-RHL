@@ -154,7 +154,10 @@ The formal theorem is given in the artifact as
 
 The result covers adaptive oracle programs rather than adversaries prewritten as \(q\) separate query phases.
 Its proof isolates one lossy transition: real flooded decryption is replaced by flooding around the plaintext recorded in the challenge table.
-Every other change---opening and relinking packages, compiling calls, replacing unreachable residual decryptions, and identifying the reduction game---is proved exact.
+At the cryptographic level this is the single \(G_0\to G_1\) hop of LMSS.
+The formal proof exposes this transition by opening and relinking packages,
+compiling calls, replacing unreachable residual decryptions, and identifying
+the reduction game; each of these representation changes is proved exact.
 
 The checked theorem deliberately isolates the good-execution step of the LMSS
 argument.
@@ -207,7 +210,8 @@ conditional KL bound and invariant suited to its setting.
 We separate the cryptographic result from the machinery used to establish it.
 
 \emph{A checked noise-flooding reduction.} We define the IND-CPA and IND-CPAD games, the noise-flooded construction, and a concrete reduction as SSProve packages.
-Rocq checks the complete hybrid chain and the loss in \Cref{eq:headline}.
+Rocq checks the single statistical game hop, its exact representation-level
+refinements, and the loss in \Cref{eq:headline}.
 The paper presents the game argument in cryptographic terms; selected formal definitions appear in the appendices.
 
 \emph{A reusable program logic and local-to-adaptive compiler.}
@@ -228,6 +232,11 @@ These results provide the semantic soundness argument and the derived vector-Gau
 We report its trusted base, distinguish inherited library assumptions from local proof obligations, and provide a verified replacement for the one unverified real analysis lemma inherited through the current SSProve stack.
 
 The remainder of the paper is organized as follows.
-\Cref{sec:security-model} defines the construction, attack game, and theorem.
-\Cref{sec:verified-reduction} presents the game hops.
-\Cref{sec:pyth-toolkit} presents the program logic and its local-to-adaptive lifting theorem, and \Cref{sec:artifact} gives the audit map and trusted base.
+\Cref{sec:security-model} defines the construction, summarizes the security
+setting, and states the theorem; the full IND-CPA and IND-CPAD games appear in
+\Cref{app:security-games}.
+\Cref{sec:verified-reduction} presents the three-game reduction and isolates
+its missing adaptive step.
+\Cref{sec:pyth-toolkit} develops the program logic and local-to-adaptive
+lifting theorem, then uses them to close that step; \Cref{sec:artifact} gives
+the audit map and trusted base.

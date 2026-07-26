@@ -1,147 +1,213 @@
-\section{Security Model and Checked Theorem}
+\section{Construction, Security Setting, and Result}
 \label{sec:security-model}
 
-We first state the result without program-logic notation.
+This section defines the construction and states the result proved later,
+explaining formalization-specific conventions as they arise.
 All distributions are discrete.
-Games return a Boolean, and \(\WinProb[G]=\Pr[G=\mathsf{true}]\).
-Statistical distance is \(\TVD(P,Q)=\tfrac12\sum_x|P(x)-Q(x)|\), and \(\KL{P}{Q}\) denotes KL divergence when the defining series is summable and \(P\) is absolutely continuous with respect to \(Q\).
+Games return a Boolean, and
+\(\WinProb[G]=\Pr[G=\mathsf{true}]\).
+We write
+\(\TVD(P,Q)=\tfrac12\sum_x|P(x)-Q(x)|\) for statistical distance and
+\(\KL{P}{Q}\) for KL divergence when the defining series is summable and
+\(P\) is absolutely continuous with respect to \(Q\).
 
-\subsection{Approximate FHE and noise flooding}
+\subsection{Approximate FHE and its flooded transform}
 
-The formal scheme interface contains
+CKKS introduced homomorphic arithmetic with approximate plaintext
+semantics~\cite{ckks}.
+LMSS subsequently gave a generic approximate-correctness formulation in which
+ciphertexts carry public error estimates~\cite{lmss}.
+Our formal scheme interface is a typed, executable presentation of that
+setting:
 \[
  S=(\mathsf{KeyGen},\mathsf{Enc},\mathsf{Eval}_1,
        \mathsf{Eval}_2,\mathsf{Dec}).
 \]
-Ciphertexts are either invalid or pairs \(\mathsf{Some}(c,e)\), where \(e\) is
-an explicit error bound.
-Unary and binary gates suffice to describe
-arbitrary computations while keeping the package interface small.
-The decryption algorithm is generally randomized,
-though for simplicity we assume it can be characterized by a pure (and deterministic) function \(\mathsf{dec}_0(sk,c)\) before noise flooding.
+For bookkeeping, the formal model represents a ciphertext as either
+\(\mathsf{None}\), for an unsupported evaluation, or
+\(c=\mathsf{Some}(\bar c,e)\), pairing a ciphertext with its public error bound
+\(e\in\bbN\).
+This option wrapper belongs to the formal API, not to the cryptographic
+construction.
+Unary and binary evaluation gates suffice to describe arbitrary circuits while
+keeping the package interface small.
 
-To state flooding abstractly, messages carry a metric \(d:M\rightarrow\bbN\).
-For each message \(a\), we have the local isometry
+% IEEEtran can place a double-column float only after it has been encountered.
+% Keep this declaration early enough for the table to appear at the top of the
+% next page; the FloatBarrier at the end of this section then causes no gap.
+\begin{table*}[t]
+\centering
+\caption{Formal theorem boundary: inputs and obligations of the checked
+security theorem.
+The first
+five rows are inputs to the Rocq theorem; the last row explains what its
+semantic model does not express.}
+\label{tab:theorem-boundary}
+\begin{tabular}{@{}p{.18\textwidth}p{.34\textwidth}p{.39\textwidth}@{}}
+\toprule
+Input & What Rocq assumes & Consequence used by the proof \\
+\midrule
+Scheme \(S\) & Typed, distribution-valued algorithms; key generation returns
+with probability one & Defines the IND-CPA game and noise-flooded scheme \\
+Distance and charts & Dimension \(n\) and the three laws in
+\Cref{eq:charts} & Turns message distance into integer-coordinate
+displacement \\
+Probability-one correctness & Deterministic decryption; every output having
+nonzero probability satisfies \Cref{eq:approx-correctness} & Every reachable
+table ciphertext is within its recorded error bound \\
+IND-CPA security & For every adversary \(B\) with the required oracle interface,
+\(\WinProb[\mathsf{IND\text{-}CPA}_S(B)]\leq\beta_{\mathsf{CPA}}(B)\) &
+Supplies the bound for the final game \\
+Flooding parameter & \(\gamma>0\) & Makes division and the Gaussian loss
+well defined \\
+Adversary model & A well-typed SSProve oracle program; running time is not part
+of the semantics & Separate inspection that the explicit reduction preserves
+probabilistic polynomial time~\cite{ssprove} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Although the interface permits randomized decryption, the theorem specializes
+it to a deterministic value \(\mathsf{dec}_0(sk,c)\) and assumes
+probability-one approximate correctness.
+For every encryption or evaluation output
+\(c=\mathsf{Some}(\bar c,e)\) having nonzero probability and representing
+\(m\),
+\begin{equation}
+\label{eq:approx-correctness}
+ d(\mathsf{dec}_0(sk,c),m)\leq e.
+\end{equation}
+The artifact calls this \emph{support-level} correctness; in cryptographic
+terms, the bound holds with probability one.
+Nonzero correctness error would require the additional up-to-bad hop discussed
+in \Cref{sec:scope}.
+
+LMSS state approximate correctness using a message space embedded in a normed
+space~\cite{lmss}.
+The following smaller distance-and-chart interface is specific to our
+formalization.
+The message space carries a distance
+\(d:M\times M\to\bbN\).
+For each center \(a\in M\), there are chart maps
 \[
  I_a:M\rightarrow\bbZ^n,
- \qquad J_a:\bbZ^n\rightarrow M.
+ \qquad J_a:\bbZ^n\rightarrow M
 \]
-The theorem assumes the following local isometry properties:
+satisfying
 \begin{equation}
 \label{eq:charts}
  I_a(a)=0,
  \quad d(a,b)=\norm{I_a(b)}_\infty,
  \quad J_b(v)=J_a(v+I_a(b)).
 \end{equation}
-These equations abstract the representative bookkeeping of lattice plaintext
-spaces.
-% They are assumptions, not consequences of the generic FHE interface.
-To make use of this isometry, the noise-flooding decryption algorithm samples
-\begin{align}
+Here \(I_a(b)\) is the integer displacement from \(a\) to \(b\), while
+\(J_a(v)\) applies displacement \(v\) at \(a\).
+The laws say that these coordinates are centered, preserve distance, and
+change base point by translation.
+This proof-specific interface is easier to audit than committing the generic
+theorem to a concrete CKKS polynomial quotient ring.
+
+LMSS's noise-flooding defense postprocesses approximate decryption with fresh
+Gaussian noise~\cite{lmss}.
+For \(\gamma>0\), define
+\begin{equation}
 \label{eq:flood}
- m&\leftarrow\mathsf{Dec}(sk,c),&
- \sigma_e&=\max\{1,e\}\gamma,\notag\\
- \eta&\leftarrow D_{\bbZ^n,0,\sigma_e^2},&
- \mathsf{out}&=J_m(\eta+I_m(m)).
-\end{align}
-The maximum only keeps the Gaussian standard deviation positive when the
-stored error bound is zero; for every \(e>0\), the width is \(e\gamma\).
-
-\subsection{IND-CPAD game}
-\label{sec:ind-cpad}
-
-IND-CPAD augments the usual left-or-right encryption game with homomorphic evaluation and restricted decryption~\cite{lmss}.
-The challenger samples a hidden bit \(b\), generates \((pk,evk,sk)\), and gives \((pk,evk)\) to \(\cA\).
-It maintains a table of triples \((m_0,m_1,c)\):
-
-\begin{itemize}
-\item \(\mathsf{OEnc}(m_0,m_1)\) encrypts \(m_b\) and appends the two labels
-and resulting ciphertext;
-\item \(\mathsf{OEval}\) evaluates indexed table ciphertexts and applies the
-same gate to their left and right labels before appending a row;
-\item \(\mathsf{ODec}(i)\) consumes one of \(q\) decryption credits.
-It
-returns no plaintext when the row's labels differ and otherwise returns the
-decryption of its ciphertext.
-\end{itemize}
-
-The final result is whether \(\cA\)'s guess equals \(b\).
-Thus decryption is available only when it cannot trivially reveal which challenge message was selected, but its approximation error may still depend on the secret key.
-The full oracle pseudocode is in \Cref{app:ind-cpad-game}.
-
-The Rocq adversary is a concrete stateful oracle program with the required SSProve interface.
-It may choose queries adaptively and may make arbitrary numbers of encryption and evaluation calls.
-The counter limits successful entries into \(\mathsf{ODec}\) to \(q\); subsequent calls assertion-fail and contribute failure mass.
-
-\subsection{Simulation and reduction}
-
-The IND-CPA reduction \(\cB_{\cA,q}\) runs \(\cA\), forwards pairs to its own left-or-right encryption oracle, and reproduces evaluation and table updates locally.
-For a decrypt query on a row with equal labels \(m_0=m_1=m\), it does not know \(sk\), so it samples a flooded answer centered directly at \(m\).
-When the labels differ it returns no plaintext, exactly as the real game.
-\Cref{alg:ind-cpa-reduction} gives executable-style pseudocode.
-
-The lossy proof step compares the two centers
-\(\mathsf{dec}_0(sk,c)\) and \(m\).
-Approximate correctness gives
+\begin{aligned}
+ \mathsf{Flood}_e(x):\quad
+ \sigma_e&=\max\{1,e\}\gamma,\\
+ \eta&\leftarrow D_{\bbZ^n,0,\sigma_e^2},\\
+ \mathsf{return}\;&J_x(\eta).
+\end{aligned}
+\end{equation}
+Here the tuple Gaussian has \(n\) independent integer coordinates.
+The noise-flooded transform \(\mathsf{NF}_{\gamma}[S]\) keeps key generation,
+encryption, and evaluation unchanged and decrypts a valid tagged ciphertext by
 \[
- d(\mathsf{dec}_0(sk,c),m)\leq e
+ a\leftarrow\mathsf{Dec}(sk,c);
+ \quad \mathsf{Flood}_e(a).
 \]
-with probability $1$.
-By \Cref{eq:charts}, every coordinate displacement has magnitude at most
-\(e\).
-The equal-variance Gaussian identity
+On input \(\mathsf{None}\), decryption fails; SSProve represents this by a
+subdistribution of total weight zero.
+
+We use the standard multi-query left-or-right IND-CPA experiment and the
+IND-CPAD experiment of Li and Micciancio~\cite{lm}; their full definitions
+appear in \Cref{alg:ind-cpa-game,alg:ind-cpad-game,alg:ind-cpad-oracles}.
+For the discussion below, the essential difference is that IND-CPAD adds
+evaluation and restricted decryption: a decryption query is answered only
+when the two plaintexts recorded for that ciphertext agree.
+We write the assumed IND-CPA bound as
+\[
+ \WinProb[\mathsf{IND\text{-}CPA}_{S}(\cB)]
+ \leq \beta_{\mathsf{CPA}}(\cB).
+\]
+
+\subsection{The one-query decryption replacement}
+\label{sec:simulation-target}
+
+The reduction compares two ways to answer a decryption query when the two
+recorded plaintexts agree.
+Fix a row that can occur with nonzero probability,
+\[
+ T_i=(m,m,c),
+ \qquad c=\mathsf{Some}(\bar c,e).
+\]
+Under deterministic decryption, the real and simulated answers are
+\begin{align}
+\label{eq:real-sim-decrypt}
+ \mathsf{ODec}_{\mathsf{real}}(i):\quad&
+   y\leftarrow\mathsf{Flood}_e(\mathsf{dec}_0(sk,c));
+   \ \mathsf{return}\ \mathsf{Some}(y),\notag\\
+ \mathsf{ODec}_{\mathsf{sim}}(i):\quad&
+   y\leftarrow\mathsf{Flood}_e(m);
+   \ \mathsf{return}\ \mathsf{Some}(y).
+\end{align}
+Both versions perform the same bounds checks and counter updates, refuse the
+same queries, and abort in the same circumstances.
+The simulated answer needs neither \(sk\) nor \(b\): the common plaintext
+\(m\) is already recorded in the table.
+
+The probability-one correctness assumption in \Cref{eq:approx-correctness}
+gives
+\(d(\mathsf{dec}_0(sk,c),m)\leq e\).
+By \Cref{eq:charts}, the two Gaussian centers differ by at most \(e\) in every
+coordinate.
+The equal-variance discrete-Gaussian identity
 \begin{equation}
 \label{eq:dg-kl}
  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
-   =\frac{(\nu-\mu)^2}{2\sigma^2}
+   =\frac{(\nu-\mu)^2}{2\sigma^2}.
 \end{equation}
-therefore bounds the \(n\)-coordinate KL cost of one replacement by
+After fixing the adversary's prior view, \(m\), \(c\), and \(e\) are fixed.
+The identity bounds the KL divergence \(\epsilon_i\) between the two answer
+distributions for this call by
 \begin{equation}
 \label{eq:epsilon-nf}
- \epsilon_{\mathsf{nf}}
- \leq \frac{ne^2}{2\max\{1,e\}^2\gamma^2}
- \leq \frac{n}{2\gamma^2}.
+ \epsilon_i
+ \leq
+ \frac{ne^2}{2\max\{1,e\}^2\gamma^2}
+ \leq
+ \epsilon_{\mathsf{nf}},
+ \qquad
+\epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2}.
 \end{equation}
 
-\subsection{The formal theorem boundary}
+This is a one-call statement conditioned on an arbitrary prior interaction
+history.
+The central problem is to preserve it across the adversary's \(q\) adaptive
+queries without converting to statistical distance after each call.
 
-\begin{table*}[t]
-\centering
-\caption{Inputs and obligations of the checked security theorem.
-The first
-five rows are explicit functor parameters; the last row delimits its
-computational interpretation.}
-\label{tab:theorem-boundary}
-\begin{tabular}{@{}p{.18\textwidth}p{.34\textwidth}p{.39\textwidth}@{}}
-\toprule
-Input & What Rocq assumes & Consequence used by the proof \\
-\midrule
-Scheme \(S\) & Typed, lossless key generation and distribution-valued
-algorithms & Defines the IND-CPA game and transformed scheme \\
-Metric charts & Dimension \(n\) and the three laws in \Cref{eq:charts} &
-Reduces message displacement to integer-coordinate displacement \\
-Support correctness & Deterministic decryption; bad key, encryption, and
-evaluation outputs have probability zero & Every reachable table ciphertext
-is within its stored error bound \\
-IND-CPA security & For every valid reduction package \(B\),
-\(\WinProb[\mathsf{IND\text{-}CPA}_S(B)]\leq\beta_{\mathsf{CPA}}(B)\) &
-Discharges the endpoint game \\
-Flooding parameter & \(\gamma>0\) & Makes division and the Gaussian loss
-well defined \\
-Adversary model & A well-typed SSProve package; PPT is external to the
-semantics & Standard metatheoretic audit that the explicit reduction preserves
-probabilistic polynomial time~\cite{ssprove} \\
-\bottomrule
-\end{tabular}
-\end{table*}
+The underlying noise-flooding reduction is due to LMSS~\cite{lmss}.
+Our contribution is to express its assumptions as the explicit interface in
+\Cref{tab:theorem-boundary} and check the resulting adaptive reduction in Rocq.
 
 \begin{theorem}[Checked noise-flooding reduction]
 \label{thm:main}
-Let \(S\), its metric charts, support-correctness proof, IND-CPA security
-interface, and \(\gamma>0\) satisfy \Cref{tab:theorem-boundary}.
-For every
-valid IND-CPAD adversary package \(\cA\) and \(q\in\bbN\), the concrete package
-\(\cB_{\cA,q}\) is a valid IND-CPA adversary and
+Let \(S\), its distance-and-chart interface, probability-one correctness proof,
+IND-CPA security interface, and \(\gamma>0\) satisfy
+\Cref{tab:theorem-boundary}.
+For every IND-CPAD adversary \(\cA\) represented as a well-typed SSProve oracle
+program, and every \(q\in\bbN\), the formalization constructs an IND-CPA adversary
+\(\cB_{\cA,q}\) with the required oracle interface and proves
 \begin{align*}
  &\WinProb[
    \mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S],q}(\cA)]\\
@@ -152,10 +218,11 @@ valid IND-CPAD adversary package \(\cA\) and \(q\in\bbN\), the concrete package
 \end{align*}
 \end{theorem}
 
-The first inequality is the shape used internally.
-In the artifact, \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) is already the uniform bound from \Cref{eq:epsilon-nf}, so the exported loss is written directly as \(\sqrt{q(n/(2\gamma^2))/2}\).
-The final theorem applies the assumed IND-CPA bound to the checked reduction package; it does not assume IND-CPAD security.
+The first inequality keeps the per-query bound
+\(\epsilon_{\mathsf{nf}}\) visible; substituting
+\(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) from \Cref{eq:epsilon-nf} gives the
+second.
+Thus IND-CPA security is an assumption on \(S\), while IND-CPAD security of its
+noise-flooded version is the conclusion.
 
-For fixed \(n\) and target loss, \Cref{thm:main} requires \(\gamma=\Theta(\sqrt q)\).
-A statistical-distance hybrid using the same one-call facts would require \(\gamma=\Theta(q)\).
-Because \(\gamma\) scales the noise actually returned by decryption, the improvement directly affects precision rather than only proof aesthetics.
+\FloatBarrier

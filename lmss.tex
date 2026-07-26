@@ -1,154 +1,117 @@
-\section{Verified Reduction}
+\section{The Reduction and Its Missing Link}
 \label{sec:verified-reduction}
 
-We now present our analysis of the standard reduction from IND-CPAD to IND-CPA.
-We use the literature \cite{lmss} as a blueprint,
-but re-state the analysis in a way that is more amenable to SSProve formalization.
+\Cref{sec:simulation-target} isolates the local change behind the LMSS
+reduction: replace \(\mathsf{ODec}_{\mathsf{real}}\) by the
+plaintext-centered \(\mathsf{ODec}_{\mathsf{sim}}\).
+The latter can be implemented without the secret key and hence inside an
+IND-CPA reduction.
+For one call, \Cref{eq:epsilon-nf} bounds the KL cost.
+We now lift that local comparison to the complete adaptive experiment.
 
-% The formal proof follows a conventional sequence of games.
-% Its additional structure exists to justify adaptive replacement without paying a linear loss.
-% This section gives the cryptographic argument; \Cref{sec:pyth-toolkit} then describes the reusable machinery that Rocq uses to check the nonzero hop.
+\subsection{Three games}
 
-\subsection{Games and invariant}
-
-Let \(C_{\cA}^{\mathsf{open}}\) be the IND-CPAD experiment with calls to its
-oracle interface left unresolved.
-Let \(P_{\mathsf{real}}\) implement the
-real encryption, evaluation, and flooded-decryption oracles, and let
-\(P_{\mathsf{sim}}\) differ only by flooding around the table plaintext on decryption queries.
-Denote by \(P_s\) the code for answering the first $q$ decrypt calls,
-and \(P_r\) for the remaining calls.
-We write
-\[
- G(P_s,P_r)=
- \mathsf{Link}\bigl(
-  \mathsf{compile}_{q}(P_s,\mathsf{ODec},C_{\cA}^{\mathsf{open}}),P_r
- \bigr).
-\]
-where $\mathsf{compile}_{q}$ ``factors out" the first \(q\) calls to the oracle
-\(\mathsf{ODec}\), without assuming that $C_{\cA}^{\mathsf{open}}$ has a fixed query
-schedule.
-
-The proof maintains an invariant \(\Phi\) over challenger state.
-It records
-initialized, good keys; agreement of public data and the challenge bit; table
-validity under encryption and evaluation; and the decryption query counter.
-In
-particular, each supported table row \((m_0,m_1,c)\), viewed on the selected
-branch \(b\), satisfies
-\[
- d(\mathsf{dec}_0(sk,c),m_b)\leq e_c.
-\]
-Initialization establishes \(\Phi\), and encryption/evaluation preserve it.
-The selected decrypt prefix preserves it as well, while incrementing the counter.
-
-\subsection{Hybrid chain}
-
-We define the following sequence of hybrid games:
+Fix an IND-CPAD adversary \(\cA\) making at most \(q\) decryption queries.
+Consider the following games:
 \begin{align*}
- H_0 &= \mathsf{IND\text{-}CPAD}_{\mathsf{NF}[S],q}(\cA),\\
- H_1 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{real}}),\\
- H_2 &= G(P_{\mathsf{real}},P_{\mathsf{real}}),\\
- H_3 &= G(P_{\mathsf{sim}},P_{\mathsf{real}}),\\
- H_4 &= G(P_{\mathsf{sim}},P_{\mathsf{sim}}),\\
- H_5 &= \mathsf{Link}(C_{\cA}^{\mathsf{open}},P_{\mathsf{sim}}),\\
- H_6 &= \mathsf{IND\text{-}CPA}_{S}(\cB_{\cA,q}).
+ G_0 &=
+   \mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S],q}(\cA),\\
+ G_1 &=
+   \mathsf{IND\text{-}CPAD}^{\mathsf{sim}}_
+     {\mathsf{NF}_{\gamma}[S],q}(\cA),\\
+ G_2 &=
+   \mathsf{IND\text{-}CPA}_{S}(\cB_{\cA,q}).
 \end{align*}
-We verify the chain of hybrids
-\begin{equation}
-\label{eq:hybrid-chain}
- H_0\xrightarrow{0}H_1\xrightarrow{0}H_2
- \xrightarrow{\sqrt{q\epsilon_{\mathsf{nf}}/2}}H_3
- \xrightarrow{0}H_4\xrightarrow{0}H_5\xrightarrow{0}H_6.
-\end{equation}
-The labels are statistical-distance bounds.
-The zero-cost steps have distinct roles:
-\begin{itemize}
-\item \(H_0=H_1\) unfolds package linking.
-\item \(H_1=H_2\) is same-package compiler correctness: exposing selected
-calls and answering them with the package they originally called preserves
-semantics.
-\item \(H_3=H_4\) changes the residual decrypt $P_r$ implementation.
-After \(q\) selected decrypt entries, the shared counter makes every $P_r$ call
-assert fail on both sides.
-\item \(H_4=H_5\) removes the compiler after selected and residual calls use
-the same simulated package.
-\item \(H_5=H_6\) unfolds package linking again, connecting the experiment back to the IND-CPA game.
-\end{itemize}
-Each game hop is formalized as a theorem over SSProve semantics.
+Game \(G_0\) is the real experiment.
+Game \(G_1\) replaces the real decryption oracle by
+\(\mathsf{ODec}_{\mathsf{sim}}\) from \Cref{eq:real-sim-decrypt}.
+This simulated-decryption game is the intermediate game used by
+LMSS~\cite{lmss}.
+Game \(G_2\) runs the concrete reduction from
+\Cref{alg:ind-cpa-reduction}.
 
-\subsection{The single paid hop}
+The second transition is exact.
+Once decryption answers are centered at the common recorded plaintext, they no
+longer require the secret key or the hidden challenge bit.
+The reduction can therefore forward encryption queries to its IND-CPA oracle,
+perform evaluation and table bookkeeping locally, and simulate every permitted
+decryption query with the same distribution as \(G_1\).
+Consequently,
+\[
+ \WinProb[G_1]=\WinProb[G_2].
+\]
+
+The entire cryptographic proof is thus the chain
+\begin{equation}
+\label{eq:conceptual-game-chain}
+ G_0
+ \xrightarrow{\sqrt{q\epsilon_{\mathsf{nf}}/2}}
+ G_1
+ \xrightarrow{0}
+ G_2.
+\end{equation}
+The first arrow is the only paid hop.
+Together with the assumed IND-CPA bound for \(G_2\), it immediately implies
+\Cref{thm:main}.
+
+\subsection{The tempting one-line proof}
 \label{sec:paid-hop}
 
-The selected decrypt body factors into a deterministic prefix, one Gaussian
-sample, and deterministic postprocessing.
-% On a row whose labels differ, both
-% oracles return \(\mathsf{None}\) and spend zero.
-On an equal-label
-Concretely, on a row with
-plaintext \(m\), the real continuation samples around
-\(a=\mathsf{dec}_0(sk,c)\), while the simulator samples around \(m\).
+\Cref{eq:epsilon-nf} bounds the conditional KL cost of every reachable
+decryption query whose two recorded plaintexts agree by
+\(\epsilon_{\mathsf{nf}}\).
+The two games agree when those plaintexts differ and when an assertion fails,
+so those branches spend no budget.
 
-\begin{lemma}[One-call replacement]
-\label{lem:one-call}
-For any decrypt input and paired heaps satisfying \(\Phi\), the real and
-simulated decrypt bodies satisfy a Pythagorean relational judgment
-\Ethan{This is not defined yet. We need to restructure.}
-with budget tuple
+It is tempting to finish in one sentence:
+apply the KL chain rule over the \(q\) decryption interactions, obtain total KL cost
+\(q\epsilon_{\mathsf{nf}}\), and apply Pinsker once.
+This gives
+\begin{equation}
+\label{eq:central-game-hop}
+ \TVD(G_0,G_1)
+ \leq \sqrt{q\epsilon_{\mathsf{nf}}/2}.
+\end{equation}
+This is the KL-composition argument used by LMSS~\cite{lmss}.
+A machine-checked proof must identify the relevant conditional distributions
+and establish the one-call bound after every adversarially chosen history.
+
+\subsection{Where adaptivity enters}
+\label{sec:adaptive-invariant}
+
+The adversary's decryption calls do not form a fixed product experiment.
+After seeing an answer, \(\cA\) may change its state, choose a different oracle,
+or decide whether and where to make its next decryption query.
+In SSProve, \(\cA\) is one stateful program with calls embedded in its control
+flow, not a list of \(q\) pre-existing query phases.
+Thus ``the first \(q\) decryption calls'' is a semantic notion, and the
+conditional KL bound must hold after every reachable history.
+
+The proof also depends on a state invariant \(\Phi\) relating the real and
+simulated executions.
+It records initialized, good keys; agreement of their public data and hidden
+challenge bits; validity of the challenge table under encryption and
+evaluation; and agreement of the decryption counters.
+In particular, for every reachable row
+\((m_0,m_1,c)\) with \(c=\mathsf{Some}(\bar c,e)\), the plaintext on the
+selected branch \(b\) satisfies
 \[
- (0,\epsilon_{\mathsf{nf}},0),
- \qquad \epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2},
+ d(\mathsf{dec}_0(sk,c),m_b)\leq e.
 \]
-and restore \(\Phi\).
-\end{lemma}
+Initialization establishes \(\Phi\), while encryption, evaluation, and the
+deterministic prefix of decryption preserve it.
+This is what makes the one-call KL calculation available after an arbitrary
+adaptive history.
 
-On valid oracle inputs, \(\Phi\) gives \(d(a,m)\leq e\).
-Translation of charts by \Cref{eq:charts} puts the two answer distributions over the same coordinate space.
-Applying \Cref{eq:dg-kl} independently in \(n\) coordinates and the choice
-\(\sigma_e=\max\{1,e\}\gamma\) gives \Cref{eq:epsilon-nf}.
-The zero entries in the tuple certify that shared prefix and postprocessing add no KL cost.
-On the other hand, the assertion-failing case places the same mass at \(\bot\).
-
-The trace-compiler replacement theorem applies \Cref{lem:one-call} to the
-first \(q\) selected calls, preserving dependencies between queries.
-It
-accumulates a conditional KL budget \(q\epsilon_{\mathsf{nf}}\), applies the
-Pythagorean final-marginal theorem and Pinsker once, and obtains
-\[
- \TVD(H_2,H_3)\leq\sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-Data processing then projects completed output/heap pairs to the returned
-Boolean.
-Triangle composition with the exact steps in
-\Cref{eq:hybrid-chain} gives
-\[
- \WinProb[H_0]
- \leq \WinProb[H_6]+\sqrt{q\epsilon_{\mathsf{nf}}/2}.
-\]
-Finally, the supplied IND-CPA theorem bounds \(\WinProb[H_6]\) by
-\(\beta_{\mathsf{CPA}}(\cB_{\cA,q})\), proving \Cref{thm:main}.
-
-\subsection{Why adaptivity matters}
-
-A handwritten proof often says to replace the first \(q\) decryptions even
-though an oracle adversary is a single program whose future control flow
-depends on earlier oracle outputs.
-In SSProve, calls are nodes inside that
-program, not an external list.
-The compiler makes first \(q\) semantic: run
-to the next selected call, answer the call, and resume.
-We have verified the correctness of our compiler;
-that is, compilation neither gains nor loses behaviors.
-We further discuss our compiler in \Cref{sec:trace-compiler}.
-%Invalid replays denote null code and are covered by completion.
-% Compiler correctness then proves that this
-% representation neither gains nor loses behaviors.
-
-% This is also where a na\"ive source-to-source argument would be brittle.
-The
-% proof must account for adversary and challenger heap separation, unselected
-% operations in the residual program, failed selected calls, and the state
-% relation after every answer.
-These obligations occupy much of the artifact,
-% but they are discharged once by the generic compiler theorems rather than
-% postulated for this adversary.
+A machine-checked proof of \Cref{eq:central-game-hop} therefore needs a bridge
+with three properties:
+\begin{enumerate}
+\item it retains conditional KL costs instead of converting each call to
+statistical distance;
+\item it exposes successive calls of an arbitrary adaptive oracle program; and
+\item it threads \(\Phi\) through the exposed calls.
+\end{enumerate}
+\Cref{sec:pyth-toolkit} constructs this bridge from a Pythagorean judgment,
+unary invariant proofs, and a trace compiler, proves its soundness
+independently of FHE, and then applies it to derive the paid arrow in
+\Cref{eq:conceptual-game-chain}.

@@ -1,8 +1,64 @@
-\section{IND-CPA with Decryption Game Details}
+\section{Security Games and Reduction Pseudocode}
+\label{app:security-games}
+
+This appendix gives the full security experiments used in the paper and
+expands the reduction from \Cref{sec:verified-reduction} into
+executable-style pseudocode.
+
+\subsection{The IND-CPA experiment}
+\label{app:ind-cpa-game}
+
+IND-CPA is the standard confidentiality notion for public-key encryption.
+We use its multi-query left-or-right formulation: the challenger samples one
+hidden bit \(b\), and every encryption query selects its plaintext with that
+same bit.
+The evaluation key is public, so the adversary can evaluate ciphertexts
+locally without a challenger oracle.
+
+\begin{algorithm}
+\caption{Multi-query left-or-right IND-CPA experiment}
+\label{alg:ind-cpa-game}
+\begin{algorithmic}
+  \Procedure{Game}{$\cB$}
+    \State $b \gets \{0,1\}$
+    \State $(pk,evk,sk) \gets KeyGen()$
+    \State $b^* \gets \cB^{OEnc_{\mathsf{CPA}}}(pk,evk)$
+    \State \Return $(b^*=b)$
+  \EndProcedure
+  \State
+  \Procedure{$OEnc_{\mathsf{CPA}}$}{$m_0,m_1$}
+    \State $c \gets Enc(pk,m_b)$
+    \State \Return $c$
+  \EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+The adversary may choose several encryption queries adaptively.
+We state security in winning-probability form: the scheme's IND-CPA assumption
+supplies a bound
+\[
+ \WinProb[\mathsf{IND\text{-}CPA}_{S}(\cB)]
+ \leq \beta_{\mathsf{CPA}}(\cB)
+\]
+for every adversary \(\cB\) with the required oracle interface.
+Equivalently, if advantage means excess winning probability over random
+guessing, then
+\(\beta_{\mathsf{CPA}}(\cB)=\tfrac12+\mathsf{Adv}_{\mathsf{CPA}}(\cB)\).
+
+\subsection{The IND-CPAD experiment}
 \label{app:ind-cpad-game}
 
-This appendix records the game syntax suppressed in \Cref{sec:verified-reduction}.
-It is not meant to be a second proof outline; the main text reasons about the named Coq games and their hybrid relations.
+Li and Micciancio introduced IND-CPA with decryption, or IND-CPAD, to model
+attacks that exploit released approximate decryptions~\cite{lm}.
+The game retains the hidden bit, encryption oracle, and final guess of
+IND-CPA, and adds homomorphic evaluation and restricted decryption.
+Its challenger maintains a table
+\[
+ T=[(m_0,m_1,c),\ldots].
+\]
+Each row records the actual ciphertext \(c\) together with the plaintext it
+would represent in the left challenge world and in the right challenge world.
+Only the ciphertext for the world selected by \(b\) is sampled.
 
 \begin{algorithm}
 \caption{IND-CPAD Challenger Skeleton}
@@ -23,8 +79,8 @@ Global challenger state:
 \end{itemize}
 \begin{algorithmic}
   \Procedure{Game}{$\cA$}
-    \State $(pk,evk,sk) \gets KeyGen()$
     \State $b \gets \{0,1\}$
+    \State $(pk,evk,sk) \gets KeyGen()$
     \State $T \gets [\,]$
     \State $d \gets 0$
     \State $b^* \gets \cA^{OEnc,OEval,ODec}(pk,evk)$
@@ -32,6 +88,16 @@ Global challenger state:
   \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+The encryption oracle appends a new row.
+The evaluation oracle applies the same gate separately to the recorded
+left-world and right-world plaintexts, then stores both results alongside the
+evaluated ciphertext.
+The decryption oracle returns a plaintext only if the two recorded plaintexts
+agree.
+This restriction is what makes decryption compatible with a left-or-right
+game: if the two plaintexts differed, releasing the decryption could reveal
+the hidden bit immediately.
 
 \begin{algorithm}
 \caption{IND-CPAD Oracles}
@@ -60,30 +126,44 @@ The oracles share the challenger state from \Cref{alg:ind-cpad-game}.
     \If{$T_i.m_0\ne T_i.m_1$}
       \State \Return $\mathsf{None}$
     \Else
-      \State \Return $\mathsf{SampleCurrent}(T_i)$
+      \State $y\gets\mathsf{SampleCurrent}(T_i)$
+      \State \Return $\mathsf{Some}(y)$
     \EndIf
   \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
+The adversary may interleave encryption, evaluation, and decryption calls
+adaptively.
+Calls beyond the \(q\)-query decryption budget, out-of-range table indices,
+and other failed assertions abort that execution.
+In SSProve, an aborted execution contributes no probability to winning.
+
 Here \(\mathsf{SampleCurrent}\) is instantiated by the surrounding game.
-The real game returns a noise-flooded sample centered at $Dec(sk,T_i.c)$.
-The simulated-decrypt game returns a noise-flooded sample centered at the stored plaintext $T_i.m_b$.
-The formal proof factors the deterministic prefix of \textsc{ODec} from this last noisy continuation, which is why the one-call replacement theorem can focus only on the two Gaussian centers.
+For a row whose two recorded plaintexts agree,
+\(T_i=(m,m,\mathsf{Some}(\bar c,e))\), the real game uses
+\(\mathsf{Flood}_e(\mathsf{dec}_0(sk,T_i.c))\), whereas the
+simulated-decryption game uses \(\mathsf{Flood}_e(m)\), exactly as in
+\Cref{eq:real-sim-decrypt}.
+The formal proof factors the common prefix of \textsc{ODec} from this final
+sampling continuation.
+
+\subsection{Reduction adversary}
 
 \begin{algorithm}
-\caption{IND-CPA reduction adversary $\mathcal{B}_{\cA}$}
+\caption{IND-CPA reduction adversary $\mathcal{B}_{\cA,q}$}
 \label{alg:ind-cpa-reduction}
 This is the conventional reduction endpoint used in the main proof.
 It stores the same logical table as the IND-CPAD challenger, but obtains
 challenge encryptions from the outer IND-CPA encryption oracle.
 \begin{algorithmic}[1]
   \Procedure{$\mathsf{Flood}$}{$m,e$}
-    \State $\eta \gets D_{\bbZ^n,\max\{1,e\}\gamma}$
-    \State \Return $I_m^{-1}(\eta+I_m(m))$
+    \State $\sigma_e\gets\max\{1,e\}\gamma$
+    \State $\eta \gets D_{\bbZ^n,0,\sigma_e^2}$
+    \State \Return $J_m(\eta)$
   \EndProcedure
   \Statex
-  \Procedure{$\mathcal{B}_{\cA}$}{$pk,evk$}
+  \Procedure{$\mathcal{B}_{\cA,q}$}{$pk,evk$}
     \State $T \gets [\,]$
     \State $d \gets 0$
     \State $b^* \gets
@@ -92,7 +172,7 @@ challenge encryptions from the outer IND-CPA encryption oracle.
   \EndProcedure
   \Statex
   \Procedure{$OEnc_{\mathcal{B}}$}{$m_0,m_1$}
-    \State $c \gets OEnc_b(m_0,m_1)$
+    \State $c \gets OEnc_{\mathsf{CPA}}(m_0,m_1)$
       \Comment{outer IND-CPA encryption oracle}
     \State $T \gets T \doubleplus [(m_0,m_1,c)]$
     \State \Return $c$
@@ -122,5 +202,9 @@ challenge encryptions from the outer IND-CPA encryption oracle.
 \end{algorithmic}
 \end{algorithm}
 
+\FloatBarrier
+
 The reduction does not know the IND-CPA challenge bit.
-This is harmless for decryption queries that return a value: the simulator only returns a flooded plaintext when the stored labels agree, $m_0=m_1$, so there is no bit-dependent plaintext choice left to make.
+This is harmless for decryption queries that return a value: the simulator
+only returns a flooded plaintext when the two recorded plaintexts agree,
+$m_0=m_1$, so there is no bit-dependent plaintext choice left to make.

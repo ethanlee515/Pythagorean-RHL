@@ -1,13 +1,17 @@
 \section{Additional Probability Details}
 \label{sec:verified-kl-analysis}
 
-The program logic in the next section rests on a probability library rather than on informal analytic facts.
-This section summarizes that library.
-Its role is deliberately supporting: here we explain the mathematical facts that are available to the logic, while the next section explains how those facts are consumed by SSProve programs.
+This appendix records the distribution-level results behind the program rules
+used in \Cref{sec:pyth-toolkit}.
+It complements that section's program-level account: here we state the
+probability facts available to the logic, while \Cref{sec:pyth-toolkit} explains
+how SSProve programs consume them.
 
 \subsection{Kullback-Leibler Infrastructure}
 
-The formalization defines KL divergence, absolute continuity, and the \(\mathsf{finiteKL}\) predicate from \Cref{sec:security-model} for MathComp distributions.
+For MathComp distributions, the formalization defines KL divergence, absolute
+continuity, and a predicate \(\mathsf{finiteKL}(\cP,\cQ)\) combining absolute
+continuity with summability of the KL integrand.
 The summability component matters in Rocq because many of the distributions in the development are countable rather than finite.
 The core library also proves the log-sum inequality, KL preservation under injective pushforwards, and the summability facts used by the chain-rule proof.
 
