@@ -2,9 +2,9 @@
 \label{sec:artifact}
 
 The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding
-the manuscript's copied source excerpts.  Line counts are orientation data,
-not an effort metric; mechanized package and summability proofs contain
-substantial bookkeeping.
+the manuscript's copied source excerpts. 
+Since a majority of the codebase has been written with AI,
+the line count does not reflect the amount of human efforts involved.
 
 \begin{table}[t]
 \centering
@@ -86,8 +86,8 @@ NoiseFloodingSecurity/Final.vo
 \end{quote}
 checks the theorem and its dependencies.  A forced rebuild in the provided
 development environment took 472.54 seconds wall time (421.75 seconds user,
-51.87 seconds system).  An incremental check of an up-to-date build took
-0.25 seconds.  These are single observations, included for reviewer planning
+51.87 seconds system).
+These are single observations, included for reviewer planning
 rather than performance claims.
 
 The repository \texttt{README.md} gives setup, build, theorem-inspection, and
@@ -110,28 +110,30 @@ local \texttt{Admitted}.  The installed dependency graph nevertheless reports
 MathComp Analysis's
 \path{realsum.__admitted__interchange_psum}: current SSProve distribution
 semantics are built on these MathComp definitions and reach the upstream
-placeholder~\cite{ssprove}.  This is the host framework's inherited assumption,
+placeholder~\cite{ssprove}.  This is an inherited assumption,
 not an axiom introduced by our security development.
 
 We independently discharge the mathematical obligation.  The artifact proves
-the same statement as \texttt{interchange\_psum\_proved}, ending in
-\texttt{Qed}; \texttt{Print Assumptions} for this replacement reports only the
+the same statement as \texttt{interchange\_psum\_proved};
+\texttt{Print Assumptions} for this replacement reports only the
 usual extensionality and choice principles and not the admitted upstream
 lemma.  The proof has also been submitted to MathComp Analysis for inclusion
 in a future release.  Until an upstream release replaces the existing call
 sites, \texttt{Print Assumptions} for the top-level theorem will continue to
-display the placeholder's name.  We report that installed-library fact
-explicitly, while distinguishing it from an outstanding local proof
-obligation.  Claiming that the current compiled dependency graph is literally
-axiom-free would still be inaccurate.
+display the placeholder's name.
+% We report that installed-library fact
+% explicitly, while distinguishing it from an outstanding local proof
+% obligation.  Claiming that the current compiled dependency graph is literally
+% axiom-free would still be inaccurate.
 
-For an instantiated module \texttt{Secure}, reviewers can run
-\texttt{Print Assumptions Secure.is\_secure}.  Besides library and classical
+% For an instantiated module \texttt{Secure}, reviewers can run
+% \texttt{Print Assumptions Secure.is\_secure}.
+On \texttt{Print Assumptions},
+besides library and classical
 assumptions, expected output includes the concrete scheme/chart/correctness
-interfaces, positivity of \(\gamma\), and the supplied IND-CPA theorem.  It
-should not contain the program-logic rules, trace-compiler correctness, or
-discrete-Gaussian KL identity as assumptions: those are proved in the
-development.
+interfaces, positivity of the discrete Gaussian width multipler \(\gamma\), and the IND-CPA security for the underlying FHE scheme.
+On the other hand, the output does not contain any program-logic rules, compiler correctness, or
+discrete-Gaussian KL identity; these are fully verified in the artifact.
 
 \subsection{A cryptographer's audit path}
 
@@ -155,10 +157,8 @@ up-to-bad extension;
 
 The formal excerpts in \Cref{app:formal-interface-excerpts} follow this path.
 The remaining proof scripts establish that those definitions are connected by
-the argument in \Cref{sec:verified-reduction}.  As in SSProve's own formal
-security bounds, probabilistic-polynomial-time preservation is a conventional
-metatheoretic premise rather than an internal semantic judgment~\cite{ssprove}.
-The audit is direct here: the reduction runs the adversary once, forwards its
-oracle calls, and adds table operations and discrete-Gaussian sampling.  The
-artifact therefore exposes all reduction code needed for this audit; it does
-not attempt to add automatic complexity analysis to SSProve.
+the argument in \Cref{sec:verified-reduction}.
+As conventional in SSProve (as well as the wider cryptographic verification community such as EasyCrypt),
+running time is not modeled as part of the program semantic and must be audited separately.
+The audit is direct here as well: the reduction runs the adversary once, forwards its
+oracle calls, and adds table operations and discrete-Gaussian sampling.

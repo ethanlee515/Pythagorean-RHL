@@ -1,49 +1,23 @@
-\section{Extensions and Conclusion}
+\section{Conclusion and Future Works}
 \label{sec:limitations}
 
-The theorem deliberately factors correctness failures from the quantitative
+Our formalization deliberately factors correctness failures from the quantitative
 noise-flooding argument.  Its support-level hypotheses prove the good-execution
-case.  For an imperfectly correct instantiation, let
-\(\mathsf{Bad}_{\mathrm{corr}}\) be the event that any key-generation,
-encryption, or evaluation result used by the execution violates the current
-support invariant.  One standard up-to-bad transition from the real game to
-the good-execution game then gives
-\[
-  \Pr[\mathsf{IND\text{-}CPAD}=1]
-  \leq \beta + \frac{\sqrt{qn}}{2\gamma}
-      + \Pr[\mathsf{Bad}_{\mathrm{corr}}].
-\]
-Thus the imperfect-correctness result is one modular game hop away from
-\Cref{thm:main}, not a redesign of its Pythagorean argument.  What remains for
-a concrete instantiation is an aggregate bound on
-\(\Pr[\mathsf{Bad}_{\mathrm{corr}}]\).  Such a bound may be supplied directly;
-if it is derived from per-operation failure probabilities, the surrounding
-security experiment must also account for encryption and evaluation calls.
+case.
+For an imperfectly correct FHE such as CKKS,
+one more standard up-to-bad game hop must be formalized before instantiation,
+and the probability of generating ``bad" key pairs must be carefully accounted for.
 
-The local charts in \Cref{eq:charts} need a concrete construction and
-proof for the intended plaintext representation, including wraparound and
-decoding behavior.  A CKKS-level result also requires connecting the abstract
-scheme operations and stored error field to an implementation and parameter
-analysis.  As in SSProve's own computational-security interpretations, the
-probabilistic-polynomial-time condition is a conventional metatheoretic audit,
-because the package semantics do not internalize a runtime model~\cite{ssprove}.
-That audit is routine here: the reduction invokes the adversary once, forwards
-its encryption and evaluation calls, answers at most \(q\) selected decryption
-calls, and performs table bookkeeping and Gaussian sampling.  Formal automatic
-complexity analysis would be useful, but is orthogonal to this work.  Finally,
-the released SSProve/MathComp dependency graph still names an admitted
-real-summation lemma.  The artifact supplies a kernel-checked proof of that
-exact statement, and the proof has been submitted upstream.  No further local
-mathematical obligation remains; a future dependency update can remove the
-name from the top-level assumption report without changing the security proof.
+Our formalization has also left the set of plaintext abstract as a metric space with a $\bbZ^n$ chart.
+For the current result,
+we believe this is a simpler interface to audit than the ``usual" lattice setting involving polynomial rings modulo ideals.
 
-Within this boundary, the artifact checks the central security argument: a
-one-call discrete-Gaussian KL bound can be lifted through adaptive, stateful
-decryption queries without collapsing to a linear hybrid loss.  The resulting
-IND-CPAD-to-IND-CPA reduction is stated over concrete SSProve games, with one
-quantitative hop and explicit assumptions.  This provides a reusable route for
-other cryptographic proofs whose useful parameters depend on paying divergence
-once at the end of an adaptive transcript.
+Modulo the above proof engineering items, we have formally verified the central LMSS game hop \cite{lmss}.
+That is, an IND-CPA and approximately correct FHE scheme can be made IND-CPAD through noise flooding.
+The natural next step then, is to verify that the CKKS scheme is indeed both IND-CPA and approximately correct.
+That will certainly come with its own set of other interesting challenges.
+For instance, such an effort will no doubt contend with the use of randomized versus deterministic rounding,
+as well as the (difficult to formalize) heuristics involved in the deterministic case as found ``in the wilds".
 
 \section*{Ethics Considerations}
 
@@ -52,5 +26,5 @@ decryption attack.  It performs no experiments on deployed systems, users, or
 private data and introduces no new exploit.  Its principal risk is
 overconfidence: treating the conditional theorem as a verified concrete CKKS
 deployment could encourage unsafe parameters.  We mitigate that risk by
-stating the good-execution boundary, required correctness-failure term, chart
-and instantiation obligations, semantic model, and trusted base explicitly.
+stating the good key-pair boundary, chart and instantiation obligations,
+semantic model, and trusted base explicitly.

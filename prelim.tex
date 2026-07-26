@@ -16,33 +16,28 @@ The formal scheme interface contains
        \mathsf{Eval}_2,\mathsf{Dec}).
 \]
 Ciphertexts are either invalid or pairs \(\mathsf{Some}(c,e)\), where \(e\) is
-an explicit error bound.  Unary and binary evaluation suffice to represent
-circuits while keeping the package interface small.  Decryption is
-distribution-valued in the generic interface, but the present proof assumes
-it is concentrated at a pure function
-\(\mathsf{dec}_0(sk,c)\).
+an explicit error bound.  Unary and binary gates suffice to describe
+arbitrary computations while keeping the package interface small.
+The decryption algorithm is generally randomized,
+though for simplicity we assume it can be characterized by a pure (and deterministic) function \(\mathsf{dec}_0(sk,c)\) before noise flooding.
 
-To state flooding abstractly, messages carry a natural-valued metric \(d\)
-and, for each center \(a\), maps
+To state flooding abstractly, messages carry a metric \(d:M\rightarrow\bbN\).
+For each message \(a\), we have the local isometry
 \[
  I_a:M\rightarrow\bbZ^n,
  \qquad J_a:\bbZ^n\rightarrow M.
 \]
-The theorem assumes
+The theorem assumes the following local isometry properties:
 \begin{equation}
 \label{eq:charts}
  I_a(a)=0,
  \quad d(a,b)=\norm{I_a(b)}_\infty,
  \quad J_b(v)=J_a(v+I_a(b)).
 \end{equation}
-The first two laws expose metric displacement as an integer vector; the last
-says that changing the flooding center is translation in local coordinates.
 These equations abstract the representative bookkeeping of lattice plaintext
-spaces.  They are assumptions, not consequences of the generic FHE interface.
-
-For \(\gamma>0\), the flooded transform
-\(\mathsf{NF}_{\gamma}[S]\) keeps key generation, encryption, and evaluation
-unchanged.  On \(c=\mathsf{Some}(\_,e)\), its decryption samples
+spaces.
+% They are assumptions, not consequences of the generic FHE interface.
+To make use of this isometry, the noise-flooding decryption algorithm samples
 \begin{align}
 \label{eq:flood}
  m&\leftarrow\mathsf{Dec}(sk,c),&
@@ -50,9 +45,6 @@ unchanged.  On \(c=\mathsf{Some}(\_,e)\), its decryption samples
  \eta&\leftarrow D_{\bbZ^n,0,\sigma_e^2},&
  \mathsf{out}&=J_m(\eta+I_m(m)).
 \end{align}
-The tuple Gaussian has independent integer coordinates.  Invalid ciphertexts
-produce the null subdistribution; the completed semantics used in the proof
-make this missing mass explicit.
 
 \subsection{IND-CPAD game}
 \label{sec:ind-cpad}
@@ -93,10 +85,12 @@ does not know \(sk\), so it samples a flooded answer centered directly at
 game.  \Cref{alg:ind-cpa-reduction} gives executable-style pseudocode.
 
 The lossy proof step compares the two centers
-\(\mathsf{dec}_0(sk,c)\) and \(m\).  Support-level correctness gives
+\(\mathsf{dec}_0(sk,c)\) and \(m\).
+Approximate correctness gives
 \[
- d(\mathsf{dec}_0(sk,c),m)\leq e.
+ d(\mathsf{dec}_0(sk,c),m)\leq e
 \]
+with probability $1$.
 By \Cref{eq:charts}, every coordinate displacement has magnitude at most
 \(e\).  The equal-variance Gaussian identity
 \begin{equation}
