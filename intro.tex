@@ -179,9 +179,36 @@ the reduction.
 
 \subsection{Why a program logic?}
 
-SSProve's original architecture connects two proof styles: high-level equational reasoning about cryptographic packages and low-level relational reasoning about their procedures~\cite{ssprove}.
+The noise-flooding proof starts with a KL-divergence bound between two
+implementations of one decryption call and must end with an additive bound
+between two complete games containing an adaptive adversary.
+SSProve's original architecture addresses this kind of local-to-global gap by
+connecting two proof styles: high-level equational reasoning about
+cryptographic packages and low-level relational reasoning about their
+procedures~\cite{ssprove}.
 Noise flooding needs a new quantitative connection of the same kind.
-The local fact is a KL-divergence bound between two implementations of one decryption call; the security claim is an additive bound between two games containing an adaptive adversary.
+
+Concretely, an SSProve procedure is represented inside Rocq as an abstract
+syntax tree (AST).
+Its nodes record instructions to sample randomness, update state, and call
+procedures, but the tree is not itself a probability distribution.
+The probability lemmas used in the security proof instead apply to the
+distribution over outputs and states produced when the procedure runs.
+Thus a proof must connect the syntax of the game to the distributions about
+which its probabilistic claims are made.
+
+The conventional solution in program verification is a \emph{program logic}: a
+collection of reusable proof rules, in a tradition dating back to Hoare
+logic~\cite{hoare69}.
+The logic records properties of program fragments as \emph{judgments}, and its
+rules show how these properties behave when fragments sample randomness, are
+run in sequence, or call procedures.
+Proving once that these rules give valid conclusions about the distributions
+produced when the ASTs run establishes the logic's soundness.
+A relational program logic reasons about two programs at a time, making it
+suited to transformations between cryptographic games.
+Probabilistic relational program logics already underlie both EasyCrypt and
+SSProve~\cite{easycrypt,ssprove}.
 
 An ordinary approximate-equivalence judgment does not preserve the required parameter dependence.
 Its sequence rule adds scalar errors, so applying Pinsker at every oracle call turns a one-call cost \(\sqrt{\epsilon/2}\) into \(q\sqrt{\epsilon/2}\).
