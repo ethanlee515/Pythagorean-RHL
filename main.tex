@@ -24,8 +24,8 @@ Kullback--Leibler (KL) costs and converts to statistical distance once, giving
 the parameter-critical square-root loss.
 
 We give a machine-checked, game-based account of this argument in Rocq and SSProve.
-For an abstract approximate-FHE scheme satisfying explicit metric,
-probability-one correctness, and IND-CPA assumptions, the development
+For an abstract approximate-FHE scheme with locally $\bbZ^n$ messages,
+probability-one correctness, and IND-CPA security, the development
 constructs a reduction for every \(q\)-query IND-CPAD adversary and proves
 
 \[
@@ -33,8 +33,7 @@ constructs a reduction for every \(q\)-query IND-CPAD adversary and proves
  \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
        + \frac{\sqrt{qn}}{2\gamma}.
 \]
-
-Here \(n\) is the plaintext-chart dimension and \(\gamma\) is the flooding-width
+where \(n\) is the plaintext dimension and \(\gamma\) is the flooding-width
 multiplier.
 The proof constructs a new relational program logic
 over SSProve semantics.
@@ -42,6 +41,7 @@ Its Pythagorean judgment composes
 conditional KL budgets without converting them to statistical distance, and a
 verified trace compiler lifts a local oracle rule to arbitrary adaptive
 programs with a single final conversion.
+\iffalse
 The development also supplies the
 required discrete-Gaussian analysis.
 The checked theorem
@@ -49,6 +49,7 @@ isolates the ``good key pair" game hop: imperfect correctness can later be captu
 using an additional standard up-to-bad game hop.
 As in SSProve, polynomial-time preservation remains the conventional
 metatheoretic audit outside the program semantics.
+\fi
 \end{abstract}
 
 \begin{IEEEkeywords}

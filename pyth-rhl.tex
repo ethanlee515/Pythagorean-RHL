@@ -154,6 +154,7 @@ At paper level, the proof expands joint mass as prefix mass times conditional ma
 The resulting chain bound gives \(\KL{\mathcal P}{\mathcal Q}\leq\sum_i s_i\).
 Pinsker bounds the transcript distance, and data processing gives the displayed final-marginal bound.
 The Rocq proof makes explicit absolute continuity, conditional zero-mass prefixes, summability of positive and negative parts, and exchanges between finite coordinate sums and countable support sums.
+We further discuss this proof in \Cref{sec:verified-kl-analysis}.
 
 Our \textsc{Micciancio--Walter} rule instantiates this theorem with the transcripts from \Cref{eq:pyth-judgment}, then uses maximal coupling to obtain the additive-error equality judgment.
 As with all of our inference rules, we verify it to be sound with respect to SSProve's program semantics.
@@ -172,6 +173,7 @@ equal-variance KL identity in \Cref{eq:dg-kl}.
 The calculation expands the
 logarithm of the ratio; equal variances cancel both normalizers, and symmetry
 of the centered distribution cancels the linear moment.
+We again defer the proof details until \Cref{sec:verified-kl-analysis}.
 
 These facts yield a reusable program rule for vector sampling.
 If
