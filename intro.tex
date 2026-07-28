@@ -93,7 +93,7 @@ To machine-check a proof, we translate its prose and equations into a precise
 language understood by a specialized software system called a \emph{proof
 assistant}.
 Our development uses the Rocq proof assistant together with SSProve, a Rocq
-library for representing cryptographic games.
+library for cryptographic games.
 The proof remains human-written, but Rocq checks that each step follows from the
 stated assumptions and earlier results.
 When we say below that we verify a theorem, we mean that we construct such a
@@ -162,12 +162,12 @@ the reduction game; each of these representation changes is proved exact.
 The checked theorem deliberately isolates the good-execution step of the LMSS
 argument.
 It assumes deterministic decryption, approximate correctness with certainty
-(that is, no bad key pairs), and a message space with local
+(that is, no bad key pairs exist), and a message space with local
 \(\bbZ^n\) charts.
 A concrete CKKS instantiation would additionally require an up-to-bad game hop
 for correctness failures and proofs that CKKS satisfies IND-CPA and the stated
 interface assumptions.
-We have not formalized those obligations and therefore do not claim a verified
+We have not yet formalized those obligations and therefore do not claim a verified
 CKKS deployment or concrete parameter set.
 
 As in SSProve generally, probabilistic polynomial time is not formalized in the
@@ -228,7 +228,7 @@ This is a program-logic result independent of the particular FHE game.
 \emph{Probability and discrete-Gaussian analysis.} We verify KL divergence and its finiteness obligations, Pinsker's inequality, a conditional-coordinate preservation theorem, and the equal-variance KL formula for integer discrete Gaussians.
 These results provide the semantic soundness argument and the derived vector-Gaussian sampling rule used by the logic.
 
-\emph{An auditable theorem boundary.} The 27,986-line artifact is organized so that games, assumptions, loss, and final theorem can be reviewed separately from proof scripts.
+\emph{An auditable theorem boundary.} Our artifact is organized so that games, assumptions, loss, and final theorem can be reviewed separately from the rest of the proof scripts.
 We report its trusted base, distinguish inherited library assumptions from local proof obligations, and provide a verified replacement for the one unverified real analysis lemma inherited through the current SSProve stack.
 
 The remainder of the paper is organized as follows.
