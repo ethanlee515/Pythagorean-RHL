@@ -225,10 +225,14 @@ The following theorem is the main program-logic bridge.
 
 \begin{theorem}[Replace $q$ calls]
 \label{thm:compile-replace}
-Suppose two implementations \(P,P'\) of an operation \(p\) satisfy a
-one-call Pythagorean judgment with nonnegative tuple \(s\), preserve invariant
-\(I\), and meet the compiler's typing, footprint, and memory-separation
-conditions.
+Let \(P_I\) synchronize equal operation inputs and equal heaps satisfying
+\(I\).  Suppose two implementations \(P,P'\) of an operation \(p\) satisfy
+the one-call Pythagorean judgment
+\[
+ \vDash\Pyth\{P_I\}\ P.p\approx_s P'.p\ \{I\}
+\]
+for a nonnegative tuple \(s\), preserve \(I\), and meet the compiler's typing,
+footprint, and memory-separation conditions.
 For every concrete SSProve program \(A\), replacing its first
 \(q\) selected calls yields
 \[
@@ -238,7 +242,6 @@ For every concrete SSProve program \(A\), replacing its first
    \mathsf{Compile}_q(A,p;P',P)\ \{o_L=o_R\},
 \end{aligned}
 \]
-where \(P_I\) synchronizes inputs and heaps satisfying \(I\).
 \end{theorem}
 \begin{proof}[Proof sketch]
 We first show that \(\mathsf{Compile}_q(A,p;P,P)\) and
