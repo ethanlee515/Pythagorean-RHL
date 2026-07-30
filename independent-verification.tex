@@ -1,8 +1,9 @@
 \section{Artifact and Audit}
 \label{sec:artifact}
 
-The artifact contains 27,986 lines of Rocq under \texttt{theories/}, excluding the manuscript's copied source excerpts.
-Since a majority of the codebase has been written with AI, the line count does not reflect the amount of human efforts involved.
+The artifact contains 27,987 lines of Rocq under \texttt{theories/}, excluding the manuscript's copied source excerpts.
+Since a majority of the codebase was written with AI, the line count does not reflect the amount of human effort involved.
+The repository script \path{scripts/artifact-stats.sh} reproduces \Cref{tab:artifact-map}.
 
 \begin{table}[b]
 \centering
@@ -14,11 +15,11 @@ Layer & Lines \\
 \midrule
 Probability, KL, Gaussian analysis & 9,954 \\
 Program logics and trace syntax & 4,365 \\
-Security proofs and reduction & 10,010 \\
+Security proofs and reduction & 10,011 \\
 Schemes and construction & 1,049 \\
 MathComp/SSProve adapters & 2,608 \\
 \midrule
-Total & 27,986 \\
+Total & 27,987 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -70,20 +71,18 @@ The security proof instantiates this theorem spine with its decryption invariant
 
 \subsection{Reproduction and measured check}
 
-With Rocq 9.0.1, \texttt{rocq-ssprove} development version, MathComp Analysis
-1.16.0, and MathComp algebra tactics 1.2.7, the command
+With Rocq 9.0.1, \texttt{rocq-ssprove} development version at commit
+\texttt{c6d7d4bc3a}, MathComp Analysis 1.16.0, and MathComp algebra tactics
+1.2.7, the command
 \begin{quote}
 \footnotesize\ttfamily
-make -f Makefile.rocq\\
-theories/Security/\\
-NoiseFloodingSecurity/Final.vo
+make -f Makefile.rocq -j4
 \end{quote}
-checks the theorem and its dependencies.
-A forced rebuild in the provided
-development environment took 472.54 seconds wall time (421.75 seconds user,
-51.87 seconds system).
-These are single observations, included for reviewer planning
-rather than performance claims.
+checks the complete artifact.
+In a fresh switch on the authors' machine, a clean build of the complete
+artifact took about six minutes using four parallel jobs.
+This is a single observation, included for reviewer planning rather than as a
+performance claim.
 
 The repository \texttt{README.md} gives setup, build, theorem-inspection, and directory-map instructions.
 The manuscript build refreshes appendix excerpts from the live sources, preventing displayed formal definitions from silently diverging when both repositories are checked out together.
@@ -104,29 +103,27 @@ the same statement as \texttt{interchange\_psum\_proved};
 \texttt{Print Assumptions} for this replacement reports only the
 usual extensionality and choice principles and not the admitted upstream
 lemma.
-The proof has since been merged to MathComp Analysis's development branch for inclusion
-in a future release.
+The proof has since been merged to MathComp Analysis's development branch,
+together with proofs of \texttt{psumB} and \texttt{interchange\_sup}, for
+inclusion in the planned 1.17.0 release.
 Until an upstream release replaces the existing call
 sites, \texttt{Print Assumptions} for the top-level theorem will continue to
 display the placeholder's name.
-% We report that installed-library fact
-% explicitly, while distinguishing it from an outstanding local proof
-% obligation.
-Claiming that the current compiled dependency graph is literally
-% axiom-free would still be inaccurate.
+% Claiming that the current compiled dependency graph is literally axiom-free
+% would still be inaccurate.
 
 % For an instantiated module \texttt{Secure}, reviewers can run
 % \texttt{Print Assumptions Secure.is\_secure}.
 On \texttt{Print Assumptions},
 besides library and classical
 assumptions, expected output includes the concrete scheme/chart/correctness
-interfaces, positivity of the discrete Gaussian width multipler \(\gamma\), and the IND-CPA security for the underlying FHE scheme.
+interfaces, positivity of the discrete Gaussian width multiplier \(\gamma\), and the IND-CPA security for the underlying FHE scheme.
 On the other hand, the output does not contain any program-logic rules, compiler correctness, or
 discrete-Gaussian KL identity; these are fully verified in the artifact.
 
 \subsection{A cryptographer's audit path}
 
-A reviewer need not inspect 27,986 lines to determine what is claimed.
+A reviewer need not inspect 27,987 lines to determine what is claimed.
 The recommended specification audit is:
 
 \begin{enumerate}
