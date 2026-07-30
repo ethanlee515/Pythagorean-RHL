@@ -162,12 +162,12 @@ the reduction game; each of these representation changes is proved exact.
 The checked theorem deliberately isolates the good-execution step of the LMSS
 argument.
 It assumes deterministic decryption, approximate correctness with certainty
-(that is, no bad key pairs exist), and a message space with local
+(that is, no bad key pairs or encryptions exist), and a message space with local
 \(\bbZ^n\) charts.
-A concrete CKKS instantiation would additionally require an up-to-bad game hop
+A concrete CKKS instantiation would additionally require a standard up-to-bad game hop
 for correctness failures and proofs that CKKS satisfies IND-CPA and the stated
 interface assumptions.
-We have not yet formalized those obligations and therefore do not claim a verified
+We have not yet formalized those obligations, and therefore do not claim a verified
 CKKS deployment or concrete parameter set.
 
 As in SSProve generally, probabilistic polynomial time is not formalized in the
@@ -212,7 +212,7 @@ SSProve~\cite{easycrypt,ssprove}.
 
 An ordinary approximate-equivalence judgment does not preserve the required parameter dependence.
 Its sequence rule adds scalar errors, so applying Pinsker at every oracle call turns a one-call cost \(\sqrt{\epsilon/2}\) into \(q\sqrt{\epsilon/2}\).
-Our Pythagorean judgment instead records a tuple of conditional KL costs.
+Instead, we define a \emph{Pythagorean judgment}, which records a tuple of conditional KL costs.
 Sequencing concatenates tuples, and a checked Micciancio--Walter rule converts the accumulated tuple to additive error only once.
 After \(q\) calls of KL cost \(\epsilon\), this gives \(\sqrt{q\epsilon/2}\).
 

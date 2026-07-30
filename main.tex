@@ -2,7 +2,7 @@
 
 \input{packages}
 
-\title{Machine-Checked Noise-Flooding Security\\ for Adaptive Decryption Queries}
+\title{Formal Verification of Noise Flooding Analysis in Homomorphic Encryption}
 
 \author{\IEEEauthorblockN{Anonymous submission}}
 
@@ -23,11 +23,9 @@ The cryptographic proof instead accumulates conditional
 Kullback--Leibler (KL) costs and converts to statistical distance once, giving
 the parameter-critical square-root loss.
 
-We give a machine-checked, game-based account of this argument in Rocq and SSProve.
-For an abstract approximate-FHE scheme with locally $\bbZ^n$ messages,
-probability-one correctness, and IND-CPA security, the development
-constructs a reduction for every \(q\)-query IND-CPAD adversary and proves
-
+We machine-checked this argument using Rocq and SSProve.
+Given any fully homomorphic encryption scheme that is approximately correct and IND-CPA secure,
+we formalize a reduction for every \(q\)-query IND-CPAD adversary and prove
 \[
  \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}^{\mathcal A}=1]
  \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
@@ -35,7 +33,7 @@ constructs a reduction for every \(q\)-query IND-CPAD adversary and proves
 \]
 where \(n\) is the plaintext dimension and \(\gamma\) is the flooding-width
 multiplier.
-The proof constructs a new relational program logic
+Our proof constructs a new relational program logic
 over SSProve semantics.
 Its Pythagorean judgment composes
 conditional KL budgets without converting them to statistical distance, and a
