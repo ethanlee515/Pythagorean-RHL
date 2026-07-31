@@ -1,0 +1,245 @@
+\section{Introduction}
+
+
+Security proofs for adaptive cryptographic systems often begin with a local distributional replacement: one oracle answer in the real game is replaced by a nearby simulated answer. The difficulty is preserving the correct concrete loss when this replacement is made repeatedly and adaptively. Suppose that every call has conditional Kullback--Leibler (KL) cost at most $\varepsilon$. Applying Pinsker's inequality separately at each of $q$ calls and then using the triangle inequality gives an additive loss of
+$$ q\sqrt{\varepsilon/2}. $$
+Accumulating the conditional KL costs across the complete interaction and applying Pinsker only once instead gives
+$$    \sqrt{q\varepsilon/2}. $$
+
+This distinction is parameter-critical in the noise-flooding defense for approximate homomorphic encryption. In that application, the one-query KL cost is:
+$$ \varepsilon_{\mathrm{nf}} = \frac{n}{2\gamma^{2}},
+$$
+where $n$ is the noise-coordinate dimension and $\gamma$ controls the flooding width. The two composition strategies therefore give losses proportional,respectively, to
+$$ \frac{q\sqrt{n}}{2\gamma} \qquad\text{and}\qquad \frac{\sqrt{qn}}{2\gamma}. $$
+Because the flooding noise is added directly to the decrypted result, this is also the difference between a flooding width growing linearly and one growing as the square root of the number of queries. The sharper composition argument therefore directly preserves numerical precision.
+
+Fully homomorphic encryption (FHE) allows a client to outsource computation on encrypted data without revealing either the plaintext or the secret key \cite{rivest1978,gentry2009}. Modern FHE schemes support exact modular arithmetic, Boolean computation, or approximate numerical computation \cite{bgv2012,fan2012,tfhe2020,ckks2017}. Approximate schemes, exemplified by CKKS, deliberately permit controlled numerical error in order to efficiently evaluate arithmetic over real- or complex-valued data \cite{ckks2017}. This makes them attractive for data-analysis and machine-learning workloads, and CKKS is implemented by many major libraries supporting approximate arithmetic \cite{heprofiler2025}.
+
+Approximation, however, creates an additional information channel. In an interactive setting, a server may obtain decryptions of homomorphic computations whose mathematical results it already knows. By comparing the expected result with the approximate value returned by the client, the server can observe the residual decryption error. Li and Micciancio showed that this error can depend on the secret key strongly enough to permit key recovery \cite{liMicciancio2021}.
+
+Li and Micciancio captured the missing security guarantee through the IND-CPAD game. The game extends IND-CPA with homomorphic evaluation and restricted decryption access: a ciphertext may be decrypted only when it was produced through the legitimate game operations and when its recorded plaintexts in the two challenge worlds agree. For a perfectly correct exact scheme, such a decryption reveals nothing beyond the already known plaintext.
+Approximate decryption additionally reveals its residual error.
+
+Li, Micciancio, Schultz-Wu, and Sorrell (LMSS) subsequently showed that this channel can be masked by \emph{noise flooding} \cite{lmss2022}. Before releasing an approximate decryption, the client adds fresh Gaussian noise whose width is chosen relative to the public error bound associated with the ciphertext. The fresh noise hides the original secret-key-dependent error, but it also consumes precision. A useful defense must therefore control not only whether the resulting distributions are close, but also the exact dependence of the required noise width on the number of adaptive queries \cite{costache2023,bergamaschi2025}.
+
+For one permitted decryption query, the LMSS analysis compares two answer distributions. The real oracle adds fresh noise around the scheme's approximate decryption, whereas the simulated oracle adds the same form of noise directly around the plaintext recorded in the challenge table. Approximate correctness bounds the displacement between these two centers. An equal-variance
+discrete-Gaussian calculation then bounds the conditional KL divergence of the two answers by $\varepsilon_{\mathrm{nf}}$.
+
+The remaining step is to lift this one-call statement to the adversary's complete adaptive interaction. LMSS use a composition principle studied more generally by Micciancio and Walter \cite{micciancioWalter2017}: retain the conditional KL costs across the transcript, add them, and convert to statistical distance only once. Micciancio and Walter call the resulting root-sum-of-squares behavior \emph{Pythagorean probability preservation}. Their original motivation includes replacing ideal samplers with finite-precision implementations inside cryptographic algorithms. In noise flooding, the same principle connects the local Gaussian calculation to the complete IND-CPAD game.
+
+At paper level, the adaptive part of the argument can be summarized in one sentence: condition on the previous transcript, apply the one-query KL bound at every call, invoke the KL chain rule, and apply Pinsker once. Mechanizing this instruction exposes a more substantial program-level problem. The adversary's queries do not form a fixed list of $q$ experiments. The adversary is one stateful oracle program whose next call, query argument, and control flow may depend on every preceding answer. Decryption calls may be interleaved with encryption, evaluation, heap operations, random sampling, and aborting branches. Moreover, the cryptographic invariant that justifies the local correctness bound must remain true after every reachable interaction.
+
+A machine-checked proof must therefore solve three related problems. It must retain conditional KL information rather than converting each local comparison immediately to additive error. It must expose the dynamically occurring calls to the selected oracle operation inside an adaptive program. Finally, it must thread the cryptographic invariant through the exposed calls and all intervening computation.
+
+We solve these problems using Rocq and SSProve \cite{ssprove2021}. First, we define a \emph{Pythagorean relational judgment} over SSProve semantics. The judgment compares two programs while carrying a common invariant and a tuple of conditional KL budgets. Its sequence rule concatenates these tuples instead of adding their square roots, and a verified Micciancio--Walter rule performs a single final conversion to additive error. Second, we verify a trace compiler
+that exposes the first $q$ calls to a selected oracle operation in a well-typed SSProve program. Compilation is exact when both sides use the same oracle implementation. Combining this exactness result with the Pythagorean judgment yields a generic local-to-adaptive replacement theorem with loss
+$$ \sqrt{\frac{q\lVert\mathbf{s}\rVert_{1}}{2}}, $$
+where $\mathbf{s}$ is the conditional-KL budget tuple for one selected call.
+
+The KL chain rule, Pinsker's inequality, and the underlying Pythagorean distribution theorem are known mathematical results \cite{micciancioWalter2017}.
+Our contribution is their verified integration with the semantics of concrete adaptive SSProve programs, including a selected-call transformation, invariant reasoning, aborting executions, and the connection back to game-based cryptographic security. Noise flooding is the main checked cryptographic instantiation of this general machinery.
+
+\subsection{Result and Scope}
+\label{sec:intro-result-scope}
+
+Let $S$ be an approximate homomorphic-encryption scheme satisfying the scheme, correctness, noise-coordinate, and IND-CPA interfaces summarized in Table~\ref{tab:theorem-boundary}. Let $\operatorname{NF}_{\gamma}[S]$ denote its noise-flooded transform, where $\gamma>0$ is the Gaussian-width multiplier, and let $n$ be the dimension of the integer noise-coordinate representation. For every well-typed IND-CPAD adversary $\mathcal{A}$ and every decryption-query
+budget $q$, the formal development constructs an IND-CPA adversary $\mathcal{B}_{\mathcal{A},q}$ and proves:
+\begin{equation}
+\begin{aligned}
+    &\operatorname{WinProb}\!\left[
+        \operatorname{IND\text{-}CPAD}_{
+            \operatorname{NF}_{\gamma}[S],q
+        }(\mathcal{A})
+    \right]
+    \\
+    &\qquad\leq
+    \beta_{\mathrm{CPA}}\!\left(
+        \mathcal{B}_{\mathcal{A},q}
+    \right)
+    +
+    \frac{\sqrt{qn}}{2\gamma}.
+\end{aligned}
+\label{eq:intro-main-bound}
+\end{equation}
+Here
+$\beta_{\mathrm{CPA}}(\mathcal{B}_{\mathcal{A},q})$ is the supplied IND-CPA winning-probability bound for the underlying scheme.
+Under the convention that advantage is excess winning probability over $1/2$,
+$$
+    \beta_{\mathrm{CPA}}(\mathcal{B})
+    =
+    \frac{1}{2}
+    +
+    \operatorname{Adv}_{\mathrm{CPA}}(\mathcal{B}).
+$$
+The exported Rocq result is
+\texttt{NoiseFloodingSecure.is\_secure}.
+
+The proof isolates one statistical transition. In the real game, a permitted
+decryption query is answered by adding fresh noise around the scheme's
+approximate decryption. In the simulated game, the same form of noise is added
+around the common plaintext stored in the challenge table. Once answers are
+centered at that stored plaintext, they no longer depend on the secret key or
+the hidden challenge bit, and the remaining game is implemented exactly by the
+IND-CPA reduction. Thus, the only paid game hop is the adaptive replacement of
+real flooded decryption by plaintext-centered flooded decryption.
+
+The theorem covers stateful adversaries that may adaptively interleave
+encryption, evaluation, and decryption calls; it does not require the adversary
+to be presented as $q$ separate query phases. The game itself enforces the
+budget $q$ on decryption-oracle calls along nonaborting executions. The trace
+compiler identifies the selected calls semantically within the adversary's
+control flow and preserves all dependencies between successive queries.
+
+The checked result deliberately isolates the good-execution core of the LMSS
+argument. It assumes deterministic decryption, probability-one---or
+support-level---approximate correctness, and the integer-coordinate interface
+stated in Table~\ref{tab:theorem-boundary}. A concrete CKKS instantiation would
+additionally require an up-to-bad game hop accounting for nonzero correctness
+error, as well as proofs that the chosen CKKS instantiation satisfies the
+scheme, coordinate, and IND-CPA assumptions. We do not claim a verified CKKS
+implementation or a concrete CKKS parameter set.
+
+As in SSProve generally, probabilistic polynomial running time is not
+represented in the Rocq semantics and remains an external complexity audit
+\cite{ssprove2021}. The explicit reduction runs $\mathcal{A}$ once and adds
+oracle forwarding, table bookkeeping, and discrete-Gaussian sampling; it
+introduces no unusual complexity transformation.
+
+\subsection{From a One-Call KL Bound to an Adaptive Program}
+\label{sec:intro-local-to-adaptive}
+
+Machine-checked game-based proofs commonly represent challengers and
+adversaries as probabilistic programs. CertiCrypt established this approach
+inside Coq, EasyCrypt developed a dedicated language with substantial
+automation, and SSProve provides a modular package-based framework inside Rocq
+\cite{certicrypt2009,easycrypt2011,ssprove2021}. In SSProve, a game is assembled
+from packages whose procedures sample randomness, access state, and call other
+procedures. Package-level game transformations are connected to lower-level
+judgments about the procedures implementing their oracles.
+
+The noise-flooding reduction requires a quantitative connection not supplied by
+an ordinary additive-error judgment. Suppose a one-call comparison has KL cost
+$\varepsilon$. Converting that comparison immediately by Pinsker gives
+additive error $\sqrt{\varepsilon/2}$. An ordinary sequencing rule then sums
+this scalar error across $q$ calls and obtains
+$q\sqrt{\varepsilon/2}$. Recovering the square-root loss requires the proof
+system to retain the conditional KL costs through the entire adaptive
+interaction.
+
+Our Pythagorean judgment provides this information. Semantically, it represents
+the two program executions by transcript distributions and records a
+nonnegative KL budget for each exposed transcript coordinate. It also records a
+common unary invariant satisfied by the non-failing outcomes on both sides.
+The sequence rule concatenates the budget tuples of two consecutive program
+fragments. Only after the complete transcript has been assembled does the
+Micciancio--Walter rule convert the accumulated budget to an additive-error
+judgment. For $q$ calls, each carrying the tuple $\mathbf{s}$, this produces
+the loss
+$$ \sqrt{\frac{q\lVert\mathbf{s}\rVert_{1}}{2}}. $$
+
+The judgment is defined over completed SSProve semantics so that assertion
+failure remains observable rather than silently disappearing as missing
+subdistribution mass. We prove the soundness of its sampling, reflexivity,
+sequencing, shared-prefix, and final-conversion rules in Rocq. Unary Hoare
+reasoning handles deterministic computation and invariant preservation, while
+only the probabilistic fragment whose distribution changes consumes KL budget.
+
+The second obstacle is that the adversary's selected calls are semantic events
+rather than a fixed syntactic sequence. An SSProve adversary is one stateful
+abstract syntax tree. After receiving an oracle answer, it may update its
+state, branch, call a different oracle, sample randomness, or terminate. A
+proof cannot simply index into a pre-existing list of decryption phases.
+
+We therefore verify a compiler that exposes the first $q$ calls made by a
+program to a chosen oracle operation. Informally, one would run the adversary
+until its next selected call and suspend the remainder of the computation.
+Directly storing such a suspension would require serializing arbitrary Rocq
+continuations. The compiler instead records an execution trace containing the
+information needed to replay the intervening computation and reconstruct the
+residual program. Its same-package correctness theorem proves that exposing
+calls and answering them with the original implementation does not change the
+linked program's behavior.
+
+Combining compiler exactness with the Pythagorean sequence rule yields the
+generic adaptive replacement theorem. Its interface is simple: establish an
+invariant-preserving Pythagorean judgment for one selected oracle call, and
+prove that the residual package preserves the invariant for the remaining
+operations. The compiler and logic then produce a whole-program additive bound
+for every well-typed program satisfying the theorem's validity, footprint, and
+memory-separation conditions.
+
+In the noise-flooding application, the invariant records initialized and
+related keys, agreement of the public data and challenge bit, validity of the
+challenge table under encryption and evaluation, and agreement of the query
+counters. In particular, every reachable table row carries an error bound
+sufficient to compare the recorded plaintext with the approximate decryption
+of its ciphertext. A selected decryption body consists of a shared
+deterministic prefix, one Gaussian-sampling fragment, and shared deterministic
+postprocessing. These three parts contribute the one-call tuple
+$$ \left(0,\varepsilon_{\mathrm{nf}},0\right),
+    \qquad
+    \varepsilon_{\mathrm{nf}}
+    =
+    \frac{n}{2\gamma^{2}}. $$
+
+The compiler exposes the successive decryption calls, the invariant makes the
+same local Gaussian argument available after every reachable history, and the
+Micciancio--Walter rule is applied once after the accumulated KL budget reaches
+$q\varepsilon_{\mathrm{nf}}$. This yields precisely the loss in
+Equation~\eqref{eq:intro-main-bound}.
+
+The resulting proof architecture separates three concerns that are intertwined
+in the informal reduction: the probability calculation for one oracle answer,
+the adaptive control flow of the adversary, and the cryptographic invariant
+that makes the local calculation applicable. The general theorem is not
+specific to FHE. It can be reused whenever an adaptive cryptographic program
+invokes an implementation that is conditionally KL-close to an ideal oracle,
+provided that an appropriate one-call rule and invariant can be established.
+
+\subsection{Contributions}
+\label{sec:intro-contributions}
+
+We separate the general program-logic contribution from its cryptographic
+instantiation.
+
+\paragraph{A Pythagorean relational judgment for SSProve.}
+We define a semantic judgment that compares two probabilistic programs while
+retaining a tuple of conditional KL budgets and a common invariant. We verify
+its principal inference rules, including sequencing by tuple concatenation and
+a final Micciancio--Walter conversion to additive error. The underlying
+probability development includes finite-KL infrastructure, Pinsker's
+inequality, conditional-coordinate KL composition, and the treatment of
+zero-mass prefixes and aborting SSProve executions.
+
+\paragraph{A verified selected-call compiler and local-to-adaptive theorem.}
+We construct a trace compiler that exposes the first $q$ calls to a selected
+oracle operation within a concrete stateful SSProve program. Its same-package
+theorem establishes exactness when the exposed and residual calls use the
+original implementation. Combining the compiler with a one-call Pythagorean
+judgment yields a generic whole-program replacement theorem with loss
+$$\sqrt{\frac{q\lVert\mathbf{s}\rVert_{1}}{2}}.$$
+This theorem is generic in the program, selected operation, oracle packages,
+invariant, and one-call budget tuple.
+
+\paragraph{A checked noise-flooding reduction.}
+We formalize the IND-CPA and IND-CPAD experiments, the noise-flooded transform,
+and the concrete IND-CPA reduction as SSProve packages. We verify the invariant
+connecting reachable challenge-table entries to the scheme's correctness
+guarantee, prove the one-call discrete-Gaussian KL bound, instantiate the
+generic adaptive theorem with
+$\left(0,\varepsilon_{\mathrm{nf}},0\right)$, and check the exact endpoint
+transformations. The final theorem establishes
+Equation~\eqref{eq:intro-main-bound}.
+
+\paragraph{An explicit and auditable theorem boundary.}
+We organize the artifact so that the games, scheme assumptions, probability
+results, compiler theorem, reduction, and final bound can be inspected
+separately. We distinguish the abstract scheme, correctness, coordinate,
+flooding, and IND-CPA inputs from the probability and program-logic results
+proved inside the development. We also report the trusted dependency boundary
+and the status of the inherited MathComp Analysis placeholder, for whose
+mathematical statement the artifact provides an independent proof.
+
+\paragraph{Organization.}
+Section~\ref{sec:construction} defines the noise-flooded construction and the abstract assumptions used by the theorem. The complete IND-CPA and IND-CPAD experiments and reduction pseudocode appear in Appendix~\ref{app:security-games}. Section~\ref{sec:reduction} presents the
+cryptographic game sequence and isolates the adaptive statistical hop. Section~\ref{sec:program-logic} develops the Pythagorean judgment, its probability-theoretic foundation, the trace compiler, and the generic local-to-adaptive theorem, and then instantiates them to close the noise-flooding reduction. Section~\ref{sec:artifact} describes the artifact, theorem-audit path, and trusted base. Section~\ref{sec:related-work} discusses related work, and Section~\ref{sec:conclusion} concludes.

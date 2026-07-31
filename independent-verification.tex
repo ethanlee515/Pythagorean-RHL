@@ -10,8 +10,8 @@ from the reusable probability and program-logic layers.
 
 \input{theory-map}
 
-The mechanization is stratified by semantic interfaces.  The scheme layer
-defines executable encryption games and the noise-flooded transform.  The
+The mechanization contains a few layers.  The scheme layer
+defines encryption games and the noise-flooded transform.  The
 probability layer develops facts about countable discrete distributions,
 without reference to programs.  The logic layer lifts those facts to SSProve
 code and proves the selected-call compiler sound.  Finally, the security layer
@@ -20,17 +20,17 @@ IND-CPA reduction, and composes the exact and quantitative game transitions.
 The top-level result is a functor over precisely the scheme, chart,
 probability-one correctness, IND-CPA security, and flooding-parameter
 interfaces described in \Cref{sec:construction}; probability lemmas and
-program rules are proved dependencies, not additional functor parameters.
+program rules are proved dependencies.
 
-\subsection{Judgments and rules as Rocq propositions}
+\subsection{Formalization of judgments and rules}
 
 We follow SSProve's convention and engineering framework: pure computation is
 embedded in Rocq, while probabilistic and stateful effects are represented by
 SSProve's free-monadic program syntax, packages, heaps, and linking operations
 \cite{ssprove}.  The new logic does not extend Rocq with a primitive judgment
-or a collection of trusted proof rules.  A judgment is an ordinary
-Rocq proposition over the denotation \texttt{Pr\_code}, and an inference rule
-is a lemma whose conclusion is such a proposition.
+or a collection of trusted proof rules.
+Judgments are formalized as ordinary Rocq propositions over the denotation \texttt{Pr\_code},
+and inference rules are lemmas which prove such judgments.
 
 For example, the exact definition of the additive-error judgment is shown
 below.  Its types range over SSProve programs and heaps; \texttt{complete}
@@ -79,7 +79,7 @@ Here \texttt{pythagorean\_tv\_bound s} is
 to the transcript witnesses, projects to their final marginals, and invokes
 the completed-distribution coupling theorem.  The sampling, sequencing,
 mixed Hoare/Pythagorean, and compiler rules have the same status: each is a
-Rocq lemma proved from the program semantics.  Consequently, a kernel check of
+Rocq lemma proved from the program semantics.  Consequently, a Rocq kernel check of
 the security theorem also checks the soundness chain from the distribution
 lemmas through the program judgments.
 
@@ -97,7 +97,8 @@ program-level proposition above.
 The summability work is logically relevant to the square-root composition
 argument.  The KL integrand is signed, and the chain proof groups an infinite
 sum first by trace coordinate and then by prefix.  Such rearrangements are not
-valid merely from pointwise algebra.  The Rocq development therefore proves
+valid merely from pointwise algebra.
+The Rocq development therefore proves
 summability of the positive and negative parts alongside the pointwise chain
 identity, including the zero-mass-prefix cases, before exchanging or
 regrouping sums.  The resulting theorem is reusable for discrete transcript
