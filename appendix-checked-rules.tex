@@ -1,0 +1,170 @@
+\section{Checked Rules Used by the Security Proof}
+\label{app:checked-rules}
+
+\Cref{fig:security-rule-inventory} gives the complete program-logic interface
+used directly by the proofs under \texttt{theories/Security}.
+This interface consists of the exported lemmas in
+\texttt{theories/ProgramLogics} whose names end in \texttt{Rule} and that the
+security development invokes.
+The figure remains schematic: it suppresses SSProve type indices and writes
+\(\mu^c_{x,h}=\semantic{c(x)}_h\), \(\mathsf{wt}(\mu)\) for distribution
+weight, and \(\mathsf{Eq}\) for equality of completed output--heap pairs
+(including failure).
+We use \(E_\#D\) for the pushforward of \(D\) by \(E\), and
+\(\supp(\mu)\subseteq Q\) to mean that \(Q\) holds throughout the support.
+The assertion \(M^{=}\) requires equal values and heaps satisfying \(M\), as
+in \Cref{fig:logic-rules}; \(Q^{=}\) similarly requires \(Q\) on the left
+output--heap pair and equality of both pairs.
+All displayed side conditions are pointwise over inputs satisfying the
+precondition.
+
+\smallskip\noindent\emph{The raw additive-error judgment.}
+This is a convenience wrapper around the completed judgment, not a second
+coupling semantics.
+For a postcondition \(Q\) on ordinary output--heap pairs, define
+\[
+ \begin{aligned}
+ \widehat Q(\mathsf{Some}(z_L),\mathsf{Some}(z_R))
+   &=Q(z_L,z_R),\\
+ \widehat Q(\widehat z_L,\widehat z_R)
+   &=\mathsf{false}\quad\text{otherwise}.
+ \end{aligned}
+\]
+Then the judgment
+\[
+ \vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}
+\]
+is defined to mean
+\[
+ \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{\widehat Q\}.
+\]
+Thus any failure outcome is bad, and the good event supplies concrete
+intermediate values and heaps to a continuation.
+The security proof uses this judgment only for the lossless, zero-error
+challenge-initialization prefix: \textsc{AE-Raw-TVD} establishes its invariant,
+\textsc{AE-Raw-Conseq} reshapes that invariant, and \textsc{AE-Seq} immediately
+composes the result with the completed additive-error judgment for the rest of
+the game.
+
+This is an interface-level inventory, rather than a list of every helper
+lemma in the compiler proof.
+Several displayed rules are derived from the core rules in
+\Cref{fig:logic-rules}: \textsc{DG-Vector} uses \textsc{KL-Sample}; the two
+mixed rules use \textsc{Pyth-Seq} and \textsc{Pyth-Refl}; and
+\textsc{Compile} uses \textsc{Pyth-Seq} throughout the call induction before
+one final \textsc{Micciancio--Walter} conversion.
+
+\begin{figure*}[!t]
+\centering
+\scriptsize
+
+\textit{Unary Hoare and additive-error rules}
+\begin{mathpar}
+\inferrule*[right=\textsc{Hoare-Ret}]
+  {P(x,h)\Longrightarrow Q(f(x),h)}
+  {\vDash\mathsf{Hoare}\{P\}\ \mathsf{return}(f(x))\ \{Q\}}
+
+\inferrule*[right=\textsc{AE-TVD}]
+  {0\leq\epsilon \\
+   \TVD(\completed{\mu^{c_L}_{x_L,h_L}},
+        \completed{\mu^{c_R}_{x_R,h_R}})\leq\epsilon}
+  {\vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{\mathsf{Eq}\}}
+
+\inferrule*[right=\textsc{AE-Raw-TVD}]
+  {0\leq\epsilon \\
+   \mathsf{wt}(\mu^{c_L}_{x_L,h_L})=
+   \mathsf{wt}(\mu^{c_R}_{x_R,h_R})=1 \\
+   \TVD(\mu^{c_L}_{x_L,h_L},\mu^{c_R}_{x_R,h_R})\leq\epsilon \\
+   \supp(\mu^{c_L}_{x_L,h_L})\subseteq Q}
+  {\vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q^{=}\}}
+
+\inferrule*[right=\textsc{AE-Conseq}]
+  {P'\Longrightarrow P \\ Q\Longrightarrow Q' \\ \epsilon\leq\epsilon' \\
+   \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}}
+  {\vDash\AEJ\{P'\}\ c_L\approx_{\epsilon'}c_R\ \{Q'\}}
+
+\inferrule*[right=\textsc{AE-Raw-Conseq}]
+  {P'\Longrightarrow P \\ Q\Longrightarrow Q' \\ \epsilon\leq\epsilon' \\
+   \vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}}
+  {\vDash\AEJ_{\rm raw}\{P'\}\ c_L\approx_{\epsilon'}c_R\ \{Q'\}}
+
+\inferrule*[right=\textsc{AE-Triangle}]
+  {P\Longrightarrow x_L=x_R\wedge h_L=h_R \\
+   \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_M\ \{\mathsf{Eq}\} \\
+   \vDash\AEJ\{P\}\ c_M\approx_{\epsilon'}c_R\ \{\mathsf{Eq}\}}
+  {\vDash\AEJ\{P\}\ c_L\approx_{\epsilon+\epsilon'}c_R\ \{\mathsf{Eq}\}}
+
+\inferrule*[right=\textsc{AE-Seq}]
+  {\vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{M\} \\
+   \vDash\AEJ\{M\}\ k_L\approx_{\epsilon'}k_R\ \{Q\}}
+  {\vDash\AEJ\{P\}\
+    (y\leftarrow c_L;k_L(y))
+    \approx_{\epsilon+\epsilon'}
+    (y\leftarrow c_R;k_R(y))\ \{Q\}}
+\end{mathpar}
+
+\textit{Pythagorean and derived sampling rules}
+\begin{mathpar}
+\inferrule*[right=\textsc{DG-Vector}]
+  {E\ \mathsf{injective} \\ 0\leq\epsilon \\ 0<\sigma \\
+   \displaystyle\frac{(v_i-u_i)^2}{2\sigma^2}\leq\epsilon
+      \quad\text{for every }i \\
+   P\Longrightarrow h_L=h_R \\
+   P\Longrightarrow Q(y,h_L)\wedge Q(y,h_R)\quad\text{for every }y}
+  {\vDash\Pyth\{P\}\
+    z\leftarrow E_\#\mathsf{DG}^{n}(u,\sigma^2)
+    \approx_{[n\epsilon]}
+    z\leftarrow E_\#\mathsf{DG}^{n}(v,\sigma^2)\ \{Q\}}
+
+\inferrule*[right=\textsc{Pyth-Refl}]
+  {P\Longrightarrow x_L=x_R\wedge h_L=h_R \\
+   0\leq s_i\quad\text{for every }i \\
+   \supp(\mu^c_{x_L,h_L})\subseteq Q}
+  {\vDash\Pyth\{P\}\ c\approx_s c\ \{Q\}}
+
+\inferrule*[right=\textsc{Shared-Continuation}]
+  {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{M\} \\
+   \vDash\mathsf{Hoare}\{M\}\ k\ \{Q\}}
+  {\vDash\Pyth\{P\}\
+    (y\leftarrow c_L;k(y))
+    \approx_{s\doubleplus[0]}
+    (y\leftarrow c_R;k(y))\ \{Q\}}
+
+\inferrule*[right=\textsc{Shared-Prefix}]
+  {P\Longrightarrow x_L=x_R\wedge h_L=h_R\wedge P_0(x_L,h_L) \\
+   \vDash\mathsf{Hoare}\{P_0\}\ c\ \{M\} \\
+   \vDash\Pyth\{M^{=}\}\ k_L\approx_s k_R\ \{Q\}}
+  {\vDash\Pyth\{P\}\
+    (y\leftarrow c;k_L(y))
+    \approx_{[0]\doubleplus s}
+    (y\leftarrow c;k_R(y))\ \{Q\}}
+\end{mathpar}
+
+\textit{Adaptive-call compiler rule}
+\begin{mathpar}
+\inferrule*[right=\textsc{Compile}]
+  {\mathsf{ValidSeparatePreserving}(A,p,P,P',I) \\
+   \vDash\Pyth\{I^{=}\}\ P.p\approx_s P'.p\ \{I\}}
+  {\vDash\AEJ\{I^{=}\}\
+   \mathsf{Compile}_q(A,p;P,P)
+   \approx_{\sqrt{q\norm{s}_1/2}}
+   \mathsf{Compile}_q(A,p;P',P)\ \{\mathsf{Eq}\}}
+\end{mathpar}
+
+\caption{Complete inventory of checked program-logic rules invoked directly
+by the security development.
+The labels correspond respectively to the Rocq theorems
+\texttt{hoareRetRule}, \texttt{additiveErrorSameOutputTvdEqRule},
+\texttt{additiveErrorRawTvdEqPostTotalRule},
+\texttt{additiveErrorConseqRule}, \texttt{additiveErrorRawConseqRule},
+\texttt{additiveErrorSameOutputTriangleRule},
+\texttt{additiveErrorSeqRule}, \texttt{klDgNRule},
+\texttt{pythReflRule}, \texttt{pythAeSeqRule},
+\texttt{pythHoareSeqRule}, and \texttt{compileRule}.
+Typing, support, and footprint premises are summarized as in
+\Cref{fig:logic-rules}; \(\mathsf{ValidSeparatePreserving}\) groups the
+compiler's validity, memory-separation, invariant-dependence, and
+invariant-preservation premises.}
+\label{fig:security-rule-inventory}
+\end{figure*}
+\FloatBarrier
