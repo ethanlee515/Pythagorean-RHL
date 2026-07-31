@@ -80,7 +80,10 @@ Its sequence rule concatenates tuples (i.e. $s\doubleplus s'$) rather than addin
 \label{sec:logic-rules}
 
 \Cref{fig:logic-rules} shows the rules that drive the generic development.
-They are schematic to suppress SSProve typing, full-mass, support, and heap side conditions; the artifact contains their concrete statements.
+They are schematic and suppress most SSProve typing, full-mass, support, and
+heap side conditions; the artifact contains their concrete statements.  We
+retain the support premise of \textsc{KL-Sample}, since it is what constrains
+that rule's postcondition.
 For completeness, \Cref{fig:security-rule-inventory} in the appendix collects
 every exported program-logic rule invoked directly by the security
 development, including the Hoare, additive-error, derived Gaussian, and
@@ -93,7 +96,8 @@ compiler rules omitted here.
 \inferrule*[right=\textsc{KL-Sample}]
   {\mathsf{finiteKL}(D_L,D_R) \\
    \KL{D_L}{D_R}\leq\epsilon \\
-   \mathsf{weight}(D_L)=\mathsf{weight}(D_R)=1}
+   \mathsf{weight}(D_L)=\mathsf{weight}(D_R)=1 \\
+   \forall x\in\supp(D_L)\cup\supp(D_R),\ Q(x)}
   {\vDash\Pyth\{P\}\
      x\leftarrow D_L
      \approx_{[\epsilon]}
@@ -114,7 +118,7 @@ compiler rules omitted here.
 Here \(M^{=}\) requires equal
 intermediate values and heaps satisfying \(M\), and \(\doubleplus\) denotes
 tuple concatenation.
-The Rocq theorems additionally expose all typing,
+The Rocq theorems additionally expose further typing,
 support, invariant, and nonnegativity premises.}
 \label{fig:logic-rules}
 \end{figure*}
