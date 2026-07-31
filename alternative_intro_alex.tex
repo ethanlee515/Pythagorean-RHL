@@ -73,7 +73,7 @@ $$
 \frac{1}{2}
 +
 \operatorname{Adv}_{\mathrm{CPA}}(\mathcal{B}).
-\]
+$$
 The exported Rocq result is \texttt{NoiseFloodingSecure.is_secure}.
 
 The proof isolates one statistical transition. In the real game, a permitted decryption query is answered by adding fresh noise around the scheme's approximate decryption. In the simulated game, the same form of noise is added around the common plaintext stored in the challenge table. Once answers are centered at that stored plaintext, they no longer depend on the secret key or the hidden challenge bit, and the remaining game is implemented exactly by the IND-CPA reduction. Thus, the only paid game hop is the adaptive replacement of real flooded decryption by plaintext-centered flooded decryption.
