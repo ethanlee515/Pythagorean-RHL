@@ -147,8 +147,8 @@ Let \(S\) be an approximate-FHE scheme whose message space has local charts in
 \(\bbZ^n\), let \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform, and
 let \(\cA\) make at most \(q\) non-failing decryption queries in the IND-CPAD
 game.
-Under the explicit assumptions summarized in
-\Cref{tab:theorem-boundary}, the formal development constructs an IND-CPA
+Under the interfaces and assumptions specified in
+\Cref{sec:construction}, the formal development constructs an IND-CPA
 adversary \(\cB_{\cA,q}\) and proves
 \begin{equation}
 \label{eq:headline}
@@ -252,6 +252,9 @@ refinements, and the loss in \Cref{eq:headline}.
 The paper presents the game argument in cryptographic terms; selected formal definitions appear in the appendices.
 
 Our Rocq formalization is organized so that games, assumptions, loss, and final theorem can be reviewed separately from the rest of the proof scripts.
+The dependency map in \Cref{fig:theory-map} makes the boundary between the
+reusable probability/program-logic development and its security application
+explicit.
 We report its trusted base, distinguish inherited library assumptions from local proof obligations, and provide a verified replacement for the one unverified real analysis lemma inherited through the current SSProve stack.
 We further discuss our Rocq/SSProve formalization in \Cref{sec:artifact}.
 

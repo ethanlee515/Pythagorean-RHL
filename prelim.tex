@@ -12,6 +12,7 @@ We write
 \(P\) is absolutely continuous with respect to \(Q\).
 
 \subsection{Approximate FHE and its flooded transform}
+\label{sec:construction}
 
 CKKS introduced homomorphic arithmetic with approximate plaintext
 semantics~\cite{ckks}.
@@ -23,6 +24,8 @@ setting:
  S=(\mathsf{KeyGen},\mathsf{Enc},\mathsf{Eval}_1,
        \mathsf{Eval}_2,\mathsf{Dec}).
 \]
+These algorithms are distribution-valued, and key generation is lossless: it
+returns with probability one.
 For bookkeeping, the formal model represents a ciphertext as either
 \(\mathsf{None}\), for an unsupported evaluation, or
 \(c=\mathsf{Some}(\bar c,e)\), pairing a ciphertext with its public error bound
@@ -31,41 +34,6 @@ This option wrapper belongs to the formal API, not to the cryptographic
 construction.
 Unary and binary evaluation gates suffice to describe arbitrary circuits while
 keeping the package interface small.
-
-% IEEEtran can place a double-column float only after it has been encountered.
-% Keep this declaration early enough for the table to appear at the top of the
-% next page; the FloatBarrier at the end of this section then causes no gap.
-\begin{table*}[t]
-\centering
-\caption{Formal theorem boundary: inputs and obligations of the checked
-security theorem.
-The first
-five rows are inputs to the Rocq theorem; the last row explains what its
-semantic model does not express.}
-\label{tab:theorem-boundary}
-\begin{tabular}{@{}p{.18\textwidth}p{.34\textwidth}p{.39\textwidth}@{}}
-\toprule
-Input & What Rocq assumes & Consequence used by the proof \\
-\midrule
-Scheme \(S\) & Typed, distribution-valued algorithms; key generation returns
-with probability one & Defines the IND-CPA game and noise-flooded scheme \\
-Noise coordinates & Dimension \(n\), chart maps, and the three laws in
-\Cref{eq:charts} & Transports product discrete-Gaussian noise from
-\(\bbZ^n\) to messages and measures the displacement between its centers \\
-Probability-one correctness & Deterministic decryption; every output having
-nonzero probability satisfies \Cref{eq:approx-correctness} & Every reachable
-table ciphertext is within its recorded error bound \\
-IND-CPA security & For every adversary \(B\) with the required oracle interface,
-\(\WinProb[\mathsf{IND\text{-}CPA}_S(B)]\leq\beta_{\mathsf{CPA}}(B)\) &
-Supplies the bound for the final game \\
-Flooding parameter & \(\gamma>0\) & Makes division and the Gaussian loss
-well defined \\
-Adversary model & A well-typed SSProve oracle program; running time is not part
-of the semantics & Separate inspection that the explicit reduction preserves
-probabilistic polynomial time~\cite{ssprove} \\
-\bottomrule
-\end{tabular}
-\end{table*}
 
 Although the interface permits randomized decryption, the theorem specializes
 it to a deterministic value \(\mathsf{dec}_0(sk,c)\) and assumes
@@ -154,6 +122,9 @@ We write the assumed IND-CPA bound as
  \WinProb[\mathsf{IND\text{-}CPA}_{S}(\cB)]
  \leq \beta_{\mathsf{CPA}}(\cB).
 \]
+Adversaries are well-typed SSProve oracle programs.  Running time is not part
+of the semantics, so preservation of probabilistic polynomial time by the
+explicit reduction remains a separate inspection~\cite{ssprove}.
 
 \subsection{The one-query decryption replacement}
 \label{sec:simulation-target}
@@ -214,14 +185,14 @@ The central problem is to preserve it across the adversary's \(q\) adaptive
 queries without converting to statistical distance after each call.
 
 The underlying noise-flooding reduction is due to LMSS~\cite{lmss}.
-Our contribution is to express its assumptions as the explicit interface in
-\Cref{tab:theorem-boundary} and check the resulting adaptive reduction in Rocq.
+Our contribution is to express its assumptions through the interfaces in
+\Cref{sec:construction} and check the resulting adaptive reduction in Rocq.
 
 \begin{theorem}[Checked noise-flooding reduction]
 \label{thm:main}
 Let \(S\), its noise-coordinate interface, probability-one correctness proof,
 IND-CPA security interface, and \(\gamma>0\) satisfy
-\Cref{tab:theorem-boundary}.
+the requirements of \Cref{sec:construction}.
 For every IND-CPAD adversary \(\cA\) represented as a well-typed SSProve oracle
 program, and every \(q\in\bbN\), the formalization constructs an IND-CPA adversary
 \(\cB_{\cA,q}\) with the required oracle interface and proves

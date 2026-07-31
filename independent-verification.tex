@@ -5,27 +5,10 @@ The development contains 27,987 lines of Rocq, excluding the manuscript's
 copied source excerpts.  Since a majority of the codebase was written with AI,
 the line count measures the scope of the checked development rather than human
 effort.
-\Cref{tab:artifact-map} separates the application-specific security argument
+\Cref{fig:theory-map} separates the application-specific security argument
 from the reusable probability and program-logic layers.
 
-\begin{table}[b]
-\centering
-\caption{Rocq source map.}
-\label{tab:artifact-map}
-\begin{tabular}{@{}lr@{}}
-\toprule
-Layer & Lines \\
-\midrule
-Probability, KL, Gaussian analysis & 9,954 \\
-Program logics and trace syntax & 4,365 \\
-Security proofs and reduction & 10,011 \\
-Schemes and construction & 1,049 \\
-MathComp/SSProve adapters & 2,608 \\
-\midrule
-Total & 27,987 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\input{theory-map}
 
 The mechanization is stratified by semantic interfaces.  The scheme layer
 defines executable encryption games and the noise-flooded transform.  The
@@ -34,9 +17,10 @@ without reference to programs.  The logic layer lifts those facts to SSProve
 code and proves the selected-call compiler sound.  Finally, the security layer
 instantiates the generic logic with the decryption invariant, constructs the
 IND-CPA reduction, and composes the exact and quantitative game transitions.
-The top-level result is a functor over precisely the five interfaces in
-\Cref{tab:theorem-boundary}; probability lemmas and program rules are proved
-dependencies, not additional functor parameters.
+The top-level result is a functor over precisely the scheme, chart,
+probability-one correctness, IND-CPA security, and flooding-parameter
+interfaces described in \Cref{sec:construction}; probability lemmas and
+program rules are proved dependencies, not additional functor parameters.
 
 \subsection{Judgments and rules as Rocq propositions}
 
@@ -186,8 +170,8 @@ the artifact.
 The trusted base includes the Rocq kernel and standard library; MathComp,
 MathComp Analysis, and their real-number/classical infrastructure; and
 SSProve's program, heap, package, linking, and subdistribution semantics.
-The scheme, chart, correctness, parameter, and IND-CPA facts in
-\Cref{tab:theorem-boundary} are theorem parameters and must be discharged by a
+The scheme, chart, correctness, parameter, and IND-CPA interfaces from
+\Cref{sec:construction} are theorem parameters and must be discharged by a
 concrete instantiation.
 
 The new KL, Gaussian, relational, compiler, and game-hop results contain no

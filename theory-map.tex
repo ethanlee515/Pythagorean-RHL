@@ -1,0 +1,89 @@
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  x=1cm,
+  y=1cm,
+  >={Latex[length=2mm]},
+  dependency/.style={->,semithick,draw=black!65},
+  module/.style={
+    draw=black!65,
+    rounded corners=2pt,
+    align=center,
+    text width=3.0cm,
+    minimum height=1.35cm,
+    inner sep=3pt,
+    font=\footnotesize
+  },
+  interface/.style={module,fill=orange!10},
+  application/.style={module,fill=green!10},
+  reusable/.style={module,text width=3.35cm,fill=blue!8},
+  result/.style={module,fill=violet!12,draw=black!80,very thick},
+  lane/.style={font=\sffamily\footnotesize\bfseries,anchor=west}
+]
+
+% Application-specific path.
+\node[lane] at (0,5.45) {APPLICATION-SPECIFIC SECURITY PROOF};
+
+\node[interface] (interfaces) at (1.55,4.35) {%
+  \textbf{Scheme and security interfaces}\\[0.2ex]
+  \(S\), charts, correctness, and games};
+
+\node[application] (games) at (5.15,4.35) {%
+  \textbf{Noise-flooded construction and games}};
+
+\node[application] (local) at (8.75,4.35) {%
+  \textbf{One-call Gaussian bound and table invariant}};
+
+\node[application] (adaptive) at (12.35,4.35) {%
+  \textbf{Exact operation bridges and adaptive lossy hop}};
+
+\node[result] (final) at (15.95,4.35) {%
+  \textbf{Game reduction and checked theorem}\\[0.2ex]
+  \(\beta_{\mathsf{CPA}}(\mathcal B)+
+    \sqrt{qn}/(2\gamma)\)};
+
+\draw[dependency] (interfaces) -- (games);
+\draw[dependency] (games) -- (local);
+\draw[dependency] (local) -- (adaptive);
+\draw[dependency] (adaptive) -- (final);
+
+% Reusable mathematical and program-logic path.
+\node[lane] at (0,2.55) {REUSABLE FOUNDATIONS};
+
+\node[reusable] (kl) at (1.85,1.35) {%
+  \textbf{KL foundations}\\[0.2ex]
+  Pinsker and the conditional-coordinate chain bound};
+
+\node[reusable] (gaussian) at (6.15,1.35) {%
+  \textbf{Discrete-Gaussian analysis}\\[0.2ex]
+  Normalization, moments, and exact KL};
+
+\node[reusable] (logic) at (10.45,1.35) {%
+  \textbf{Semantic program logics}\\[0.2ex]
+  Additive-error and Pythagorean rules};
+
+\node[reusable] (compiler) at (14.75,1.35) {%
+  \textbf{Selected-call compiler}\\[0.2ex]
+  Adaptive replacement\\
+  theorem};
+
+\draw[dependency] (kl) -- (gaussian);
+\draw[dependency] (gaussian) -- (logic);
+\draw[dependency] (logic) -- (compiler);
+
+% The two points at which the reusable layer discharges the application.
+\draw[dependency] (gaussian.north) -- (local.south);
+\draw[dependency] (logic.north) -- (local.south);
+\draw[dependency] (compiler.north) -- (adaptive.south);
+
+\end{tikzpicture}
+\caption{Theory map of the Rocq development.  Each box is a conceptually
+significant module or a small, tightly coupled module group; an arrow points
+from a dependency to code that uses it.  The upper lane specializes the
+reusable lower lane to noise flooding and culminates in the exported security
+theorem.  Orange marks input interfaces, green the application-specific
+security proof, blue reusable foundations, and purple the exported result.
+Utility and adapter modules, repeated transitive imports, and proof-engineering
+dependencies are omitted.}
+\label{fig:theory-map}
+\end{figure*}
