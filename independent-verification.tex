@@ -94,20 +94,19 @@ conditional-coordinate chain bound used in
 couplings, so that a distribution-level total-variation bound yields the
 program-level proposition above.
 
-The summability work is logically relevant to the square-root composition
-argument.  The KL integrand is signed, and the chain proof groups an infinite
-sum first by trace coordinate and then by prefix.  Such rearrangements are not
-valid merely from pointwise algebra.
-The Rocq development therefore proves
-summability of the positive and negative parts alongside the pointwise chain
-identity, including the zero-mass-prefix cases, before exchanging or
-regrouping sums.  The resulting theorem is reusable for discrete transcript
-types with countably infinite support.  Separately, the discrete-Gaussian
-development proves
-normalization, full support, translation invariance, moment summability, and
-the exact equal-variance KL identity in \Cref{eq:dg-kl}; these are the facts
-that discharge the one-call sampling rule.  Further theorem statements and
-proof structure appear in \Cref{sec:verified-kl-analysis}.
+The distributions used here, notably the discrete Gaussians, have countably
+infinite support.  Consequently, the KL chain rule involves infinite series.
+A paper proof may leave their convergence implicit; the formalization must
+establish it before decomposing transcript KL into conditional KL costs.  It
+also treats histories of probability zero explicitly.  These results yield the
+chain bound used in the square-root composition argument.
+
+For the one-call bound, the development also proves that the discrete Gaussian
+is normalized and has full support, that its normalizer is invariant under
+integer shifts, and that its centered first moment is zero.  These facts yield
+the exact equal-variance KL identity in \Cref{eq:dg-kl} and discharge the
+Gaussian sampling rule.  Further theorem statements and proof structure
+appear in \Cref{sec:verified-kl-analysis}.
 
 \subsection{The checked theorem}
 
