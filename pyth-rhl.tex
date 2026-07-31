@@ -103,7 +103,7 @@ compiler rules omitted here.
 
 \inferrule*[right=\textsc{Pyth-Seq}] {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{M\} \\ \vDash\Pyth\{M^{=}\}\ k_L\approx_t k_R\ \{Q\}} {\vDash\Pyth\{P\}\ (x\leftarrow c_L;k_L(x)) \approx_{s\doubleplus t} (x\leftarrow c_R;k_R(x))\ \{Q\}}
 
-\inferrule*[right=\textsc{Shared-Prefix}] {\vDash\mathsf{Hoare}\{P_0\}\ c\ \{M\} \\ \vDash\Pyth\{M^{=}\}\ k_L\approx_s k_R\ \{Q\}} {\vDash\Pyth\{P\}\ (x\leftarrow c;k_L(x)) \approx_{[0]\doubleplus s} (x\leftarrow c;k_R(x))\ \{Q\}}
+\inferrule*[right=\textsc{Shared-Prefix}] {\vDash\mathsf{Hoare}\{P\}\ c\ \{M\} \\ \vDash\Pyth\{M^{=}\}\ k_L\approx_s k_R\ \{Q\}} {\vDash\Pyth\{P\}\ (x\leftarrow c;k_L(x)) \approx_{[0]\doubleplus s} (x\leftarrow c;k_R(x))\ \{Q\}}
 
 \inferrule*[right=\textsc{Micciancio--Walter}]
   {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}}
