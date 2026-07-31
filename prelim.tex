@@ -69,10 +69,10 @@ probabilistic polynomial time~\cite{ssprove} \\
 
 Although the interface permits randomized decryption, the theorem specializes
 it to a deterministic value \(\mathsf{dec}_0(sk,c)\) and assumes
-probability-one approximate correctness.
-For every encryption or evaluation output
+probability-one approximate correctness:
+for every encryption or evaluation output
 \(c=\mathsf{Some}(\bar c,e)\) having nonzero probability and representing
-\(m\),
+\(m\), we have
 \begin{equation}
 \label{eq:approx-correctness}
  d(\mathsf{dec}_0(sk,c),m)\leq e.
