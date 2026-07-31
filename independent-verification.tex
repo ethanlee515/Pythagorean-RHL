@@ -199,10 +199,10 @@ multiplier \(\gamma\).  It does not report any program-logic rule, compiler
 correctness theorem, or discrete-Gaussian KL identity: these are verified
 inside the development.
 
-Selected executable definitions of the scheme interface, games, transform,
+Selected definitions of the scheme interface, games, transform,
 and reduction remain in \Cref{app:formal-interface-excerpts}.  Together with
 the source-level theorem above, they expose the small specification surface on
-which a cryptographic audit should concentrate; the kernel checks that the
+which a cryptographic audit should concentrate; the Rocq kernel checks that the
 remaining proof terms connect that surface by the argument in
 \Cref{sec:verified-reduction}.  As in SSProve and EasyCrypt, running time is not
 part of the program semantics and must be inspected separately

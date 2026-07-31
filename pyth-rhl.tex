@@ -55,6 +55,7 @@ Unlike EasyCrypt, SSProve allows its users to supply soundness proofs;
 here we verify consequence, sequencing with loss \(\delta_1+\delta_2\),
 triangle, projection, and direct-coupling rules.
 
+\Junyi{I think this central notation deserves a numbered formal definition, not only the prose characterization below.}
 The Pythagorean judgment
 \begin{equation}
 \label{eq:pyth-judgment}
@@ -201,6 +202,8 @@ noise-flooding proof instantiates \(\epsilon=1/(2\gamma^2)\), obtaining
 
 \subsection{From one oracle call to an adaptive program}
 \label{sec:trace-compiler}
+
+\Junyi{I think the compiler is a primary contribution. Is it possible to promote this subsection to a section and refer to it more explicitly from contribution, and paper outline?}
 
 The rules above compose a sequence of sampling operations.
 An oracle program does not provide such a sequence: the location and arguments of its next call may depend on previous answers.
