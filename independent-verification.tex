@@ -56,7 +56,10 @@ pair it existentially quantifies two full transcript distributions, requires
 their final marginals to equal the two completed program denotations, and
 requires their supports to satisfy the postcondition.  Its predicate
 \texttt{pythDist} additionally imposes full mass and the coordinatewise
-conditional-KL bounds from \Cref{eq:pyth-judgment}.
+conditional-KL bounds from \Cref{def:pyth-judgment}.
+To place every result type in one transcript space, the Rocq definition
+injectively encodes typed output/heap pairs in \texttt{nat * heap} and
+represents \(\bot\) by \texttt{None}.
 
 The rules in \Cref{fig:logic-rules} are proved implications between these
 definitions.  For instance, the source-level statement of the final

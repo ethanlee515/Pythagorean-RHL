@@ -55,21 +55,48 @@ Unlike EasyCrypt, SSProve allows its users to supply soundness proofs;
 here we verify consequence, sequencing with loss \(\delta_1+\delta_2\),
 triangle, projection, and direct-coupling rules.
 
-\Junyi{I think this central notation deserves a numbered formal definition, not only the prose characterization below.}
-The Pythagorean judgment
+We next present our Pythagorean judgment formally.
+
+\begin{definition}[Pythagorean judgment]
+\label{def:pyth-judgment}
+Let \(c_L:X_L\to\code(Y)\) and \(c_R:X_R\to\code(Y)\), and let
+\(s=(s_1,\ldots,s_k)\) be a nonempty tuple of real numbers.
+For a configuration \(\rho=(x,m)\), write
+\(\csemantic{c}_{\rho}=\completed{\semantic{c(x)}(m)}\), and let
+\(\Omega=(Y\times\cM)\cup\{\bot\}\) be the completed output/heap space.
+We write
 \begin{equation}
-\label{eq:pyth-judgment}
  \vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}
 \end{equation}
-captures the Micciancio-Walter \cite{mw17} Pythagorean prerequisites for KL divergence.
-It uses a nonnegative tuple \(s=(s_1,\ldots,s_k)\).
-For every related input pair,
-it supplies two joint transcript distributions whose final
-marginals are the programs' outputs.
-At coordinate \(i\), for
-every common prefix, the conditional KL divergence is finite and at most
-\(s_i\).
-Outputs on both sides additionally satisfy the postcondition \(Q\).
+if every \(s_i\) is nonnegative and, for every pair
+\(\rho_L=(x_L,m_L)\) and \(\rho_R=(x_R,m_R)\) satisfying
+\(P(\rho_L,\rho_R)\), there exist weight-one joint transcript distributions
+\[
+ \cP,\cQ\in\distr(\Omega^k)
+\]
+such that
+\[
+\begin{aligned}
+ &\cP_k=\csemantic{c_L}_{\rho_L},
+ \\
+ &\cQ_k=\csemantic{c_R}_{\rho_R},
+ \\
+ &\forall i\in\{1,\ldots,k\},\ \forall a\in\Omega^{i-1}.\quad
+   \mathsf{finiteKL}\!\left(
+     \cP_i\mid a,\cQ_i\mid a\right),
+ \\
+ &\forall i\in\{1,\ldots,k\},\ \forall a\in\Omega^{i-1}.\quad
+   \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i,
+ \\
+ &\forall z\in\supp\semantic{c_L(x_L)}(m_L).\quad Q(z),
+ \\
+ &\forall z\in\supp\semantic{c_R(x_R)}(m_R).\quad Q(z).
+\end{aligned}
+\]
+\end{definition}
+
+This definition captures the Micciancio--Walter \cite{mw17} Pythagorean
+prerequisites for KL divergence.
 The transcript is semantic rather than a list of syntactic sampling sites: it may record a
 whole program fragment as one coordinate, or expose multiple coordinates for
 composition.
@@ -165,7 +192,7 @@ Pinsker bounds the transcript distance, and data processing gives the displayed 
 The Rocq proof makes explicit absolute continuity, conditional zero-mass prefixes, summability of positive and negative parts, and exchanges between finite coordinate sums and countable support sums.
 We further discuss this proof in the Appendix \Cref{sec:verified-kl-analysis}.
 
-Our \textsc{Micciancio--Walter} rule instantiates this theorem with the transcripts from \Cref{eq:pyth-judgment}, then uses maximal coupling to obtain the additive-error equality judgment.
+Our \textsc{Micciancio--Walter} rule instantiates this theorem with the transcripts from \Cref{def:pyth-judgment}, then uses maximal coupling to obtain the additive-error equality judgment.
 As with all of our inference rules, we verify it to be sound with respect to SSProve's program semantics.
 
 \subsection{A derived discrete-Gaussian rule}
