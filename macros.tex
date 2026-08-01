@@ -14,10 +14,21 @@
 
 
 \theoremstyle{definition}
+\theoremstyle{definition}
+
 \newtheorem{definition}{Definition}[section]
-\newtheorem{theorem}[definition]{Theorem}
-\newtheorem{lemma}[definition]{Lemma}
-\newtheorem{corollary}[definition]{Corollary}
+
+\newaliascnt{theorem}{definition}
+\newtheorem{theorem}[theorem]{Theorem}
+\aliascntresetthe{theorem}
+
+\newaliascnt{lemma}{definition}
+\newtheorem{lemma}[lemma]{Lemma}
+\aliascntresetthe{lemma}
+
+\newaliascnt{corollary}{definition}
+\newtheorem{corollary}[corollary]{Corollary}
+\aliascntresetthe{corollary}
 
 \newcommand{\cA}{\mathcal{A}}
 \newcommand{\cB}{\mathcal{B}}
