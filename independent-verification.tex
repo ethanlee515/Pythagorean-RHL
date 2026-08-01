@@ -5,18 +5,18 @@ The development contains 27,987 lines of Rocq, excluding the manuscript's
 copied source excerpts.  Since a majority of the codebase was written with AI,
 the line count measures the scope of the checked development rather than human
 effort.
-\Cref{fig:theory-map} separates the application-specific security argument
-from the reusable probability and program-logic layers.
-
-\input{theory-map}
+The overview in \Cref{fig:theory-map} separates the application-specific
+security argument from the reusable probability and program-logic results.
 
 The mechanization contains a few layers.  The scheme layer
 defines encryption games and the noise-flooded transform.  The
 probability layer develops facts about countable discrete distributions,
 without reference to programs.  The logic layer lifts those facts to SSProve
-code and proves the selected-call compiler sound.  Finally, the security layer
-instantiates the generic logic with the decryption invariant, constructs the
-IND-CPA reduction, and composes the exact and quantitative game transitions.
+code.  The compiler layer implements the trace transformation and derives the
+generic adaptive replacement rule.  Finally, the security
+layer instantiates the reusable logic and compiler with the decryption
+invariant, constructs the IND-CPA reduction, and composes the exact and
+quantitative game transitions.
 The top-level result is a functor over precisely the scheme, chart,
 probability-one correctness, IND-CPA security, and flooding-parameter
 interfaces described in \Cref{sec:construction}; probability lemmas and
@@ -85,6 +85,48 @@ mixed Hoare/Pythagorean, and compiler rules have the same status: each is a
 Rocq lemma proved from the program semantics.  Consequently, a Rocq kernel check of
 the security theorem also checks the soundness chain from the distribution
 lemmas through the program judgments.
+
+\subsection{Compiler implementation and correctness}
+
+\Cref{fig:compiler-code} shows the traversal over SSProve's \texttt{raw\_code}
+syntax.  Its result pairs the trace with a status: \texttt{inl} carries the
+encoded input of a selected call, whereas \texttt{inr} carries the final output
+of a program that terminated first.  A nonselected call is executed, its
+result is appended to the trace, and traversal continues; heap operations and
+samples are handled analogously.
+
+\begin{figure}[t]
+\begingroup
+\setmonofont{FreeMono}[Scale=MatchLowercase]
+\inputminted[
+  fontsize=\scriptsize,
+  breaklines,
+  linenos,
+  firstnumber=166,
+  firstline=166,
+  lastline=177
+]{coq}{rocq-excerpts/theories/NextMessage/Trace.v}
+\endgroup
+\caption{Scanning for the next call to \texttt{fn}: \texttt{inl} reports its
+encoded input, while \texttt{inr} reports program termination.}
+\label{fig:compiler-code}
+\end{figure}
+
+The outer driver answers a discovered call, records the answer, and repeats.
+After the requested calls, trace replay reconstructs the remaining code, so
+the complete transformation has the original result type.  The same-package
+correctness result is \Cref{thm:compile-same}, whose Rocq theorem is
+\texttt{compile\_calls\_correct}.  It proves equality of program semantics by
+induction over traversal and trace replay.
+
+The separate quantitative result is \Cref{thm:compile-replace}.  Its call
+induction lifts the one-call Pythagorean judgment through the trace
+transformation and accumulates \(q\) copies of its KL-cost tuple;
+\texttt{compileRule} then performs the single final Micciancio--Walter
+conversion.  The \textsc{Compile} rule in
+\Cref{fig:security-rule-inventory} records its complete security-facing
+premises.  Thus both semantic compiler correctness and adaptive quantitative
+replacement are checked consequences of SSProve syntax and semantics.
 
 \subsection{Probability formalization}
 

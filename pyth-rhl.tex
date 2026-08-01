@@ -3,8 +3,12 @@
 
 SSProve combines high-level algebraic reasoning about packages with a relational program logic for their low-level procedures~\cite{ssprove}.
 Its central bridge turns per-procedure exact judgments into perfect indistinguishability of packages.
-We retain that two-level architecture but add a quantitative bridge needed by noise flooding: a bounded conditional KL cost for one oracle implementation is lifted to an additive-error bound for a complete adaptive program.
-This section presents that contribution independently of the FHE instantiation.
+We retain that two-level architecture but add the quantitative judgments needed
+by noise flooding: they carry conditional KL costs through program composition
+and convert them to additive error only once.
+This section develops those judgments independently of the FHE instantiation.
+The verified compiler in \Cref{sec:trace-compiler} then lifts the resulting
+one-call rule to complete adaptive oracle programs.
 
 The development introduces no new programming language and takes no new logic
 rules as axioms.
@@ -12,9 +16,8 @@ It defines semantic judgments over SSProve's existing semantics, then verifies t
 The Pythagorean judgment retains the conditional KL information required by
 \Cref{sec:paid-hop}, while unary Hoare reasoning maintains the invariant from
 \Cref{sec:adaptive-invariant}.
-The compiler in \Cref{sec:trace-compiler} exposes the adaptively chosen calls;
-after one final conversion, an additive-error judgment records the resulting
-ordinary game-hop bound.
+An additive-error judgment records the ordinary game-hop bound after the final
+conversion.
 
 We use SSProve's existing language of typed oracle programs, packages, heaps,
 linking, and discrete subdistribution semantics; \Cref{app:ssprove-substrate}
@@ -227,30 +230,57 @@ The
 noise-flooding proof instantiates \(\epsilon=1/(2\gamma^2)\), obtaining
 \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) without introducing any unverified assumptions.
 
-\subsection{From one oracle call to an adaptive program}
-\label{sec:trace-compiler}
+\subsection{Why the extra judgment is necessary}
 
-\Junyi{I think the compiler is a primary contribution. Is it possible to promote this subsection to a section and refer to it more explicitly from contribution, and paper outline?}
+The additive-error layer remains essential for exact hops, up-to-bad arguments, and the final triangle calculation.
+Its ordinary sequence rule, however, maps \(\delta_1,\delta_2\) to \(\delta_1+\delta_2\).
+Applying Pinsker inside each decrypt proof would therefore pay \(q\sqrt{\epsilon_{\mathsf{nf}}/2}\).
+The Pythagorean layer delays that nonlinear conversion and obtains \(\sqrt{q\epsilon_{\mathsf{nf}}/2}\).
+It provides a verified relational interface for carrying parameter-critical KL
+information across stateful program composition.
+
+\section{A Verified Compiler for Adaptive Oracle Programs}
+\label{sec:trace-compiler}
 
 The rules above compose a sequence of sampling operations.
 An oracle program does not provide such a sequence: the location and arguments of its next call may depend on previous answers.
 Our compiler is the verified adapter between these views.
+It exposes a bounded number of calls to one selected operation without
+restricting the surrounding program's control flow, and it comes with both a
+same-package correctness theorem and a generic quantitative replacement theorem.
 
-Intuitively speaking, the pen-and-paper analysis would run the adversary to its next oracle call and return its query together with a suspended execution.
-In SSProve, however, a suspended program is a \emph{continuation} inside the program monad: storing it directly would require serializing arbitrary Rocq functions into SSProve-compatible data types.
-The compiler instead records an execution trace: the results of other oracle
-calls, heap reads and writes, and samples.
-Replaying that trace recovers the continuation.
-The same-package theorem below proves this representation exact.
+\subsection{A trace-based selected-call transformation}
 
-Write \(\mathsf{Compile}_q(A,p;P_s,P_r)\) for the program obtained by exposing
-the first \(q\) calls made by \(A\) to operation \(p\), resolving those calls
-with \(P_s\), and linking the residual program with \(P_r\).
-The compiler first satisfies an exactness theorem.
+Given a program \(A\) and a chosen operation \(p\), a paper proof can simply
+say: run \(A\) until its next call to \(p\), answer that call, and resume.
+In SSProve, the code after a call is represented by a
+Rocq function from the answer to the rest of the program.  Such arbitrary
+functions cannot be stored as program data.  The compiler therefore records a
+first-order trace of the intervening calls, heap operations, and samples.
+When it reaches \(p\), it returns the query without executing the call.  The
+driver obtains an answer from a chosen implementation \(P_s\), adds it to the
+trace, replays the recorded results through \(A\) to recover the code after the
+call, and repeats this process up to \(q\) times.
+
+Write \(\mathsf{Expose}_q(A,p;P_s)\) for the raw-code transformation that
+exposes the first \(q\) calls made by \(A\) to operation \(p\) and resolves
+them with \(P_s\).  Its factoring phase is trace-valued, but replay restores
+the residual program, so the complete transformation has the same result type
+as \(A\).  Write \(\mathsf{Compile}_q(A,p;P_s,P_r)\) for
+\(\mathsf{Expose}_q(A,p;P_s)\) linked with residual package \(P_r\).
+
+\subsection{Same-package correctness}
+
+The transformation inserts trace bookkeeping, so before linking its syntax
+differs from that of \(A\).  If both the exposed calls and the residual calls
+are implemented by \(P\), however, each call receives the same answer as in
+the original linked program, and trace replay reconstructs the same remaining
+code.  The compiler therefore preserves behavior in the same-package case.
 
 \begin{theorem}[Same-package compilation]
 \label{thm:compile-same}
-Subject to package typing and memory-separation conditions,
+Subject to code and package validity and the presence of the selected
+operation, for every initial heap,
 \[
  \mathsf{Compile}_q(A,p;P,P)
  \quad\text{and}\quad
@@ -258,6 +288,13 @@ Subject to package typing and memory-separation conditions,
 \]
 have identical SSProve output/heap semantics.
 \end{theorem}
+
+The proof is an induction over the selected-call traversal.  At each step, the
+recorded result is supplied to the corresponding continuation of the original
+program, while validity rules out malformed traces.  Consequently, the
+compiled and original programs induce the same output--heap distribution.
+
+\subsection{A generic local-to-adaptive replacement theorem}
 
 The following theorem is the main program-logic bridge.
 
@@ -299,16 +336,7 @@ The noise-flooding game supplies only the one-call premise proved in
 control flow.
 Combined with \Cref{thm:compile-same}, this is our quantitative counterpart of SSProve's local relational reasoning for package indistinguishability.
 
-\subsection{Why the extra judgment is necessary}
-
-The additive-error layer remains essential for exact hops, up-to-bad arguments, and the final triangle calculation.
-Its ordinary sequence rule, however, maps \(\delta_1,\delta_2\) to \(\delta_1+\delta_2\).
-Applying Pinsker inside each decrypt proof would therefore pay \(q\sqrt{\epsilon_{\mathsf{nf}}/2}\).
-The Pythagorean layer delays that nonlinear conversion and obtains \(\sqrt{q\epsilon_{\mathsf{nf}}/2}\).
-It provides a verified relational interface for carrying parameter-critical KL
-information across adaptive, stateful program composition.
-
-\subsection{Closing the noise-flooding hop}
+\subsection{Instantiating the compiler for noise flooding}
 \label{sec:closing-hop}
 
 We now instantiate the generic machinery to prove the missing arrow in

@@ -4,8 +4,10 @@ LATEXMK := latexmk
 LATEXMK_FLAGS := -xelatex -shell-escape -interaction=nonstopmode -halt-on-error
 EXCERPT_ROOT := rocq-excerpts
 EXCERPT_SRCS := \
+	../theories/NextMessage/Trace.v \
 	../theories/ProgramLogics/Ae.v \
 	../theories/ProgramLogics/Pyth.v \
+	../theories/ProgramLogics/PythCompile.v \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussian.v \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussianKL.v \
 	../theories/LibExtras/MathcompExtras/DTuple.v \

@@ -111,7 +111,8 @@ statistical distance;
 \item it exposes successive calls of an arbitrary adaptive oracle program; and
 \item it threads \(\Phi\) through the exposed calls.
 \end{enumerate}
-\Cref{sec:pyth-toolkit} constructs this bridge from a Pythagorean judgment,
-unary invariant proofs, and a trace compiler, proves its soundness
-independently of FHE, and then applies it to derive the paid arrow in
+\Cref{sec:pyth-toolkit} develops the Pythagorean judgment and invariant rules.
+\Cref{sec:trace-compiler} verifies the selected-call compiler and proves the
+generic local-to-adaptive theorem independently of FHE.  The instantiation in
+\Cref{sec:closing-hop} combines them to derive the paid arrow in
 \Cref{eq:conceptual-game-chain}.

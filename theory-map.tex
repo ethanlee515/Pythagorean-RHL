@@ -4,7 +4,7 @@
   x=1cm,
   y=1cm,
   >={Latex[length=2mm]},
-  dependency/.style={->,semithick,draw=black!65},
+  contribution/.style={->,semithick,draw=black!65},
   module/.style={
     draw=black!65,
     rounded corners=2pt,
@@ -22,68 +22,68 @@
 ]
 
 % Application-specific path.
-\node[lane] at (0,5.45) {APPLICATION-SPECIFIC SECURITY PROOF};
+\node[lane] at (0,5.45) {NOISE-FLOODING INSTANTIATION};
 
 \node[interface] (interfaces) at (1.55,4.35) {%
-  \textbf{Scheme and security interfaces}\\[0.2ex]
-  CPA-Secure \(S\), charts, correctness, and games};
+  \textbf{Assumptions on the scheme}\\[0.2ex]
+  IND-CPA security, charts, and approximate correctness};
 
 \node[application] (games) at (5.15,4.35) {%
-  \textbf{Noise-flooded construction and reduction}};
+  \textbf{Noise-flooded construction}\\[0.2ex]
+  IND-CPA and IND-CPAD games and reduction};
 
 \node[application] (local) at (8.75,4.35) {%
-  \textbf{One-call Gaussian bound and table invariant}};
+  \textbf{Analysis of one decryption call}\\[0.2ex]
+  Gaussian KL bound and reachable-state invariant};
 
 \node[application] (adaptive) at (12.35,4.35) {%
-  \textbf{Exact operation bridges and adaptive lossy hop}};
+  \textbf{Adaptive replacement}\\[0.2ex]
+  Replace up to \(q\) adaptively chosen calls};
 
 \node[result] (final) at (15.95,4.35) {%
-  \textbf{Security analysis and checked theorem}\\[0.2ex]
+  \textbf{Checked security theorem}\\[0.2ex]
   \(\beta_{\mathsf{CPA}}(\mathcal B)+
     \sqrt{qn}/(2\gamma)\)};
 
-\draw[dependency] (interfaces) -- (games);
-\draw[dependency] (games) -- (local);
-\draw[dependency] (local) -- (adaptive);
-\draw[dependency] (adaptive) -- (final);
+\draw[contribution] (interfaces) -- (games);
+\draw[contribution] (games) -- (local);
+\draw[contribution] (local) -- (adaptive);
+\draw[contribution] (adaptive) -- (final);
 
 % Reusable mathematical and program-logic path.
-\node[lane] at (0,2.55) {REUSABLE FOUNDATIONS};
+\node[lane] at (0,2.55) {REUSABLE VERIFIED MACHINERY};
 
 \node[reusable] (kl) at (1.85,1.35) {%
-  \textbf{KL foundations}\\[0.2ex]
-  Pinsker and the conditional-coordinate chain bound};
+  \textbf{Discrete probability}\\[0.2ex]
+  KL divergence, Pinsker, and conditional-coordinate bounds};
 
 \node[reusable] (gaussian) at (6.15,1.35) {%
   \textbf{Discrete-Gaussian analysis}\\[0.2ex]
   Normalization, moments, and exact KL};
 
 \node[reusable] (logic) at (10.45,1.35) {%
-  \textbf{Semantic program logics}\\[0.2ex]
-  Additive-error and Pythagorean rules};
+  \textbf{Pythagorean relational logic}\\[0.2ex]
+  Accumulate KL costs and convert to additive error once};
 
 \node[reusable] (compiler) at (14.75,1.35) {%
-  \textbf{Selected-call compiler}\\[0.2ex]
-  Adaptive replacement\\
-  theorem};
+  \textbf{From one call to adaptive programs}\\[0.2ex]
+  Selected-call compiler and semantic correctness};
 
-\draw[dependency] (kl) -- (gaussian);
-\draw[dependency] (gaussian) -- (logic);
-\draw[dependency] (logic) -- (compiler);
+\draw[contribution] (kl) -- (gaussian);
+\draw[contribution]
+  (kl.south) -- ++(0,-0.35)
+  -| ([xshift=-0.25cm]logic.west) -- (logic.west);
 
-% The two points at which the reusable layer discharges the application.
-\draw[dependency] (gaussian.north) -- (local.south);
-\draw[dependency] (logic.north) -- (local.south);
-\draw[dependency] (compiler.north) -- (adaptive.south);
+% The points at which the reusable results discharge the application.
+\draw[contribution] (gaussian.north) -- (local.south);
+\draw[contribution] (logic.north) -- ([xshift=-0.45cm]adaptive.south);
+\draw[contribution] (compiler.north) -- ([xshift=0.45cm]adaptive.south);
 
 \end{tikzpicture}
-\caption{Theory map of the Rocq development.  Each box is a conceptually
-significant module or a small, tightly coupled module group; an arrow points
-from a dependency to code that uses it.  The upper lane specializes the
-reusable lower lane to noise flooding and culminates in the exported security
-theorem.  Orange marks input interfaces, green the application-specific
-security proof, blue reusable foundations, and purple the exported result.
-Utility and adapter modules, repeated transitive imports, and proof-engineering
-dependencies are omitted.}
+\caption{Overview of the checked development.  The upper lane specializes the
+reusable results in the lower lane to noise flooding and culminates in the
+exported security theorem.  Arrows show how the mathematical and program-level
+results combine: orange marks assumptions, green the noise-flooding
+instantiation, blue reusable verified machinery, and purple the final theorem.}
 \label{fig:theory-map}
 \end{figure*}
