@@ -59,43 +59,63 @@ secret-key-dependent error but also consumes precision, so its width must balanc
 security against the usefulness of the decrypted
 result~\cite{costache2023precision,bergamaschi2025revisiting}.
 
-The precision lost to noise flooding depends critically on how the security loss
-composes across repeated decryptions.
+The security--precision tradeoff depends critically on how the loss composes
+across repeated decryptions.  Security proofs for adaptive cryptographic
+systems often reduce a global attack to a local distributional replacement:
+one oracle answer in the real game is replaced by a nearby simulated answer.
+For noise flooding, the real answer adds fresh noise around the scheme's
+approximate decryption, whereas the simulated answer adds noise with the same
+width around the known exact result.  Approximate correctness bounds the
+displacement between these centers.  For every reachable history in which a
+permitted query is answered, an equal-variance discrete-Gaussian calculation
+then bounds the conditional KL divergence between the two answer distributions
+by
+\[
+  \varepsilon_{\mathrm{nf}} = \frac{n}{2\gamma^2},
+\]
+where \(n\) is the noise-coordinate dimension and \(\gamma\) controls the
+flooding width~\cite{lmss}.
+
 An attacker may make up to \(q\) queries, choosing each one after seeing the
 previous answers, so the analysis must compare entire adaptive transcripts.
-An ordinary hybrid argument (i.e. based on data-processing inequality)
-turns a one-query loss proportional to
-\(1/\gamma\) into a total loss proportional to \(q/\gamma\), where \(\gamma\)
-controls the flooding width.
-To keep a fixed security bound, this would require flooding width proportional
-to \(q\).
-LMSS instead bound the conditional KL divergence of each answer, add those
-costs across the transcript, and convert to statistical distance only
-once~\cite{lmss,mw17}.
-Their resulting loss is proportional to \(\sqrt q/\gamma\), so the required
-flooding width grows only as \(\sqrt q\).
-Because this is noise added to the decrypted result, the sharper composition
-bound directly preserves numerical precision.
+Applying Pinsker's inequality separately to each replacement and then adding
+the resulting distances with the triangle inequality gives the loss
+\[
+  q\sqrt{\frac{\varepsilon_{\mathrm{nf}}}{2}}
+  = \frac{q\sqrt{n}}{2\gamma}.
+\]
+For the sharper analysis, let \(\mathcal P\) and \(\mathcal Q\) be the
+distributions of the complete real and simulated transcripts.  Because the KL
+bound holds conditionally after every reachable history, the KL chain rule
+adds the costs of the adaptively chosen answers.  Pinsker's inequality is then
+applied once, to the complete transcripts, giving~\cite{lmss,mw17}
+\begin{align*}
+  \KL{\mathcal P}{\mathcal Q}
+    &\leq q\varepsilon_{\mathrm{nf}},\\
+  \TVD(\mathcal P,\mathcal Q)
+    &\leq \sqrt{\frac{q\varepsilon_{\mathrm{nf}}}{2}}
+     = \frac{\sqrt{qn}}{2\gamma}.
+\end{align*}
+Data processing transfers this transcript bound to the games' output
+distributions and hence to their winning probabilities.
+Thus, for a fixed security bound, the first analysis requires flooding width
+growing linearly in \(q\), whereas the second requires growth only as
+\(\sqrt q\).  Because the flooding noise is added directly to the decrypted
+result, the sharper composition bound directly preserves numerical precision.
 
-This composition principle predates approximate FHE.
+This chain-rule composition principle predates approximate FHE.
 Micciancio and Walter studied cryptographic algorithms whose analyses assume
 access to an ideal sampler, even though a concrete implementation may only
 realize an approximation---for example, because it computes sampling
 probabilities using finite-precision floating-point arithmetic~\cite{mw17}.
 They called the resulting root-sum-of-squares behavior \emph{Pythagorean
 probability preservation}.
-In the LMSS proof, a one-query Gaussian calculation shows that noise flooding
-makes the real decryption answer close to one obtained by adding fresh noise
-directly to the exact result; Pythagorean preservation then lifts this local
-guarantee to all \(q\) adaptive queries.
 Thus, Pythagorean preservation is not specific to FHE: it is the general
 composition step connecting a one-call approximation guarantee to an adaptive
 computation.
 
-Getting this composition argument right matters directly to the precision of
-the resulting FHE scheme.
-More generally, cryptographic security proofs combine probability calculations,
-adaptive interactions with an attacker, and sequences of transformations
+Although this composition step is concise on paper, it combines probability
+calculations, adaptive interactions with an attacker, and transformations
 between security games.
 Small omissions can be difficult to detect on paper, yet may change either the
 security claim or its concrete parameters.
