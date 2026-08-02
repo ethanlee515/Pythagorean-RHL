@@ -3,16 +3,6 @@
 
 \input{theory-map}
 
-\Alex{Maybe a stronger title (though longer) could be: Verified Pythagorean Composition for Adaptive Cryptographic Games: Noise Flooding in Approximate Homomorphic Encryption}
-
-\Alex{I think we can also highlight somewhere in the Intro that our compiler's core correctness lemma establishes equality of linked SSProve code and its semantic exactness theorem is a corollary. This has the advantage that combined with the Pythagorean judgement it would yield a generic quantitative replacement theorem for adaptive oracle programs, which I think is a good contribution.}
-
-\Alex{Also, I was thinking that for the first paragraph maybe we could start with the composition problem and then later talk about the general history of FHE, to present the main question and contribution. So in other words, to bring the foll paragraph earlier in the intro: \\
-Security proofs for adaptive cryptographic systems often reduce a global attack to a local claim: one oracle answer can be replaced by a nearby distribution. The danger is that the wrong compsition principle can destroy the concrete parameters. In noise flooding for approximate homomorphic encryption, each decryption replacement has conditional KL cost at most $\epsilon_{nf} = n / (2 \gamma^2)$. Converting each replacement separately to statistical distance gives a loss of $q \sqrt{\epsilon_{nf} / 2}$, whereas accumulating the KL costs and converting only once gives:
-$$ \sqrt{q \epsilon_{nf} / 2}  = \frac{\sqrt{qn}}{2 \gamma}$$
-As $\gamma$ controls the ampunt of noise added to the decrypted result, this is the difference between noise growing lienarly and as $\sqrt{q}$, and hence between substatially differen precision costs.
-}
-
 Ordinary encryption protects data while it is stored or transmitted, but
 computation typically requires exposing the plaintext.
 Fully homomorphic encryption (FHE) removes this boundary: a client can encrypt
