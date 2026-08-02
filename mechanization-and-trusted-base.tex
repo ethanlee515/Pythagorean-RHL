@@ -200,6 +200,10 @@ already been proved.
 
 \subsection{Reproducibility}
 
+\ifdefined\CameraReady
+The complete artifact is available at
+\url{https://github.com/ethanlee515/mending}.
+\fi
 The complete artifact checks with Rocq 9.0.1, \texttt{rocq-ssprove}
 development version at commit \texttt{c6d7d4bc3a}, MathComp Analysis 1.16.0,
 and MathComp algebra tactics 1.2.7.  In a fresh switch on the authors' machine,
@@ -232,6 +236,10 @@ the same statement as \texttt{interchange\_psum\_proved};
 \texttt{Print Assumptions} for this replacement reports only the usual
 extensionality and choice principles and not the admitted upstream lemma.  The
 proof has since been merged to MathComp Analysis's development branch,
+\ifdefined\CameraReady
+via \href{https://github.com/math-comp/analysis/pull/2007}%
+{\texttt{math-comp/analysis\#2007}},
+\fi
 together with proofs of \texttt{psumB} and \texttt{interchange\_sup}, for
 inclusion in the planned 1.17.0 release.  Until an upstream release replaces
 the existing call sites, \texttt{Print Assumptions} for the top-level theorem
