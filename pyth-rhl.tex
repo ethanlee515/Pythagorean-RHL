@@ -255,8 +255,8 @@ Given a program \(A\) and a chosen operation \(p\), a paper proof can simply
 say: run \(A\) until its next call to \(p\), answer that call, and resume.
 In SSProve, the code after a call is represented by a
 Rocq function from the answer to the rest of the program.  Such arbitrary
-functions cannot be stored as program data.  The compiler therefore records a
-first-order trace of the intervening calls, heap operations, and samples.
+functions cannot be serialized into SSProve program data.  The compiler therefore records a
+trace of the intervening calls, heap operations, and samples.
 When it reaches \(p\), it returns the query without executing the call.  The
 driver obtains an answer from a chosen implementation \(P_s\), adds it to the
 trace, replays the recorded results through \(A\) to recover the code after the
