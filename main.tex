@@ -58,35 +58,34 @@ Kullback--Leibler divergence
 
 \Ethan{Original intro here, Alex's version afterwards}
 
-\input{intro}
+\input{introduction}
 
 \Ethan{Alex's intro version below.
 When one turns off draft mode (i.e. at ``macros.tex''), this section will be hidden alongside the author notes.}
 \ifdefined\Draft
-\input{alternative_intro_alex}
+\input{introduction-alex}
 \fi
 
-\input{prelim}
-\input{lmss}
-\input{pyth-rhl}
-\input{independent-verification}
-\input{related-works}
-\input{future-works}
+\input{construction-security-setting-and-result}
+\input{reduction-and-missing-link}
+\input{program-logic-for-adaptive-games}
+\input{verified-compiler-for-adaptive-oracle-programs}
+\input{mechanization-and-trusted-base}
+\input{related-work}
+\input{conclusion-and-future-works}
+\input{ethics-considerations}
 
 \label{page:main-matter-end}
 
-\section*{Acknowledgment of AI Assistance}
-OpenAI Codex was used to draft prose throughout this manuscript.
-The Rocq development was also substantially AI-assisted.
-Both have been audited and revised by the authors accordingly.
+\input{acknowledgment-of-ai-assistance}
 
 \bibliographystyle{IEEEtran} \bibliography{reference}
 
 \appendices
-\input{appendix-security-games}
-\input{appendix-ssprove-semantics}
-\input{appendix-checked-rules}
-\input{discrete-gaussian-analysis}
+\input{appendix-security-games-and-reduction-pseudocode}
+\input{appendix-ssprove-syntax-and-semantics}
+\input{appendix-checked-rules-used-by-security-proof}
+\input{appendix-additional-probability-details}
 \input{appendix-formal-interface-excerpts}
 
 \end{document}
