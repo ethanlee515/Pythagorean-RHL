@@ -112,12 +112,9 @@ Its sequence rule concatenates tuples (i.e. $s\doubleplus s'$) rather than addin
 
 \Cref{fig:logic-rules} shows the rules that drive the generic development.
 They are schematic and suppress most SSProve typing, full-mass, support, and
-heap side conditions; the artifact contains their concrete statements.  We
-retain the support premise of \textsc{KL-Sample}, since it is what constrains
-that rule's postcondition.
+heap side conditions; the artifact contains their concrete statements.
 For completeness, \Cref{fig:security-rule-inventory} in the appendix collects
-every exported program-logic rule invoked directly by the security
-development, including the Hoare, additive-error, derived Gaussian, and
+every rule used by the noise flooding security analysis, including the Hoare, additive-error, derived Gaussian, and
 compiler rules omitted here.
 
 \begin{figure*}[t]

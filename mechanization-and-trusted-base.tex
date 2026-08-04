@@ -228,7 +228,7 @@ local \texttt{Admitted}.  The installed dependency graph nevertheless reports
 MathComp Analysis's
 \texttt{realsum.\_\_admitted\_\_interchange\_psum}: current SSProve
 distribution semantics are built on these MathComp definitions and reach the
-upstream placeholder~\cite{ssprove}.  This is an inherited assumption, not an
+upstream unproven lemma ~\cite{ssprove}.  This is an inherited assumption, not an
 unproven axiom introduced by our security development.
 
 We independently discharge the mathematical obligation.  The artifact proves
@@ -240,10 +240,10 @@ proof has since been merged to MathComp Analysis's development branch,
 via \href{https://github.com/math-comp/analysis/pull/2007}%
 {\texttt{math-comp/analysis\#2007}},
 \fi
-together with proofs of \texttt{psumB} and \texttt{interchange\_sup}, for
-inclusion in the planned 1.17.0 release.  Until an upstream release replaces
-the existing call sites, \texttt{Print Assumptions} for the top-level theorem
-will continue to display the placeholder's name.
+for inclusion in the 1.17.0 release.
+Before this patch eventually reaches SSProve,
+\texttt{Print Assumptions} for the top-level theorem
+will continue to display the admitted lemma.
 
 Besides library and classical assumptions, \texttt{Print Assumptions} for an
 instantiated theorem reports the concrete scheme, chart, correctness, and
