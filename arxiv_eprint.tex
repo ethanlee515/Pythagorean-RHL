@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper, left=1in, right=1in, top=1in, bottom=1in]{geometry}
+
+\input{packages}
+\newcommand{\CameraReady}{}
+
+\theoremstyle{definition}
+\theoremstyle{definition}
+
+\newtheorem{definition}{Definition}[section]
+
+\newaliascnt{theorem}{definition}
+\newtheorem{theorem}[theorem]{Theorem}
+\aliascntresetthe{theorem}
+
+\newaliascnt{lemma}{definition}
+\newtheorem{lemma}[lemma]{Lemma}
+\aliascntresetthe{lemma}
+
+\newaliascnt{corollary}{definition}
+\newtheorem{corollary}[corollary]{Corollary}
+\aliascntresetthe{corollary}
+
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\bbR}{\mathbb{R}}
+\newcommand{\bbN}{\mathbb{N}}
+\newcommand{\bbZ}{\mathbb{Z}}
+\newcommand{\parens}[1]{\left(#1\right)}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\dKL}{D_{\mathrm{KL}}}
+\newcommand{\KL}[2]{\dKL\!\parens{#1\,\|\,#2}}
+\newcommand{\DG}[2]{D_{\bbZ,#1,#2}}
+\newcommand{\distr}{\mathsf{Distr}}
+\newcommand{\semantic}[1]{\llbracket #1\rrbracket}
+\newcommand{\csemantic}[1]{\llbracket #1\rrbracket^{\bot}}
+\newcommand{\completed}[1]{\mathsf{Comp}\parens{#1}}
+\newcommand{\supp}{\mathsf{supp}}
+\newcommand{\TVD}{\Delta}
+\newcommand{\Pyth}{\mathsf{Pyth}}
+\newcommand{\AEJ}{\mathsf{AE}}
+\newcommand{\WinProb}{\mathsf{WinProb}}
+\newcommand{\apRHL}{\mathsf{apRHL}}
+\newcommand{\KLs}{\mathsf{KLs}}
+\newcommand{\code}{\mathsf{code}}
+\newcommand{\kvalid}{\mathsf{keys\_valid}}
+\newcommand{\tvalid}{\mathsf{table\_valid}}
+\newcommand{\doubleplus}{\mathbin{+\!\!+}}
+\DeclareMathOperator{\Bern}{Bern}
+
+% \title{Verified Pythagorean Composition for \\ Adaptive Cryptographic Games:\\
+% \huge{Noise Flooding in Homomorphic Encryption}}
+
+\title{Verified Pythagorean Composition for \\ Adaptive Cryptographic Games:\\
+Noise Flooding in Homomorphic Encryption}
+
+
+% \author{%
+%   \IEEEauthorblockN{Yi Lee\IEEEauthorrefmark{1},
+%     Alexandru Cojocaru\IEEEauthorrefmark{2},
+%     Junyi Liu\IEEEauthorrefmark{1}, and
+%     Xiaodi Wu\IEEEauthorrefmark{1}}
+%   \IEEEauthorblockA{%
+%     \IEEEauthorrefmark{1}Joint Center for Quantum Information and Computer Science,
+%     University of Maryland, USA\\
+%     \IEEEauthorrefmark{2}School of Informatics, The University of Edinburgh,
+%     United Kingdom\\
+%     \url{ylee1228@umd.edu}, \url{a.cojocaru@ed.ac.uk},
+%     \url{junyiliu@umd.edu}, \url{xwu@cs.umd.edu}}}
+
+
+\author{
+Yi Lee\thanks{Joint Center for Quantum Information and Computer Science, University of Maryland, USA. Email: \url{ylee1228@umd.edu}} 
+\and
+Alexandru Cojocaru\thanks{School of Informatics, The University of Edinburgh, United Kingdom. Email: \url{a.cojocaru@ed.ac.uk}}
+\and
+Junyi Liu\thanks{Joint Center for Quantum Information and Computer Science, University of Maryland, USA. Email:\url{junyiliu@umd.edu}}
+\and
+Xiaodi Wu\thanks{Joint Center for Quantum Information and Computer Science, University of Maryland, USA. Email:\url{xwu@cs.umd.edu}}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Noise flooding is a standard defense against decryption attacks on approximate
+homomorphic encryption, but its security proof is unusually sensitive to
+composition.
+Replacing each of \(q\) adaptive decryption answers with a
+statistically close simulation and applying an ordinary hybrid argument loses
+linearly in \(q\).
+The cryptographic proof instead accumulates conditional
+Kullback--Leibler (KL) costs and converts to statistical distance once, giving
+the parameter-critical square-root loss.
+
+We machine-check this argument using Rocq and SSProve.
+Given any fully homomorphic encryption scheme that is approximately correct and IND-CPA secure,
+we formalize a reduction for every \(q\)-query IND-CPAD adversary and prove
+\[
+ \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}^{\mathcal A}=1]
+ \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
+       + \frac{\sqrt{qn}}{2\gamma}.
+\]
+where \(n\) is the plaintext dimension and \(\gamma\) is the flooding-width
+multiplier.
+Our proof constructs a new relational program logic
+over SSProve semantics.
+Its Pythagorean judgment composes
+conditional KL budgets without converting them to statistical distance, and a
+verified trace compiler lifts a local oracle rule to arbitrary adaptive
+programs with a single final conversion.
+\end{abstract}
+
+
+\input{introduction}
+
+\input{construction-security-setting-and-result}
+\input{reduction-and-missing-link}
+\input{program-logic-for-adaptive-games}
+\input{verified-compiler-for-adaptive-oracle-programs}
+\input{mechanization-and-trusted-base}
+\input{related-work}
+\input{conclusion-and-future-works}
+
+
+%\input{ethics-considerations}
+
+\label{page:main-matter-end}
+
+\input{acknowledgements_funding}
+
+\input{acknowledgment-of-ai-assistance}
+
+\bibliographystyle{IEEEtran} \bibliography{reference}
+
+
+\appendix
+
+\input{appendix-security-games-and-reduction-pseudocode}
+\input{appendix-ssprove-syntax-and-semantics}
+\input{appendix-checked-rules-used-by-security-proof}
+\input{appendix-additional-probability-details}
+\input{appendix-formal-interface-excerpts}
+
+\end{document}
