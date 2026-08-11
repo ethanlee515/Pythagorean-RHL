@@ -1,5 +1,6 @@
 \begin{figure*}[t]
 \centering
+\begin{adjustbox}{max width=\linewidth}
 \begin{tikzpicture}[
   x=1cm,
   y=1cm,
@@ -25,23 +26,31 @@
 \node[lane] at (0,5.65) {NOISE-FLOODING INSTANTIATION};
 
 \node[interface] (interfaces) at (1.55,4.35) {%
-  \textbf{Assumptions on the scheme}\\[0.2ex]
-  IND-CPA security, charts, and approximate correctness};
+  \textbf{Assumptions\\on the scheme}\\[0.2ex]
+  IND-CPA security,\\
+  charts, and\\
+  approximate\\
+  correctness};
 
 \node[application] (games) at (5.15,4.35) {%
-  \textbf{Noise-flooded construction}\\[0.2ex]
-  IND-CPA and IND-CPAD games and reduction};
+  \textbf{Noise-flooded\\construction}\\[0.2ex]
+  IND-CPA and\\
+  IND-CPAD games\\
+  and reduction};
 
 \node[application] (local) at (8.75,4.35) {%
-  \textbf{Analysis of one decryption call}\\[0.2ex]
-  Gaussian KL bound and reachable-state invariant};
+  \textbf{Analysis of one\\decryption call}\\[0.2ex]
+  Gaussian KL bound\\
+  and reachable-state\\
+  invariant};
 
 \node[application] (adaptive) at (12.35,4.35) {%
   \textbf{Adaptive replacement}\\[0.2ex]
-  Replace up to \(q\) adaptively chosen calls};
+  Replace up to \(q\)\\
+  adaptively chosen calls};
 
 \node[result] (final) at (15.95,4.35) {%
-  \textbf{Checked security theorem}\\[0.2ex]
+  \textbf{Checked\\security theorem}\\[0.2ex]
   \(\beta_{\mathsf{CPA}}(\mathcal B)+
     \sqrt{qn}/(2\gamma)\)};
 
@@ -55,19 +64,25 @@
 
 \node[reusable] (kl) at (1.85,1.35) {%
   \textbf{Discrete probability}\\[0.2ex]
-  KL divergence, Pinsker, and conditional-coordinate bounds};
+  KL divergence, Pinsker,\\
+  and conditional-\\
+  coordinate bounds};
 
 \node[reusable] (gaussian) at (6.15,1.35) {%
-  \textbf{Discrete-Gaussian analysis}\\[0.2ex]
-  Normalization, moments, and exact KL};
+  \textbf{Discrete-Gaussian\\analysis}\\[0.2ex]
+  Normalization,\\
+  moments, and exact KL};
 
 \node[reusable] (logic) at (10.45,1.35) {%
-  \textbf{Pythagorean relational logic}\\[0.2ex]
-  Accumulate KL costs and convert to additive error once};
+  \textbf{Pythagorean\\relational logic}\\[0.2ex]
+  Accumulate KL\\
+  costs and convert to\\
+  additive error once};
 
 \node[reusable] (compiler) at (14.75,1.35) {%
-  \textbf{From one call to adaptive programs}\\[0.2ex]
-  Selected-call compiler and semantic correctness};
+  \textbf{From one call to\\adaptive programs}\\[0.2ex]
+  Selected-call compiler\\
+  and semantic correctness};
 
 \draw[contribution] (kl) -- (gaussian);
 \draw[contribution]
@@ -80,6 +95,7 @@
 \draw[contribution] (compiler.north) -- ([xshift=0.45cm]adaptive.south);
 
 \end{tikzpicture}
+\end{adjustbox}
 \caption{Overview of the checked development.  The upper lane specializes the
 reusable results in the lower lane to noise flooding and culminates in the
 exported security theorem.  Arrows show how the mathematical and program-level

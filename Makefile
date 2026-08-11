@@ -1,4 +1,9 @@
-MAIN := main
+DOCUMENTS := main arxiv_eprint
+PDFS := $(addsuffix .pdf,$(DOCUMENTS))
+ENTRYPOINTS := $(addsuffix .tex,$(DOCUMENTS))
+TEX_SOURCES := $(filter-out $(ENTRYPOINTS),$(wildcard *.tex))
+
+.DEFAULT_GOAL := all
 
 LATEXMK := latexmk
 LATEXMK_FLAGS := -xelatex -shell-escape -interaction=nonstopmode -halt-on-error
@@ -23,7 +28,7 @@ EXCERPT_SRCS := \
 
 .PHONY: all clean refresh-formal-excerpts
 
-all: $(MAIN).pdf
+all: $(PDFS)
 
 refresh-formal-excerpts:
 	@for src in $(EXCERPT_SRCS); do \
@@ -37,9 +42,10 @@ refresh-formal-excerpts:
 		fi; \
 	done
 
-$(MAIN).pdf: refresh-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
-	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
+$(PDFS): %.pdf: refresh-formal-excerpts %.tex $(TEX_SOURCES) reference.bib
+	$(LATEXMK) $(LATEXMK_FLAGS) $*.tex
 
 clean:
-	$(LATEXMK) -c $(MAIN).tex
-	rm -rf _minted-$(MAIN)
+	$(LATEXMK) -c main.tex
+	$(LATEXMK) -c arxiv_eprint.tex
+	rm -rf $(addprefix _minted-,$(DOCUMENTS))
