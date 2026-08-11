@@ -19,18 +19,19 @@
   application/.style={module,fill=green!10},
   reusable/.style={module,text width=3.35cm,fill=blue!8},
   result/.style={module,fill=violet!12,draw=black!80,very thick},
-  lane/.style={font=\sffamily\footnotesize\bfseries,anchor=west}
+  lane/.style={font=\sffamily\footnotesize\bfseries,anchor=south west}
 ]
 
 % Application-specific path.
-\node[lane] at (0,5.65) {NOISE-FLOODING INSTANTIATION};
-
 \node[interface] (interfaces) at (1.55,4.35) {%
   \textbf{Assumptions\\on the scheme}\\[0.2ex]
   IND-CPA security,\\
   charts, and\\
   approximate\\
   correctness};
+
+\node[lane] at ([yshift=0.3cm]interfaces.north west)
+  {NOISE-FLOODING INSTANTIATION};
 
 \node[application] (games) at (5.15,4.35) {%
   \textbf{Noise-flooded\\construction}\\[0.2ex]
@@ -60,13 +61,14 @@
 \draw[contribution] (adaptive) -- (final);
 
 % Reusable mathematical and program-logic path.
-\node[lane] at (0,2.55) {REUSABLE VERIFIED MACHINERY};
-
 \node[reusable] (kl) at (1.85,1.35) {%
   \textbf{Discrete probability}\\[0.2ex]
   KL divergence, Pinsker,\\
   and conditional-\\
   coordinate bounds};
+
+\node[lane] at ([yshift=0.3cm]kl.north west)
+  {REUSABLE VERIFIED MACHINERY};
 
 \node[reusable] (gaussian) at (6.15,1.35) {%
   \textbf{Discrete-Gaussian\\analysis}\\[0.2ex]
