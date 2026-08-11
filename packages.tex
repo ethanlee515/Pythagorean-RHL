@@ -21,6 +21,19 @@
 \usepackage{aliascnt}
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 
+
+%%%%%%%%%%%%%
+\usepackage{newunicodechar}
+
+% Used only for the two glyphs missing from FreeMono
+\newfontfamily\coqsymbolfont{JuliaMono}[Scale=MatchLowercase]
+
+\newunicodechar{⦃}{{\coqsymbolfont\char"2983\relax}}
+\newunicodechar{⦄}{{\coqsymbolfont\char"2984\relax}}
+
+%%%%%%%%%%%%%%%%
+
+
 \hypersetup{hidelinks}
 \urlstyle{same}
 \makeatletter
