@@ -1,12 +1,35 @@
+\input{paper-options}
+\ifdefined\SingleColumn
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\else
 \documentclass[conference]{IEEEtran}
+\fi
 
 \input{packages}
 \input{macros}
 
+\ifdefined\SingleColumn
+% Allow modest extra interword space around long technical names in article
+% paragraphs; IEEEtran already applies its own two-column line-breaking policy.
+\setlength{\emergencystretch}{2em}
+\fi
+
 \title{Verified Pythagorean Composition for \\ Adaptive Cryptographic Games:\\
-\huge{Noise Flooding in Homomorphic Encryption}}
+Noise Flooding in Homomorphic Encryption}
 
 \ifdefined\CameraReady
+\ifdefined\SingleColumn
+\author{%
+  Yi Lee\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{ylee1228@umd.edu}}
+  \and Alexandru Cojocaru\thanks{School of Informatics, The University of Edinburgh,
+    United Kingdom. Email: \url{a.cojocaru@ed.ac.uk}}
+  \and Junyi Liu\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{junyiliu@umd.edu}}
+  \and Xiaodi Wu\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{xwu@cs.umd.edu}}}
+\else
 \author{%
   \IEEEauthorblockN{Yi Lee\IEEEauthorrefmark{1},
     Alexandru Cojocaru\IEEEauthorrefmark{2},
@@ -19,9 +42,15 @@
     United Kingdom\\
     \url{ylee1228@umd.edu}, \url{a.cojocaru@ed.ac.uk},
     \url{junyiliu@umd.edu}, \url{xwu@cs.umd.edu}}}
+\fi
+\else
+\ifdefined\SingleColumn
+\author{Anonymous submission}
 \else
 \author{\IEEEauthorblockN{Anonymous submission}}
 \fi
+\fi
+\date{}
 
 \begin{document}
 
@@ -38,7 +67,7 @@ The cryptographic proof instead accumulates conditional
 Kullback--Leibler (KL) costs and converts to statistical distance once, giving
 the parameter-critical square-root loss.
 
-We machine-checked this argument using Rocq and SSProve.
+We machine-check this argument using Rocq and SSProve.
 Given any fully homomorphic encryption scheme that is approximately correct and IND-CPA secure,
 we formalize a reduction for every \(q\)-query IND-CPAD adversary and prove
 \[
@@ -65,20 +94,23 @@ metatheoretic audit outside the program semantics.
 \fi
 \end{abstract}
 
+\ifdefined\SingleColumn
+\else
 \begin{IEEEkeywords}
 approximate homomorphic encryption, noise flooding, IND-CPAD, SSProve,
 Rocq, relational program logic, game-based cryptography,
 Kullback--Leibler divergence
 \end{IEEEkeywords}
+\fi
 
-\Ethan{There is a ``CameraReady'' switch in ``macros.tex'' for displaying author names and affiliations}
+\Ethan{The ``CameraReady'' switch in ``paper-options.tex'' displays author names and affiliations.}
 
 \Ethan{Original intro here, Alex's version afterwards}
 
 \input{introduction}
 
 \Ethan{Alex's intro version below.
-When one turns off draft mode (i.e. at ``macros.tex''), this section will be hidden alongside the author notes.}
+When one turns off draft mode (i.e. at ``paper-options.tex''), this section will be hidden alongside the author notes.}
 \ifdefined\Draft
 \input{introduction-alex}
 \fi
@@ -98,7 +130,11 @@ When one turns off draft mode (i.e. at ``macros.tex''), this section will be hid
 
 \bibliographystyle{IEEEtran} \bibliography{reference}
 
+\ifdefined\SingleColumn
+\appendix
+\else
 \appendices
+\fi
 \input{appendix-security-games-and-reduction-pseudocode}
 \input{appendix-ssprove-syntax-and-semantics}
 \input{appendix-checked-rules-used-by-security-proof}

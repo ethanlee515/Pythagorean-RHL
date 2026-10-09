@@ -1,7 +1,9 @@
 MAIN := main
+ARXIV_MAIN := main-arxiv
 
 LATEXMK := latexmk
 LATEXMK_FLAGS := -xelatex -shell-escape -interaction=nonstopmode -halt-on-error
+ARXIV_LATEXMK_FLAGS := -xelatex -no-shell-escape -interaction=nonstopmode -halt-on-error
 EXCERPT_ROOT := rocq-excerpts
 EXCERPT_SRCS := \
 	../theories/NextMessage/Trace.v \
@@ -25,9 +27,16 @@ EXCERPT_SRCS := \
 	../theories/Security/NoiseFloodingSecurity/Prelude.v \
 	../theories/Security/NoiseFloodingSecurity/Final.v
 
-.PHONY: all clean refresh-formal-excerpts summarize-formal-excerpts
+.PHONY: all csf arxiv arxiv-source clean refresh-formal-excerpts summarize-formal-excerpts
 
 all: $(MAIN).pdf
+
+csf: $(MAIN).pdf
+
+arxiv: $(ARXIV_MAIN).pdf
+
+arxiv-source: arxiv
+	python3 scripts/package-arxiv.py
 
 refresh-formal-excerpts:
 	@for src in $(EXCERPT_SRCS); do \
@@ -47,6 +56,10 @@ summarize-formal-excerpts: refresh-formal-excerpts
 $(MAIN).pdf: summarize-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
 	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
 
+$(ARXIV_MAIN).pdf: summarize-formal-excerpts $(ARXIV_MAIN).tex $(wildcard *.tex) reference.bib
+	$(LATEXMK) $(ARXIV_LATEXMK_FLAGS) $(ARXIV_MAIN).tex
+
 clean:
 	$(LATEXMK) -c $(MAIN).tex
-	rm -rf _minted-$(MAIN)
+	$(LATEXMK) -c $(ARXIV_MAIN).tex
+	rm -rf _minted-$(MAIN) _minted-$(ARXIV_MAIN)
