@@ -10,8 +10,7 @@ make arxiv-source # arxiv-source.zip: self-contained public source bundle
 ```
 
 All formats include named authors, affiliations, artifact links, and funding.
-`make` builds both formats and the legacy `arxiv_eprint.pdf` filename;
-`arxiv_eprint.tex` is a wrapper around the shared public entry point.
+`make` builds both formats using `main.tex` and `main-arxiv.tex`.
 
 Both builds use XeLaTeX and BibTeX through `latexmk`. CSF additionally uses
 Pygments (`pygmentize`) for syntax highlighting. The ArXiv entry point disables

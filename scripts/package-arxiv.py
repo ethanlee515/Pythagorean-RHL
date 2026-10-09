@@ -17,7 +17,7 @@ def main():
     with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("main.tex", manuscript)
         for source in sorted(ROOT.glob("*.tex")):
-            if source.name not in {"main.tex", "main-arxiv.tex", "arxiv_eprint.tex"}:
+            if source.name not in {"main.tex", "main-arxiv.tex"}:
                 archive.write(source, source.name)
         archive.write(ROOT / "reference.bib", "reference.bib")
         archive.write(bibliography, "main.bbl")

@@ -54,8 +54,8 @@ shell-disabled platform warning remain benign local compiler warnings.
 
 Resolved the merge of `fd0abb04` (the ZIP reconciliation) into `main` at
 `0be1509` (the existing Overleaf integration). Kept the excerpt-count additions,
-portable font fallback, restricted-build mode, and source packager. Preserved
-the branch's legacy `arxiv_eprint.tex` name as a wrapper rather than a second
-copy of the manuscript. The default `make` still builds both formats. Funding
+portable font fallback, restricted-build mode, and source packager. The
+single-column version uses `main-arxiv.tex` as its sole entry point, sharing
+the manuscript with `main.tex`. The default `make` builds both formats. Funding
 and AI disclosure use a single shared Acknowledgments section, and all author
 names and identifying links are unconditional in both layouts.

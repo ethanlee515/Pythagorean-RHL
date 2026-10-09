@@ -1,6 +1,6 @@
 MAIN := main
 ARXIV_MAIN := main-arxiv
-DOCUMENTS := $(MAIN) $(ARXIV_MAIN) arxiv_eprint
+DOCUMENTS := $(MAIN) $(ARXIV_MAIN)
 PDFS := $(addsuffix .pdf,$(DOCUMENTS))
 
 LATEXMK := latexmk
@@ -35,7 +35,7 @@ all: $(PDFS)
 
 csf: $(MAIN).pdf
 
-arxiv: $(ARXIV_MAIN).pdf arxiv_eprint.pdf
+arxiv: $(ARXIV_MAIN).pdf
 
 arxiv-source: arxiv
 	python3 scripts/package-arxiv.py
@@ -58,11 +58,10 @@ summarize-formal-excerpts: refresh-formal-excerpts
 $(MAIN).pdf: summarize-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
 	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
 
-$(ARXIV_MAIN).pdf arxiv_eprint.pdf: %.pdf: summarize-formal-excerpts %.tex $(wildcard *.tex) reference.bib
-	$(LATEXMK) $(ARXIV_LATEXMK_FLAGS) $*.tex
+$(ARXIV_MAIN).pdf: summarize-formal-excerpts $(ARXIV_MAIN).tex $(wildcard *.tex) reference.bib
+	$(LATEXMK) $(ARXIV_LATEXMK_FLAGS) $(ARXIV_MAIN).tex
 
 clean:
 	$(LATEXMK) -c $(MAIN).tex
 	$(LATEXMK) -c $(ARXIV_MAIN).tex
-	$(LATEXMK) -c arxiv_eprint.tex
 	rm -rf $(addprefix _minted-,$(DOCUMENTS))
