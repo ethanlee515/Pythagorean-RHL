@@ -11,6 +11,9 @@ EXCERPT_SRCS := \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussian.v \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussianKL.v \
 	../theories/LibExtras/MathcompExtras/DTuple.v \
+	../theories/LibExtras/MathcompExtras/ListExtras.v \
+	../theories/LibExtras/SSProveExtras/ChoiceVector.v \
+	../theories/Probability/KL/Core.v \
 	../theories/LibExtras/SSProveExtras/DiscreteGaussian.v \
 	../theories/Schemes/ApproxFHE.v \
 	../theories/Schemes/Utils/IntVec.v \
@@ -18,10 +21,11 @@ EXCERPT_SRCS := \
 	../theories/Schemes/Indcpad.v \
 	../theories/Constructions/NoiseFlooding.v \
 	../theories/Security/IndcpadSimulator.v \
+	../theories/Security/NoiseFloodingSecurity/GaussianBasics.v \
 	../theories/Security/NoiseFloodingSecurity/Prelude.v \
 	../theories/Security/NoiseFloodingSecurity/Final.v
 
-.PHONY: all clean refresh-formal-excerpts
+.PHONY: all clean refresh-formal-excerpts summarize-formal-excerpts
 
 all: $(MAIN).pdf
 
@@ -37,7 +41,10 @@ refresh-formal-excerpts:
 		fi; \
 	done
 
-$(MAIN).pdf: refresh-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
+summarize-formal-excerpts: refresh-formal-excerpts
+	python3 scripts/count-interface-excerpts.py --latex > formal-excerpt-size.tex
+
+$(MAIN).pdf: summarize-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
 	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
 
 clean:
