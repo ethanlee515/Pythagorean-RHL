@@ -17,23 +17,28 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{placeins}
+\ifdefined\NoShellEscape
+% minted's draft renderer keeps source ranges, numbering, and wrapping, but
+% does not run Pygments or depend on a pre-generated highlighting cache.
+\usepackage[draft]{minted}
+\else
 \usepackage{minted}
+\fi
 \usepackage{hyperref}
 \usepackage{aliascnt}
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 
-
-%%%%%%%%%%%%%
+% FreeMono covers the Rocq excerpts except for these two double braces.
+% The Overleaf version uses JuliaMono; keep it when installed, with a fallback
+% from the same FreeFont family as FreeMono for standalone TeX installations.
 \usepackage{newunicodechar}
-
-% Used only for the two glyphs missing from FreeMono
-\newfontfamily\coqsymbolfont{JuliaMono}[Scale=MatchLowercase]
-
+\IfFontExistsTF{JuliaMono}{%
+  \newfontfamily\coqsymbolfont{JuliaMono}[Scale=MatchLowercase]
+}{%
+  \newfontfamily\coqsymbolfont{FreeSerif}[Scale=MatchLowercase]
+}
 \newunicodechar{⦃}{{\coqsymbolfont\char"2983\relax}}
 \newunicodechar{⦄}{{\coqsymbolfont\char"2984\relax}}
-
-%%%%%%%%%%%%%%%%
-
 
 \hypersetup{hidelinks}
 \urlstyle{same}

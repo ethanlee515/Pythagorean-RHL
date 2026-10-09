@@ -1,12 +1,34 @@
+\input{paper-options}
+\ifdefined\SingleColumn
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\else
 \documentclass[conference]{IEEEtran}
+\fi
 
 \input{packages}
 \input{macros}
 
-\title{Verified Pythagorean Composition for \\ Adaptive Cryptographic Games:\\
-\huge{Noise Flooding in Homomorphic Encryption}}
+\ifdefined\SingleColumn
+% Allow modest extra interword space around long technical names in article
+% paragraphs; IEEEtran already applies its own two-column line-breaking policy.
+\setlength{\emergencystretch}{2em}
+\fi
 
-\ifdefined\CameraReady
+\title{Verified Pythagorean Composition for \\ Adaptive Cryptographic Games:\\
+Noise Flooding in Homomorphic Encryption}
+
+\ifdefined\SingleColumn
+\author{%
+  Yi Lee\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{ylee1228@umd.edu}}
+  \and Alexandru Cojocaru\thanks{School of Informatics, The University of Edinburgh,
+    United Kingdom. Email: \url{a.cojocaru@ed.ac.uk}}
+  \and Junyi Liu\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{junyiliu@umd.edu}}
+  \and Xiaodi Wu\thanks{Joint Center for Quantum Information and Computer Science,
+    University of Maryland, USA. Email: \url{xwu@cs.umd.edu}}}
+\else
 \author{%
   \IEEEauthorblockN{Yi Lee\IEEEauthorrefmark{1},
     Alexandru Cojocaru\IEEEauthorrefmark{2},
@@ -19,9 +41,8 @@
     United Kingdom\\
     \url{ylee1228@umd.edu}, \url{a.cojocaru@ed.ac.uk},
     \url{junyiliu@umd.edu}, \url{xwu@cs.umd.edu}}}
-\else
-\author{\IEEEauthorblockN{Anonymous submission}}
 \fi
+\date{}
 
 \begin{document}
 
@@ -65,20 +86,21 @@ metatheoretic audit outside the program semantics.
 \fi
 \end{abstract}
 
+\ifdefined\SingleColumn
+\else
 \begin{IEEEkeywords}
 approximate homomorphic encryption, noise flooding, IND-CPAD, SSProve,
 Rocq, relational program logic, game-based cryptography,
 Kullback--Leibler divergence
 \end{IEEEkeywords}
-
-\Ethan{There is a ``CameraReady'' switch in ``macros.tex'' for displaying author names and affiliations}
+\fi
 
 \Ethan{Original intro here, Alex's version afterwards}
 
 \input{introduction}
 
 \Ethan{Alex's intro version below.
-When one turns off draft mode (i.e. at ``macros.tex''), this section will be hidden alongside the author notes.}
+When one turns off draft mode (i.e. at ``paper-options.tex''), this section will be hidden alongside the author notes.}
 \ifdefined\Draft
 \input{introduction-alex}
 \fi
@@ -102,7 +124,11 @@ When one turns off draft mode (i.e. at ``macros.tex''), this section will be hid
 
 \bibliographystyle{IEEEtran} \bibliography{reference}
 
+\ifdefined\SingleColumn
+\appendix
+\else
 \appendices
+\fi
 \input{appendix-security-games-and-reduction-pseudocode}
 \input{appendix-ssprove-syntax-and-semantics}
 \input{appendix-checked-rules-used-by-security-proof}

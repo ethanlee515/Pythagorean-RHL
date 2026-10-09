@@ -1,12 +1,11 @@
-DOCUMENTS := main arxiv_eprint
+MAIN := main
+ARXIV_MAIN := main-arxiv
+DOCUMENTS := $(MAIN) $(ARXIV_MAIN) arxiv_eprint
 PDFS := $(addsuffix .pdf,$(DOCUMENTS))
-ENTRYPOINTS := $(addsuffix .tex,$(DOCUMENTS))
-TEX_SOURCES := $(filter-out $(ENTRYPOINTS),$(wildcard *.tex))
-
-.DEFAULT_GOAL := all
 
 LATEXMK := latexmk
 LATEXMK_FLAGS := -xelatex -shell-escape -interaction=nonstopmode -halt-on-error
+ARXIV_LATEXMK_FLAGS := -xelatex -no-shell-escape -interaction=nonstopmode -halt-on-error
 EXCERPT_ROOT := rocq-excerpts
 EXCERPT_SRCS := \
 	../theories/NextMessage/Trace.v \
@@ -16,6 +15,9 @@ EXCERPT_SRCS := \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussian.v \
 	../theories/Probability/DiscreteGaussians/DiscreteGaussianKL.v \
 	../theories/LibExtras/MathcompExtras/DTuple.v \
+	../theories/LibExtras/MathcompExtras/ListExtras.v \
+	../theories/LibExtras/SSProveExtras/ChoiceVector.v \
+	../theories/Probability/KL/Core.v \
 	../theories/LibExtras/SSProveExtras/DiscreteGaussian.v \
 	../theories/Schemes/ApproxFHE.v \
 	../theories/Schemes/Utils/IntVec.v \
@@ -23,12 +25,20 @@ EXCERPT_SRCS := \
 	../theories/Schemes/Indcpad.v \
 	../theories/Constructions/NoiseFlooding.v \
 	../theories/Security/IndcpadSimulator.v \
+	../theories/Security/NoiseFloodingSecurity/GaussianBasics.v \
 	../theories/Security/NoiseFloodingSecurity/Prelude.v \
 	../theories/Security/NoiseFloodingSecurity/Final.v
 
-.PHONY: all clean refresh-formal-excerpts
+.PHONY: all csf arxiv arxiv-source clean refresh-formal-excerpts summarize-formal-excerpts
 
 all: $(PDFS)
+
+csf: $(MAIN).pdf
+
+arxiv: $(ARXIV_MAIN).pdf arxiv_eprint.pdf
+
+arxiv-source: arxiv
+	python3 scripts/package-arxiv.py
 
 refresh-formal-excerpts:
 	@for src in $(EXCERPT_SRCS); do \
@@ -42,10 +52,17 @@ refresh-formal-excerpts:
 		fi; \
 	done
 
-$(PDFS): %.pdf: refresh-formal-excerpts %.tex $(TEX_SOURCES) reference.bib
-	$(LATEXMK) $(LATEXMK_FLAGS) $*.tex
+summarize-formal-excerpts: refresh-formal-excerpts
+	python3 scripts/count-interface-excerpts.py --latex > formal-excerpt-size.tex
+
+$(MAIN).pdf: summarize-formal-excerpts $(MAIN).tex $(wildcard *.tex) reference.bib
+	$(LATEXMK) $(LATEXMK_FLAGS) $(MAIN).tex
+
+$(ARXIV_MAIN).pdf arxiv_eprint.pdf: %.pdf: summarize-formal-excerpts %.tex $(wildcard *.tex) reference.bib
+	$(LATEXMK) $(ARXIV_LATEXMK_FLAGS) $*.tex
 
 clean:
-	$(LATEXMK) -c main.tex
+	$(LATEXMK) -c $(MAIN).tex
+	$(LATEXMK) -c $(ARXIV_MAIN).tex
 	$(LATEXMK) -c arxiv_eprint.tex
 	rm -rf $(addprefix _minted-,$(DOCUMENTS))

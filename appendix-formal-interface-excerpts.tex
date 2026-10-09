@@ -7,6 +7,21 @@ They are not intended to replace the full artifact; rather, they expose the
 small specification surface that a cryptographic reader should be able to
 audit independently.
 
+\input{formal-excerpt-size}
+
+The \FormalExcerptListingCount{} listings below select
+\FormalExcerptLineCount{} physical source lines from
+\FormalExcerptFileCount{} Rocq files;
+\Cref{tab:formal-excerpt-size} breaks this count down by category.
+The ranges are disjoint, and the count includes blank and comment lines.
+This measures the excerpted specification, not the complete human audit
+surface. The local specification helpers and top-level theorem statement are
+included below; library semantics and assumptions remain on the trust side.
+The reduction's running-time audit inspects the displayed code and the costs
+of its primitives, rather than adding another source-line category.
+The build regenerates the table from the listing ranges with
+\texttt{scripts/count-interface-excerpts.py}.
+
 \begingroup
 \setmonofont{FreeMono}[Scale=MatchLowercase]
 
@@ -253,5 +268,90 @@ Finally, the addition in the displayed decryption code below is coordinatewise.
   firstline=1783,
   lastline=1788
 ]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
+
+
+\subsection{Miscellaneous Specification Helpers}
+\label{app:specification-helpers}
+
+The following definitions complete the local dependency chain of the displayed
+specification: package interfaces and labels, heap locations, integer-vector
+operations and representations, safe table indexing, and the reduction and
+security-bound wrappers. The theorem listing repeats the top-level theorem so
+that its statement is included in the count. We stop at standard-library,
+MathComp, and SSProve primitives, which belong to the trusted semantic base,
+and at proved lemmas whose displayed statements are checked by Rocq; we do not
+include their proof bodies or proof-only intermediate game definitions.
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=19, firstline=19, lastline=23
+]{coq}{rocq-excerpts/theories/Schemes/ApproxFHE.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=52, firstline=52, lastline=98
+]{coq}{rocq-excerpts/theories/Schemes/ApproxFHE.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=9, firstline=9, lastline=13
+]{coq}{rocq-excerpts/theories/Schemes/Utils/IntVec.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=47, firstline=47, lastline=48
+]{coq}{rocq-excerpts/theories/Schemes/Utils/IntVec.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=87, firstline=87, lastline=88
+]{coq}{rocq-excerpts/theories/Schemes/Utils/IntVec.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=6, firstline=6, lastline=12
+]{coq}{rocq-excerpts/theories/LibExtras/MathcompExtras/ListExtras.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=15, firstline=15, lastline=19
+]{coq}{rocq-excerpts/theories/LibExtras/SSProveExtras/ChoiceVector.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=16, firstline=16, lastline=51
+]{coq}{rocq-excerpts/theories/Schemes/Indcpa.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=18, firstline=18, lastline=64
+]{coq}{rocq-excerpts/theories/Schemes/Indcpad.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=134, firstline=134, lastline=136
+]{coq}{rocq-excerpts/theories/Schemes/Indcpad.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=35, firstline=35, lastline=98
+]{coq}{rocq-excerpts/theories/Security/IndcpadSimulator.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=320, firstline=320, lastline=321
+]{coq}{rocq-excerpts/theories/Security/IndcpadSimulator.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=19, firstline=19, lastline=20
+]{coq}{rocq-excerpts/theories/Probability/KL/Core.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=41, firstline=41, lastline=47
+]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=522, firstline=522, lastline=533
+]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=1953, firstline=1953, lastline=1956
+]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=256, firstline=256, lastline=257
+]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/GaussianBasics.v}
+
+\inputminted[fontsize=\scriptsize, breaklines, linenos,
+  firstnumber=46, firstline=46, lastline=52
+]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Prelude.v}
 
 \endgroup
