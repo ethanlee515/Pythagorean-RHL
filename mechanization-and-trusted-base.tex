@@ -236,10 +236,11 @@ extensionality and choice principles and not the admitted upstream lemma.  The
 proof has since been merged to MathComp Analysis's development branch,
 via \href{https://github.com/math-comp/analysis/pull/2007}%
 {\texttt{math-comp/analysis\#2007}},
-for inclusion in the 1.17.0 release.
-Before this patch eventually reaches SSProve,
-\texttt{Print Assumptions} for the top-level theorem
-will continue to display the admitted lemma.
+and is included in MathComp Analysis 1.18.0.
+The artifact retains the checked Analysis 1.16.0 dependency stack while
+compatible upstream SSProve support for newer MathComp and Analysis is pending.
+Consequently, \texttt{Print Assumptions} for the top-level theorem still
+reports the inherited admitted lemma in the current artifact.
 
 Besides library and classical assumptions, \texttt{Print Assumptions} for an
 instantiated theorem reports the concrete scheme, chart, correctness, and

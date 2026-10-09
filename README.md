@@ -1,5 +1,32 @@
 # Pythagorean RHL manuscript
 
+**Verified Pythagorean Composition for Adaptive Cryptographic Games: Noise
+Flooding in Homomorphic Encryption** has been accepted at **CSF 2027**. This
+repository is preparing the camera-ready manuscript and its public arXiv
+version. It is also the `Pythagorean-RHL/` submodule of the
+[Mending formal artifact](https://github.com/ethanlee515/mending).
+Both formats include named authors, affiliations, artifact links, and funding;
+the anonymous/camera-ready switch has been removed.
+
+Contributor context: preserve this public, named-author configuration. Keep
+dependency versions and trusted-base statements synchronized with Mending's
+`mending.opam` and README. Long dependency rebuilds are run by the user outside
+the agent session during this preparation.
+
+The dependency upgrade is deferred: the artifact retains the checked upstream
+Rocq 9.0.1 / MathComp Analysis 1.16.0 stack. Our summation proof is merged into
+newer Analysis, but adopting it requires MathComp 2.6 and compatible SSProve
+support. As checked on October 9, 2026,
+[SSProve PR #124](https://github.com/SSProve/ssprove/pull/124) is still unmerged
+and its dependency bounds need updating. See the
+[Mending dependency blocker](https://github.com/ethanlee515/mending#dependency-upgrade-blocker).
+The current security theorem therefore still inherits the admitted summation
+assumption. Revisit the upgrade when upstream support is available; an
+author-maintained SSProve fork is a deferred option if the camera-ready deadline
+requires it. Do not switch to an unmerged PR snapshot or claim that the inherited
+assumption has disappeared. A future upgrade requires a full rebuild and
+assumption audit before updating the manuscript's claims.
+
 The section files, mathematical macros, bibliography, and Rocq excerpts are
 shared by both formats. Build from this directory:
 
