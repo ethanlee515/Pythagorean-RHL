@@ -60,6 +60,8 @@ to configure a direct `main.tex` build:
 
 The switches control format, author notes, and code rendering independently.
 `main-arxiv.tex` enables `\SingleColumn` and `\NoShellEscape`.
+It also includes a table of contents after the abstract; the conference
+version has no table of contents.
 Use XeLaTeX without `-shell-escape` whenever `\NoShellEscape` is enabled.
 
 The document uses TeX Gyre Termes/Heros, DejaVu Sans Mono, and FreeMono. The two

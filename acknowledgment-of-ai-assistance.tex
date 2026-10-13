@@ -1,3 +1,150 @@
-OpenAI Codex was used to draft prose throughout this manuscript.
-The Rocq development was also substantially AI-assisted.
-Both have been audited and revised by the authors accordingly.
+\section{Use of AI in the Research and Formalization}
+\label{app:ai-assistance}
+
+This appendix is a historical account of our workflow in 2025--2026.
+As of October 2026, we consider it plausible that an agent using GPT-6 Astra,
+given this manuscript with its Rocq excerpts (including those in
+Appendix~\ref{app:formal-interface-excerpts}) removed and access to Rocq and
+the stated dependencies, could independently recreate the full formalization
+from scratch for at most US\$200 in model usage.
+We have not performed this experiment; both its success and its cost remain
+conjectural.
+
+OpenAI Codex was used extensively in both the Rocq development and the
+preparation of this manuscript.
+Its contributions included implementations, proof scripts, auxiliary lemma
+statements, mathematical arguments and counterexamples, explanations of
+library interfaces, and drafts and revisions of the exposition.
+The authors supplied the research objectives, developed the initial
+specifications, directed and reviewed the subsequent work, and retain
+responsibility for the definitions, assumptions, results, and text.
+The account below draws on the authors' recollection, the Git histories of the
+artifact and manuscript, and retained development conversations.
+These records support a chronology and concrete examples of collaboration;
+they do not support a precise division of credit by line count.
+
+\subsection{Human design and early formalization}
+
+The cryptographic objective preceded the intensive AI-assisted proof work.
+In 2025, the authors formalized the approximate homomorphic-encryption
+interface, correctness properties, and IND-CPA and IND-CPAD security games
+largely by hand.
+The artifact already contained a statement of the noise-flooding security
+reduction in August 2025, although its proof and some quantitative parameters
+were still placeholders.
+The intended security result therefore guided the later proof development;
+the final interfaces, assumptions, and numerical bound were refined during
+that development.
+
+The relational logic similarly began with human-written judgments and proposed
+rules in LaTeX, followed by manual encodings of the judgments as Rocq
+propositions over SSProve semantics.
+These early definitions and rule statements were starting points for
+verification, and several required revision before soundness could be proved.
+
+\subsection{Joint development of logic soundness}
+
+After a break, substantial AI-assisted work resumed in May 2026.
+Much of the initial soundness work proceeded through short, interactive
+exchanges: the authors selected a rule or probability lemma, Codex proposed a
+proof or decomposed it into auxiliary obligations, and the authors questioned
+the statements, discussed the argument, and redirected the next step.
+Codex implemented proof scripts and used compiler feedback to revise them.
+The collaboration covered the probability results underlying the logic as
+well as the program-level rules, including conditional KL composition,
+Pinsker's inequality, and discrete-Gaussian analysis.
+
+Two changes illustrate how this process affected the mathematics.
+First, in June, discussion of sequencing exposed a hidden-mixture problem:
+omitting a shared random intermediate value from the transcript can invalidate
+the proposed coordinatewise conditional-KL bounds.
+Codex supplied a counterexample during the discussion, and the subsequent
+rule design retained such intermediate values as explicit coordinates with
+zero KL budget.
+These zero entries preserve the conditioning information needed by later
+coordinates without increasing the final numerical loss.
+Keeping them explicit was part of repairing the sequence rule.
+
+Second, the authors raised the behavior of the judgments on programs with
+missing probability mass and asked whether the existing completion
+construction could be used for the Pythagorean judgment.
+Together with Codex, they developed and proved the completed sequencing rules
+and the bridge to additive error.
+The resulting definitions account for missing subdistribution mass with an
+explicit \(\bot\) outcome, as described in \Cref{sec:pyth-toolkit,sec:artifact}.
+Both episodes involved changes to proposed statements and definitions,
+followed by proofs of the revised rules.
+
+\subsection{Compiler construction and verification}
+
+The authors identified the need to expose a bounded number of selected oracle
+calls in an otherwise arbitrary adaptive adversary, and supplied the intended
+algorithmic behavior and semantic preservation requirement.
+The trace compiler was developed interactively in early June 2026 from this
+design, building on a partial trace/replay implementation that the authors
+supplied for review.
+Codex filled in substantial parts of the implementation, helped formulate the
+correctness theorem, and constructed its proof through intermediate lemmas.
+The authors reviewed the construction and corrected proposed restrictions on
+the theorem, including an unnecessary bounded-call hypothesis for
+same-package semantic correctness: calls remaining after the selected prefix
+are handled by the residual linked package.
+
+The discussions also clarified SSProve's operation resolution, raw-code
+linking, and package composition interfaces.
+The migration to SSProve's nominal extension had already begun in late May,
+before the trace compiler, with AI assistance in adapting the constructions
+and repairing interfaces.
+The quantitative compiler rule was a further joint development: its statement
+was revised as the logic evolved, and Codex supplied substantial proofs for
+the adaptive replacement theorem and its probability dependencies.
+By late June, some of these proof tasks were delegated for extended execution
+between author checkpoints, alongside continued interactive review.
+
+\subsection{Application to noise flooding and game-hop exposition}
+
+For the application, the authors supplied the security target, an existing
+pen-and-paper proof outline, and the strategy of accumulating per-decryption
+KL costs before a single conversion to statistical distance.
+From late June through July, Codex carried out substantial implementation and
+proof work on the concrete reduction, invariants, local decryption comparison,
+and composition of exact and quantitative transitions.
+This included extended tasks using Codex's persistent-goal workflow, with
+progress records and intervening author discussion of assumptions and proof
+strategy.
+
+The detailed game presentations in \Cref{sec:trace-compiler} emerged from
+this formal proof and several rounds of manuscript feedback.
+Codex drafted the intermediate representations and their explanations; the
+authors asked for a conventional cryptographic reduction, explicit endpoints,
+and a clear distinction between the original game and its compiled form.
+In particular, in July the authors explicitly proposed the seven-stage
+\(H_0,\ldots,H_6\) organization, separating the original IND-CPAD experiment,
+its linked representation, and its compiled representation before the paid
+replacement step.
+Later joint revisions distinguished this implementation-level factorization
+from the three conceptual games in \Cref{eq:conceptual-game-chain}.
+The final presentation therefore reflects both AI drafting and specific human
+choices about the proof's structure and explanation.
+
+\subsection{Review, checking, and manuscript preparation}
+
+AI suggestions also introduced errors that required author intervention.
+For example, during the application proof an AI-added assumption equating
+encodings through different inverse charts was challenged by the authors
+because it conflicted with the intended origin-centered charts.
+The assumption was removed from the proof route.
+The replacement argument compares Gaussian centers in a common chart and then
+uses shared postprocessing; its specification and proof were developed through
+further discussion and formal verification.
+This episode illustrates the separate roles of checking a proof relative to
+its assumptions and reviewing whether those assumptions express the intended
+cryptographic setting.
+
+Rocq kernel checking and inspection of \texttt{Print Assumptions} were central
+to accepting the resulting proofs.
+The final trusted base and remaining inherited assumption are documented in
+\Cref{sec:tcb}; AI-generated proof scripts are subject to the same checks as
+human-written scripts.
+Human review concentrated especially on the scheme and game interfaces,
+theorem statements, assumptions, and the interpretation of the checked result.

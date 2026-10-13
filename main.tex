@@ -95,6 +95,12 @@ Kullback--Leibler divergence
 \end{IEEEkeywords}
 \fi
 
+\ifdefined\ArxivContents
+\clearpage
+\tableofcontents
+\clearpage
+\fi
+
 \Ethan{Original intro here, Alex's version afterwards}
 
 \input{introduction}
@@ -120,8 +126,6 @@ When one turns off draft mode (i.e. at ``paper-options.tex''), this section will
 
 \input{acknowledgements_funding}
 
-\input{acknowledgment-of-ai-assistance}
-
 \bibliographystyle{IEEEtran} \bibliography{reference}
 
 \ifdefined\SingleColumn
@@ -134,5 +138,6 @@ When one turns off draft mode (i.e. at ``paper-options.tex''), this section will
 \input{appendix-checked-rules-used-by-security-proof}
 \input{appendix-additional-probability-details}
 \input{appendix-formal-interface-excerpts}
+\input{acknowledgment-of-ai-assistance}
 
 \end{document}
