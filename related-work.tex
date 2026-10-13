@@ -15,10 +15,18 @@ Recent Nominal-SSProve work makes package state separation intrinsic and reports
 Those results address exact package composition and general hybrid structure.
 Our compiler instead preserves an adaptive sequence of conditional KL costs and derives a sublinear statistical-distance loss.
 
-EasyCrypt is another popular framework for game-based cryptographic proofs.
+EasyCrypt is another popular framework for game-based cryptographic proofs~\cite{easycrypt}.
 Adversaries are treated as opaque modules, and reflection techniques~\cite{reflection} can be used to extract the adversary's semantics.
 Our abstraction boundary differs because SSProve adversaries are concrete program syntax: the verified trace compiler factors selected calls before the replacement theorem is applied.
 This compiler supplies a checked connection between local divergence bounds and complete adaptive SSProve games.
+EasyCrypt also has a cost logic for bounding execution costs and oracle-call counts of adversarial programs~\cite{easycrypt-cost}.
+
+Squirrel is a standalone interactive prover based on a higher-order extension of the Computationally Complete Symbolic Attacker (CCSA) logic.
+Baelde et al. extend this logic with explicit failure-probability and computational-indistinguishability bounds; the latter depend on adversary execution time and oracle-call counts under a Turing-machine cost model~\cite{squirrel-concrete}.
+Their proof transformations avoid exponential losses caused by duplicated induction hypotheses.
+Fontaine et al. implement bound-annotated tactics and proof-term elaboration for the reachability fragment, leaving concrete indistinguishability with precise complexity bounds outside the scope of their implementation~\cite{squirrel-errors}.
+This reachability reasoning shares additive probability-error accounting with our \(\AEJ\) judgment, but its bounds concern formula-failure probabilities over random tapes; \(\AEJ\) instead bounds postcondition-failure probability in an existential coupling of completed program outputs.
+Our development connects conditional KL budgets to completed SSProve semantics and adaptive oracle syntax through checked rules and a verified selected-call compiler.
 
 \emph{Approximate relational logics.} apRHL was introduced for differential privacy and mechanized in the Coq-based CertiPriv framework~\cite{certipriv}.
 Its \((\varepsilon,\delta)\) judgments express multiplicative and additive bounds on event probabilities through approximate relational liftings.
