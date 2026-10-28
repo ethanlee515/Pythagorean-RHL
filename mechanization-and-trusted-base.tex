@@ -1,7 +1,7 @@
 \section{Mechanization and Trusted Base}
 \label{sec:artifact}
 
-The artifact contains 27,987 lines of Rocq.
+The artifact contains 27,230 physical lines of Rocq source.
 Since our Rocq development is heavily AI-assisted,
 this line count does not accurately reflect our engineering effort.
 Appendix~\ref{app:ai-assistance} describes the roles of the authors and AI tools in
@@ -44,9 +44,9 @@ adds an explicit outcome for missing subdistribution mass.
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=57,
-  firstline=57,
-  lastline=69
+  firstnumber=58,
+  firstline=58,
+  lastline=70
 ]{coq}{rocq-excerpts/theories/ProgramLogics/Ae.v}
 \endgroup
 
@@ -73,9 +73,9 @@ KL-to-additive-error bridge is:
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=529,
-  firstline=529,
-  lastline=542
+  firstnumber=530,
+  firstline=530,
+  lastline=543
 ]{coq}{rocq-excerpts/theories/ProgramLogics/Pyth.v}
 \endgroup
 
@@ -104,9 +104,9 @@ samples are handled analogously.
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=166,
-  firstline=166,
-  lastline=177
+  firstnumber=167,
+  firstline=167,
+  lastline=178
 ]{coq}{rocq-excerpts/theories/NextMessage/Trace.v}
 \endgroup
 \caption{Scanning for the next call to \texttt{fn}: \texttt{inl} reports its
@@ -167,9 +167,9 @@ explicit:
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=530,
-  firstline=530,
-  lastline=533
+  firstnumber=531,
+  firstline=531,
+  lastline=534
 ]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
 \endgroup
 
@@ -183,9 +183,9 @@ exports the following theorem.
   fontsize=\scriptsize,
   breaklines,
   linenos,
-  firstnumber=1953,
-  firstline=1953,
-  lastline=1956
+  firstnumber=1954,
+  firstline=1954,
+  lastline=1957
 ]{coq}{rocq-excerpts/theories/Security/NoiseFloodingSecurity/Final.v}
 \endgroup
 
@@ -204,11 +204,14 @@ already been proved.
 
 The complete artifact is available at
 \url{https://github.com/ethanlee515/mending}.
-The complete artifact checks with Rocq 9.0.1, \texttt{rocq-ssprove}
-development version at commit \texttt{c6d7d4bc3a}, MathComp Analysis 1.16.0,
-and MathComp algebra tactics 1.2.7.  In a fresh switch on the authors' machine,
-a clean build took about six minutes with four parallel jobs; this is a single
-observation for reviewer planning, not a performance claim.  The manuscript's
+The complete artifact checks with Rocq 9.0.1, MathComp 2.6.0, MathComp Analysis and
+experimental reals 1.18.0, and \texttt{rocq-ssprove} from its \texttt{main}
+branch. The SSProve revision used for this upgrade is
+\texttt{9a37fe0ab79d}; the artifact README records its full hash and commands
+for selecting that snapshot. MathComp's built-in ring tactic replaces the
+separate algebra-tactics package. The branch pin can advance when refreshed,
+so subsequent dependency updates require a complete rebuild and assumption
+audit. The manuscript's
 Rocq listings are refreshed from the checked sources during its build, so the
 displayed propositions and theorem statements do not silently diverge from
 the artifact.
@@ -224,30 +227,27 @@ The scheme, chart, correctness, parameter, and IND-CPA interfaces from
 concrete instantiation.
 
 The new KL, Gaussian, relational, compiler, and game-hop results contain no
-local \texttt{Admitted}.  The installed dependency graph nevertheless reports
-MathComp Analysis's
-\nolinkurl{realsum.__admitted__interchange_psum}: current SSProve
-distribution semantics are built on these MathComp definitions and reach the
-upstream unproven lemma ~\cite{ssprove}.  This is an inherited assumption, not an
-unproven axiom introduced by our security development.
+local \texttt{Admitted}. Early versions of the artifact did inherit an
+unproved summation assumption through SSProve's distribution semantics.
+MathComp Analysis already contained statements of several summation lemmas,
+but their proofs had been left admitted. One of these lemmas, which justifies
+exchanging the order of countable summation, appeared in the assumption audit
+of our top-level security theorem.
 
-We independently discharge the mathematical obligation.  The artifact proves
-the same statement as \texttt{interchange\_psum\_proved};
-\texttt{Print Assumptions} for this replacement reports only the usual
-extensionality and choice principles and not the admitted upstream lemma.  The
-proof has since been merged to MathComp Analysis's development branch,
-via \href{https://github.com/math-comp/analysis/pull/2007}%
-{\texttt{math-comp/analysis\#2007}},
-and is included in MathComp Analysis 1.18.0.
-The artifact retains the checked Analysis 1.16.0 dependency stack while
-compatible upstream SSProve support for newer MathComp and Analysis is pending.
-Consequently, \texttt{Print Assumptions} for the top-level theorem still
-reports the inherited admitted lemma in the current artifact.
+We proved these lemmas and contributed the proofs upstream, where they were
+accepted and merged into MathComp Analysis.
+SSProve now supports the updated library, so the artifact uses the upstream
+proofs directly. After rebuilding the complete artifact with these
+dependencies, we reran the top-level assumption audit and confirmed that it
+no longer reports an admitted summation lemma.
 
-Besides library and classical assumptions, \texttt{Print Assumptions} for an
-instantiated theorem reports the concrete scheme, chart, correctness, and
-IND-CPA interfaces, together with positivity of the discrete-Gaussian width
-multiplier \(\gamma\).  It does not report any program-logic rule, compiler
+The remaining foundational assumptions reported by \texttt{Print Assumptions}
+are MathComp's propositional extensionality, dependent functional
+extensionality, and constructive indefinite description. Within the functor,
+the audit also lists SSProve's abstract real type \(R\), the scheme, chart,
+correctness, and IND-CPA inputs, and positivity of the discrete-Gaussian width
+multiplier \(\gamma\). A concrete scheme must discharge the application
+interfaces. The audit does not report any program-logic rule, compiler
 correctness theorem, or discrete-Gaussian KL identity: these are verified
 inside the development.
 

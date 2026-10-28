@@ -10,22 +10,21 @@ the anonymous/camera-ready switch has been removed.
 
 Contributor context: preserve this public, named-author configuration. Keep
 dependency versions and trusted-base statements synchronized with Mending's
-`mending.opam` and README. Long dependency rebuilds are run by the user outside
-the agent session during this preparation.
+`mending.opam` and README.
 
-The dependency upgrade is deferred: the artifact retains the checked upstream
-Rocq 9.0.1 / MathComp Analysis 1.16.0 stack. Our summation proof is merged into
-newer Analysis, but adopting it requires MathComp 2.6 and compatible SSProve
-support. As checked on October 9, 2026,
-[SSProve PR #124](https://github.com/SSProve/ssprove/pull/124) is still unmerged
-and its dependency bounds need updating. See the
-[Mending dependency blocker](https://github.com/ethanlee515/mending#dependency-upgrade-blocker).
-The current security theorem therefore still inherits the admitted summation
-assumption. Revisit the upgrade when upstream support is available; an
-author-maintained SSProve fork is a deferred option if the camera-ready deadline
-requires it. Do not switch to an unmerged PR snapshot or claim that the inherited
-assumption has disappeared. A future upgrade requires a full rebuild and
-assumption audit before updating the manuscript's claims.
+The artifact now checks with Rocq 9.0.1, MathComp 2.6.0, MathComp Analysis and
+experimental reals 1.18.0, and SSProve's `main` branch. The revision used for
+this upgrade is `9a37fe0ab79d041f8d835e6cf18e37614b16a791`; see
+[Mending's setup and snapshot instructions](https://github.com/ethanlee515/mending#setup).
+[SSProve PR #124](https://github.com/SSProve/ssprove/pull/124) is merged, and
+our summation proofs from
+[Analysis PR #2007](https://github.com/math-comp/analysis/pull/2007) are used
+through the upgraded dependency stack. Duplicate local compatibility proofs
+have been removed. MathComp's built-in ring tactic replaces the separate
+algebra-tactics package. The complete artifact rebuild and top-level
+assumption audit passed on October 28, 2026; the audit contains no admitted
+summation lemma. Rebuild the full artifact and rerun the audit whenever
+advancing the moving SSProve branch.
 
 The section files, mathematical macros, bibliography, and Rocq excerpts are
 shared by both formats. Build from this directory:

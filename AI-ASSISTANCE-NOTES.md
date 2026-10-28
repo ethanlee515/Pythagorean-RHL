@@ -57,6 +57,5 @@ therefore explicitly presents both the proposed outcome and budget as
 conjectural.
 
 The current trusted-base discussion is authoritative for the final
-assumptions. This historical reconstruction does not perform a new Rocq
-assumption audit and does not claim that the inherited MathComp summation
-assumption has disappeared.
+assumptions. This historical reconstruction is separate from the Rocq
+assumption audit performed when upgrading the artifact's dependencies.
