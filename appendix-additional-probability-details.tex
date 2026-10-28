@@ -94,7 +94,11 @@ The development also includes geometric upper bounds for events of the form
   \Pr_{x\gets\DG{\mu}{\sigma^2}}
     \bigl[\, |x-\mu|\geq k\,\bigr].
 \]
-These tail bounds are useful for future cryptographic applications, but the current Pythagorean program logic primarily consumes the \Cref{lem:dg-kl} through the discrete-Gaussian sampling rule.
+These estimates in \texttt{Tail.v} are auxiliary results that may support
+future concrete correctness analyses.
+The current security theorem does not use this tail API:
+its one-call replacement consumes \Cref{lem:dg-kl} through the
+discrete-Gaussian sampling rule.
 
 Thus the probability layer supplies three kinds of facts to the program logic:
 ordinary distribution-level KL bounds such as the discrete-Gaussian theorem,

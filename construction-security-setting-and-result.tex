@@ -69,20 +69,30 @@ center \(a\in M\) it has maps
 satisfying
 \begin{equation}
 \label{eq:charts}
- I_a(a)=0,
- \quad d(a,b)=\norm{I_a(b)}_\infty,
- \quad J_b(v)=J_a(v+I_a(b)).
+ \begin{aligned}
+ &I_a(a)=0,\qquad J_a(0)=a,\\
+ &d(a,b)=\norm{I_a(b)}_\infty,\\
+ &d(a,J_a(v))\leq\norm{v}_\infty,\\
+ &J_b(v)=J_a(v+I_a(b)).
+ \end{aligned}
 \end{equation}
 Here \(I_a(b)\) is the integer displacement from \(a\) to \(b\), while
 \(J_a(v)\) interprets the integer displacement \(v\) as a message based at
 \(a\).
 Thus \(J_a\) transports a distribution on \(\bbZ^n\) to a distribution on
 messages.
-The three laws say that the coordinates are centered, that their
-\(\ell_\infty\) norm agrees with message distance, and that changing the base
-point translates the integer coordinates.
-In particular, they let the proof compare flooding around two messages as
-centered and shifted Gaussians in one common copy of \(\bbZ^n\).
+Zero displacement therefore returns the center, and decoding a displacement
+cannot increase its \(\ell_\infty\) size in the message metric.
+Taking \(v=0\) in the change-of-basepoint law also gives
+\(J_a(I_a(b))=b\), proved as \nolinkurl{inverse_isometry_isometry} in the
+artifact.
+We do not require \(I_a(J_a(v))=v\) for every integer vector: in a finite
+plaintext space, distinct displacements can wrap to the same message.
+The centering, distance, and translation laws let the security proof compare
+flooding around two messages as centered and shifted Gaussians in one common
+copy of \(\bbZ^n\).
+The zero-displacement and displacement-bound laws specify the intended
+meaning of flooding; the KL security comparison does not need them.
 
 For \(\gamma>0\), noise flooding around \(x\in M\) is consequently the
 following single construction:
@@ -110,6 +120,22 @@ encryption, and evaluation unchanged and decrypts a valid tagged ciphertext by
 \]
 On input \(\mathsf{None}\), decryption fails; SSProve represents this by a
 subdistribution of total weight zero.
+
+The output distribution is determined explicitly by this construction.
+Write \((J_x)_*P\) for the pushforward of a distribution \(P\) through
+\(J_x\), and let \(x=\mathsf{dec}_0(sk,c)\) for
+\(c=\mathsf{Some}(\bar c,e)\).
+The artifact proves
+\begin{equation}
+\label{eq:flood-output-law}
+ \mathcal{L}(\mathsf{Dec}_{\mathsf{NF}_{\gamma}[S]}(sk,c))
+   =(J_x)_*D_{\bbZ^n,0,\sigma_e^2}.
+\end{equation}
+This distribution has total mass one.
+If the chart wraps, the probability of a message is the sum of the Gaussian
+masses of all integer vectors that decode to it.
+The security replacement below compares these full output distributions
+using KL divergence.
 
 We use the standard multi-query left-or-right IND-CPA experiment and the
 IND-CPAD experiment of Li and Micciancio~\cite{lm}; their full definitions

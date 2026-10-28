@@ -115,6 +115,22 @@ The invariant \(\Phi\) from \Cref{sec:adaptive-invariant} gives
 plaintexts agree.
 Translation of charts by \Cref{eq:charts} puts the two answer distributions
 over the same coordinate space.
+More explicitly, set \(x=\mathsf{dec}_0(sk,c)\) and
+\(\delta=I_x(m)\).  Conditional on the prior interaction and a successful
+query, the message components of the answers have laws
+\[
+\begin{aligned}
+ P_{\mathsf{real}}&=(J_x)_*D_{\bbZ^n,0,\sigma_e^2},\\
+ P_{\mathsf{sim}}&=(J_x)_*D_{\bbZ^n,\delta,\sigma_e^2}.
+\end{aligned}
+\]
+These are checked distribution equalities, provided by
+\nolinkurl{noise_flooding_decrypt_some_centered} and
+\nolinkurl{simulator_decrypt_noise_one_chart} in
+\texttt{GaussianBasics.v}; they identify the concrete construction and
+simulator with the Gaussian kernels used by the program logic.
+Both kernels use the same deterministic postprocessing \(J_x\), so data
+processing bounds output KL by the Gaussian KL even when the chart wraps.
 Applying \Cref{eq:dg-kl} in \(n\) coordinates with
 \(\sigma_e=\max\{1,e\}\gamma\) yields the following local judgment.
 
@@ -185,6 +201,13 @@ Rocq verifies
 Here \(H_0=H_1\) unfolds package linking, and \(H_1=H_2\) is same-package
 compiler correctness.
 The single paid step \(H_2\to H_3\) is the application above.
+In the artifact, the distribution equalities feed
+\nolinkurl{noise_flooding_successful_decrypt_code_pyth_one_chart}
+in \texttt{GaussianBasics.v}; \texttt{DecryptCompiler.v} incorporates it
+into the complete oracle body, and \texttt{Final.v} applies the selected-call
+replacement theorem.
+This is the explicit connection from the flooded output distribution to the
+adaptive game hop.  Gaussian tail bounds are not a premise of this hop.
 For \(H_3=H_4\), the shared counter ensures that any residual decryption call
 after the \(q\) selected entries assertion-fails on both sides.
 The equality \(H_4=H_5\) removes the compiler using
