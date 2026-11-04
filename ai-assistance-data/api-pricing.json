@@ -1,0 +1,47 @@
+{
+  "checked_on": "2026-11-04",
+  "currency": "USD",
+  "rate_unit": "per million tokens",
+  "processing_tier": "Standard",
+  "long_context_threshold_input_tokens": 272000,
+  "long_context_input_multiplier": "2",
+  "long_context_output_multiplier": "1.5",
+  "models": {
+    "gpt-5.5": {
+      "input": "5.00",
+      "cached_input": "0.50",
+      "output": "30.00",
+      "long_context_scope": "session",
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.5"
+    },
+    "gpt-5.6-sol": {
+      "input": "4.00",
+      "cached_input": "0.40",
+      "output": "20.00",
+      "long_context_scope": "request",
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-sol"
+    },
+    "gpt-5.6-luna": {
+      "input": "0.20",
+      "cached_input": "0.02",
+      "output": "1.20",
+      "long_context_scope": "request",
+      "source": "https://developers.openai.com/api/docs/models/gpt-5.6-luna"
+    },
+    "gpt-6.1-sol": {
+      "input": "2.00",
+      "cached_input": "0.10",
+      "output": "10.00",
+      "long_context_scope": "request",
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    }
+  },
+  "unpriced_models": ["codex-auto-review"],
+  "assumptions": [
+    "Reprice retained usage at listed rates checked on the stated date; do not infer historical invoices.",
+    "Assume the API attains the recorded cache-read pattern; all selected rollouts report zero cache-write tokens.",
+    "Include long-context premiums using last_token_usage.input_tokens, with signed counter corrections preserving final totals.",
+    "Count reasoning output within output, not a second time.",
+    "Exclude taxes, hosted-tool fees, local compute, Fast or Ultrafast premiums, Batch or Flex discounts, missing usage and unpriced automatic review."
+  ]
+}

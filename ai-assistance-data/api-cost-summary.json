@@ -1,0 +1,75 @@
+{
+  "pricing_checked_on": "2026-11-04",
+  "currency": "USD",
+  "processing_tier": "Standard",
+  "priced_sessions": 134,
+  "aggregates": [
+    {
+      "scope": "core",
+      "kind": "subagent",
+      "usd": "1.666138"
+    },
+    {
+      "scope": "core",
+      "kind": "user",
+      "usd": "2444.524635"
+    },
+    {
+      "scope": "upstream",
+      "kind": "user",
+      "usd": "28.655620"
+    }
+  ],
+  "all_priced_usd": "2474.846392",
+  "unpriced_sessions": [
+    {
+      "session_id": "019ff026-fca3-7c62-a2d9-e87440120480",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 18521
+    },
+    {
+      "session_id": "01a12126-4a95-7233-8f5b-7e0c6b150e74",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 41799
+    },
+    {
+      "session_id": "01a1213f-5562-7751-b488-9e2b2269bda9",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 477419
+    },
+    {
+      "session_id": "01a12da4-63ef-7731-a49c-8c9c6f3f7b79",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 13843
+    },
+    {
+      "session_id": "01a135e9-644e-7812-a8fb-c4d8a379d5ef",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 113738
+    },
+    {
+      "session_id": "01a18449-12c4-7b10-96dc-3da015b37930",
+      "scope": "core",
+      "kind": "guardian",
+      "models": "codex-auto-review",
+      "total_tokens": 246188
+    }
+  ],
+  "assumptions": [
+    "Reprice retained usage at listed rates checked on the stated date; do not infer historical invoices.",
+    "Assume the API attains the recorded cache-read pattern; all selected rollouts report zero cache-write tokens.",
+    "Include long-context premiums using last_token_usage.input_tokens, with signed counter corrections preserving final totals.",
+    "Count reasoning output within output, not a second time.",
+    "Exclude taxes, hosted-tool fees, local compute, Fast or Ultrafast premiums, Batch or Flex discounts, missing usage and unpriced automatic review."
+  ]
+}

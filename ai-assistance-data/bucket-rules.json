@@ -1,0 +1,88 @@
+{
+  "classification_date": "2026-11-04",
+  "definitions": {
+    "repository": "Formal definitions, mathematical proof design, Rocq proofs, supporting probability libraries, refactoring, dependency upgrades, build validation, and artifact instructions or packaging. Includes experiments and dead ends, not only code surviving in the final dependency graph.",
+    "paper": "Manuscript exposition, related-work research, review and rebuttal, figures, excerpts, LaTeX builds, and documentation of AI assistance, including the November 4 audit conversation.",
+    "other": "Upstream MathComp Analysis contribution preparation and review, related service scaffolding, and the accidental archived greeting. Does not include unrelated projects or presentation slides."
+  },
+  "default_by_scope": {"core": "repository", "upstream": "other"},
+  "paper_sessions": [
+    "019e7282-3bdb-7a71-bb97-1165470f5e51",
+    "019ef0d6-152b-75c3-8eee-5ba2005f1fa1",
+    "019f599b-ba0b-72c0-ba11-6fee83b8eb7a",
+    "019f59e6-9ebd-7471-bd3f-145e0a3b7335",
+    "019f786e-e0b5-7331-a8da-2379463485f2",
+    "019f8cc3-ed82-7a63-bc09-dd8a951d35be",
+    "019f9d79-ce2a-77c3-91ec-b14b43663950",
+    "019f9d8b-79f7-7153-a30f-8b2338a7f3e5",
+    "019f9d9b-7d9d-78d0-a77b-8e24cefae3c4",
+    "019f9da0-8678-7213-881f-176789166e51",
+    "019f9f4e-754f-78c0-8780-badace3928e5",
+    "019faa0f-629b-7bf1-ad3a-215b041f4055",
+    "019faa19-3205-7bd0-a9e2-67a3b55f3909",
+    "019fb0ff-d9b3-7bf1-ad65-c28f68ed6961",
+    "019fb881-ad1f-7360-b72b-a70d2cb8625f",
+    "019fb88b-8f47-7bf1-9883-038225069619",
+    "019fb89b-f269-7a42-8e83-032a5dcdf280",
+    "019fb8de-95d6-7390-9e22-b8be64a0c559",
+    "019fb900-edd0-7af2-b399-875b71cb1b19",
+    "019fb912-3df1-7d81-9d59-a3d90eea7cb6",
+    "019fb942-513d-7e12-a5e3-103ce91a5f24",
+    "019fbfde-3624-7cc1-a6b0-067acb0feb44",
+    "019fc017-9500-7573-9593-b3f39776f24c",
+    "019fc084-a74e-7ca2-998d-e254effd199a",
+    "019fe663-90bd-79a2-8ab0-11e95b5f8149",
+    "019fe664-3d1a-7160-a457-fc6536a4451a",
+    "019fe664-4a33-72f2-9643-0f473ba5a1f3",
+    "019fe664-5c78-73a2-848f-24fbfcc624b9",
+    "01a12126-4897-73f2-90a1-4478d439baea",
+    "01a12da4-6380-7201-b221-90e7ba63e389",
+    "01a12dac-81dd-7211-8cbc-df7a86bbbab3",
+    "01a135ce-52b5-77c0-b9c9-011bf7ea67d0",
+    "01a1a79c-6f7c-76b1-8d50-1162ba070f87"
+  ],
+  "other_sessions": {
+    "019f0890-395a-76b0-aae9-5670f81a8f9a": "June 27 community-service proof work and upstream contribution plan, despite starting in the artifact directory.",
+    "019f1806-f9ab-7cf0-97fa-0cdc65c1a34b": "Remove completed upstream-service planning scaffolding.",
+    "019f93ab-ca65-7712-b273-bcfa690a171b": "Accidental archived greeting with no substantive project task."
+  },
+  "phase_changes": {
+    "019f4224-099b-7d53-879f-23e05ef54fd2": [
+      {"from_line": 41136, "bucket": "paper", "reason": "Explicit switch from application proof to updating manuscript sections."},
+      {"from_line": 41528, "bucket": "repository", "reason": "Canonicalize completed AE and clean up completion wrappers."},
+      {"from_line": 41811, "bucket": "paper", "reason": "Correct an obsolete limitation in Section 5."},
+      {"from_line": 41913, "bucket": "repository", "reason": "Audit finite-encoding assumptions, then prune unused formalization."},
+      {"from_line": 42373, "bucket": "paper", "reason": "Explicit return to explaining game hops in the paper."},
+      {"from_line": 42525, "bucket": "repository", "reason": "Review assumptions, split the large proof module, and rename the decryption interface."},
+      {"from_line": 43152, "bucket": "paper", "reason": "Explicit return to paper writing and hybrid pseudocode."},
+      {"from_line": 43366, "bucket": "repository", "reason": "Update artifact README and remove obsolete development status."},
+      {"from_line": 43425, "bucket": "paper", "reason": "Return to Section 5 and the H0--H6 presentation."},
+      {"from_line": 43953, "bucket": "repository", "reason": "Replace the canonical compiler rule in the formalization."},
+      {"from_line": 44129, "bucket": "paper", "reason": "Rewrite logic soundness exposition and manuscript definitions."},
+      {"from_line": 44923, "bucket": "repository", "reason": "Assess a proposed replacement of the formal Hoare interface."},
+      {"from_line": 44942, "bucket": "paper", "reason": "Return to manuscript remarks and presentation of judgments."},
+      {"from_line": 45135, "bucket": "repository", "reason": "Canonicalize AE, remove admitted unused code, and modernize build files."},
+      {"from_line": 46010, "bucket": "paper", "reason": "Explicit return to independent-verification section and broad manuscript revision."},
+      {"from_line": 48032, "bucket": "repository", "reason": "Authorize formal proof refactoring, then repair the adversary-dependent security bound."},
+      {"from_line": 48781, "bucket": "paper", "reason": "Return to explanation of the explicit reduction and manuscript pseudocode; small associated code cleanup is included."}
+    ],
+    "019f6f0a-7010-7340-b794-15bd2b310862": [
+      {"from_line": 549, "bucket": "paper", "reason": "After coupling refactoring, check and expand the paper's displayed Rocq excerpts."}
+    ],
+    "019f783e-30cb-7413-b1fe-1bd87c9182a7": [
+      {"from_line": 1, "bucket": "paper", "reason": "Initial question concerns a mismatch in the displayed KL-DG rule."},
+      {"from_line": 72, "bucket": "repository", "reason": "Switch to formalizing and proving the Gaussian specialization and removing unused scalar code."}
+    ],
+    "019fb104-2647-75b0-94fe-2b6c6084f19c": [
+      {"from_line": 1282, "bucket": "paper", "reason": "Summarize and phrase artifact build-time measurements for the paper."},
+      {"from_line": 1330, "bucket": "repository", "reason": "Anonymize the artifact README."}
+    ],
+    "01a13603-65cb-7b61-aed7-74c8fd275762": [
+      {"from_line": 216, "bucket": "paper", "reason": "After chart-interface changes and dependency inspection, formulate the manuscript/reviewer explanation."},
+      {"from_line": 286, "bucket": "repository", "reason": "Remove the two unused lemmas and rebuild the formalization."}
+    ],
+    "01a18449-12a9-7cd0-85af-ed097665fbd9": [
+      {"from_line": 1007, "bucket": "paper", "reason": "After dependency migration, expand the manuscript account of the upstream contributions."}
+    ]
+  }
+}

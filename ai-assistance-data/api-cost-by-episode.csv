@@ -1,0 +1,8 @@
+episode,session_id,model,usd
+heap-dependent-sequencing,019e7e45-2c84-7be3-b63b-53b78a7be1b6,gpt-5.5,53.634689
+hidden-mixture-review,019e9fbc-8458-7c13-8389-403a7a23eba0,gpt-5.5,4.723639
+missing-mass-review,019ebce8-0a3b-7593-9573-7fd944a290ec,gpt-5.5,22.336369
+completion-repair,019ebeb6-6c18-7300-b084-bcd7a98117a1,gpt-5.5,27.238470
+application-before-chart-objection,019f4224-099b-7d53-879f-23e05ef54fd2,gpt-5.5,424.698174
+chart-repair-to-finish-commit,019f4224-099b-7d53-879f-23e05ef54fd2,gpt-5.5,226.675407
+july-13-pruning,019f59ec-6e13-78a3-9898-59b771ae41c8,gpt-5.5,58.971425

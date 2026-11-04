@@ -22,6 +22,8 @@ The account below draws on the authors' recollection, the Git histories of the
 artifact and manuscript, and retained development conversations.
 These records support a chronology and concrete examples of collaboration;
 they do not support a precise division of credit by line count.
+An audit of the records retained on the development machine, performed on
+November 4, 2026, also provides the usage and revision measurements below.
 
 \subsection{Human design and early formalization}
 
@@ -148,3 +150,368 @@ The final trusted base and remaining inherited assumption are documented in
 human-written scripts.
 Human review concentrated especially on the scheme and game interfaces,
 theorem statements, assumptions, and the interpretation of the checked result.
+
+\subsection{Retained records and measured usage}
+\label{app:ai-usage-records}
+
+The audit covers records preceding November 4, 2026, 00:00 UTC, thereby
+excluding the audit conversation itself.
+It identifies 126 user-facing Codex conversations about the artifact and
+manuscript, with recorded events from May 29 to October 28, 2026.
+Of these, 124 used the artifact's working directory (whose capitalization
+changed from \texttt{Mending} to \texttt{mending}); two manuscript conversations
+started in its parent directory and were included by explicit identification.
+Three associated subagent conversations and six automatic action-review
+conversations are counted separately.
+Five further conversations about preparing and contributing supporting
+MathComp lemmas are reported separately as upstream work.
+Presentation slides and other research projects are excluded.
+This is an inventory of retained local records, not a complete account of all
+AI use: Git records assistance earlier in May, before the available project
+conversations begin, and the inspected local Copilot store contains no
+conversations identifiable with this project.
+
+Each conversation records cumulative token counters.
+We take its last available counter, rather than summing successive cumulative
+snapshots or counting repeated context as newly written material.
+The 126 conversations report 3,635,028,819 input tokens, of which
+3,535,606,912 are cached, and 8,682,819 output tokens, for a reported total of
+3,643,711,638 tokens.
+Thus uncached input accounts for 99,421,907 tokens; approximately 97.26\% of
+recorded input is cached.
+The reported 3,078,872 reasoning-output tokens are a component of output,
+not an additional term in this total.
+These large input counts reflect repeated processing of conversation and
+tool context across requests; they do not measure the size of the artifact.
+
+\begin{center}
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrr}
+\toprule
+ & & \multicolumn{3}{c}{Tokens, millions} \\
+Month & Chats & Uncached & Cached & Output \\
+\midrule
+May     & 13 &  2.323 &  127.452 & 0.267 \\
+June    & 74 & 43.219 & 1310.836 & 3.461 \\
+July    & 28 & 51.239 & 2023.162 & 4.604 \\
+August  &  4 &  0.643 &    8.344 & 0.063 \\
+October &  7 &  1.998 &   65.813 & 0.288 \\
+\midrule
+Total   &126 & 99.422 & 3535.607 & 8.683 \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{center}
+Here ``uncached'' and ``cached'' both refer to input.
+All months are in 2026, and each conversation's entire usage is assigned to
+the month of its first recorded event; this is not a calendar-month billing
+breakdown.
+The observed model identifiers are \texttt{gpt-5.5} in 92 conversations,
+\texttt{gpt-5.6-sol} in 24, \texttt{gpt-5.6-luna} in two,
+both latter identifiers in one, and \texttt{gpt-6.1-sol} in seven.
+These are identifiers recorded by the client, not retrospective assignments
+of model capabilities; the hypothetical cost calculation below uses the
+listed API price of each recorded model.
+
+The three subagent conversations separately report 1,726,796 total tokens
+(157,395 uncached input, 1,548,544 cached input, and 20,857 output).
+Automatic action review reports another 911,508 total tokens
+(190,727 uncached input, 717,440 cached input, and 3,341 output).
+The five upstream-work conversations report 32,717,449 total tokens
+(2,093,618 uncached input, 30,431,104 cached input, and 192,727 output).
+These categories are excluded from the table.
+
+The main conversations contain 1,019 completed-turn records whose reported
+durations sum to approximately 122.1 hours.
+Taking the union of the intervals between matched turn-start and
+turn-completion events instead gives approximately 116.4 hours.
+The two measures use different recorded fields; neither measures human
+attention, pure model-computation time, or the time needed for an independent
+reconstruction.
+They include tool execution and waiting within a turn, and omit time outside
+the recorded intervals; 17 start records have no matching completion.
+The parser also finds 33,741 top-level tool-call records and 131 context
+compactions.
+After filtering injected context and control messages, there are 780 remaining
+user-message records and 295 automatic goal-continuation records.
+The former include retries and routine requests as well as mathematical
+interventions, so they cannot be read as a count of distinct human corrections.
+
+Persistent-goal counters provide another, narrower view of extended runs.
+For example, the July 8--10 application goal's last retained update, at
+03:20:01 UTC on July 10, reports 22,341,787 goal-accounting tokens and
+136,552 seconds (37.9 hours), with status \texttt{paused}.
+The retained July 1--2 goal updates include paused runs reporting
+3,508,334 tokens and 14,249 seconds, and 5,787,219 tokens and 35,655 seconds.
+These counters cover particular goals and use their own accounting; we do
+not add them to the conversation totals or interpret \texttt{paused} as a
+verdict on the eventual theorem.
+
+Seven downward revisions of cumulative token counters occur in two
+conversations; repeated snapshots also occur.
+Using the final counters avoids treating those revisions as fresh usage, but
+does not recover charges for discarded branches or missing requests.
+All usage figures here are therefore locally reported measurements, not a
+provider billing audit.
+
+\paragraph{Hypothetical API list-price equivalent.}
+The authors used monthly OpenAI subscriptions and changed tiers during the
+development; a precise project-specific subscription expenditure has not
+been reconstructed.
+For a reproducible monetary comparison, we instead reprice the retained
+usage at the Standard API token rates listed on November 4, 2026, using
+each recorded model and distinguishing ordinary from cached input.\footnote{%
+OpenAI's model pricing pages for
+\href{https://developers.openai.com/api/docs/models/gpt-5.5}{GPT-5.5},
+\href{https://developers.openai.com/api/docs/models/gpt-5.6-sol}{GPT-5.6 Sol},
+\href{https://developers.openai.com/api/docs/models/gpt-5.6-luna}{GPT-5.6 Luna},
+and \href{https://developers.openai.com/api/docs/models/gpt-6.1-sol}{GPT-6.1 Sol},
+checked November 4, 2026.}
+The following rates are US dollars per million tokens; the final column is
+the resulting cost of the 126 main conversations in US dollars.
+
+\begin{center}
+\begingroup
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrr}
+\toprule
+Model & Input & Cached & Output & Cost \\
+\midrule
+\texttt{gpt-5.5}      & 5.00 & 0.50 & 30.00 & 2272.18 \\
+\texttt{gpt-5.6-sol}  & 4.00 & 0.40 & 20.00 &  156.02 \\
+\texttt{gpt-5.6-luna} & 0.20 & 0.02 &  1.20 &    0.10 \\
+\texttt{gpt-6.1-sol}  & 2.00 & 0.10 & 10.00 &   16.22 \\
+\midrule
+Total & & & & 2444.52 \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{center}
+
+For an ordinary usage update the calculation is
+\(10^{-6}[(I-H)r_{\mathrm{in}}+Hr_{\mathrm{cache}}+Or_{\mathrm{out}}]\),
+where \(I\), \(H\), and \(O\) denote its input, cached-input, and output
+token counts and the rates correspond to its recorded model.
+Signed changes to cumulative counters preserve the audit's final totals,
+including the downward revisions; a model switch within a conversation is
+priced at the corresponding model on each side of the switch.
+The calculation also includes the listed long-context premium for the 52
+GPT-6.1 Sol requests exceeding 272,000 input tokens: twice the input and
+cached-input rates and 1.5 times the output rate.
+This adds US\$2.76 to the calculation using only the table's base rates.
+No other priced conversation has a recorded request above that threshold.
+
+The main-conversation equivalent is therefore approximately
+\textbf{US\$2,445}; including the three subagent conversations gives
+US\$2,446.19.
+The five upstream-support conversations add US\$28.66, for a total of
+US\$2,474.85 across all 134 conversations with identified public model rates.
+The six automatic action-review conversations are left unpriced: the
+recorded \texttt{codex-auto-review} identifier has no rate in the selected
+public pricing tables, and we do not assign it another model's price.
+
+This is a hypothetical API token charge, intended as an overestimate of the
+cost attributable to the authors' subscription-based workflow, rather than
+an estimate of fees actually paid.
+The effective subscription cost per token depends on tier, utilization, and
+allocation to other projects; we do not assert a universal subscription
+discount or a strict upper bound on all expenditure.
+The calculation assumes the API attains the recorded cache-read pattern;
+the selected logs report zero cache-write tokens, so no separate cache-write
+charge is included.
+It excludes hosted-tool fees, local compute, taxes, missing usage, and
+alternative processing tiers, and uses the stated price snapshot rather
+than reconstructing historical price changes.
+It also does not test the US\$200 conjecture about a new reconstruction from
+the final manuscript: the observed development included design exploration,
+failed routes, repeated review, and manuscript preparation.
+
+\paragraph{Approximate allocation by purpose.}
+We further divide the recorded work into three buckets: development of the
+formalization supporting the main theorem; paper writing and communication;
+and other work, principally the MathComp Analysis contribution.
+For this breakdown only, we extend the historical sample above with a frozen
+snapshot of the present AI-assistance documentation conversation through
+November 4, 2026, 18:04:08 UTC, assigning it to paper writing.
+Subsequent usage in this ongoing conversation is excluded, so the earlier
+historical totals and this extended breakdown have different cutoffs.
+
+\begin{center}
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrr}
+\toprule
+Purpose & \shortstack{Tokens\\(millions)} &
+\shortstack{Agent\\hours} & \shortstack{API equiv.\\(US\$)} \\
+\midrule
+Formalization & 3347.688 & 110.76 & 2231.82 \\
+Paper         &  285.290 &  11.01 &  199.50 \\
+Other         &   53.637 &   2.64 &   45.34 \\
+\midrule
+Total         & 3686.615 & 124.40 & 2476.66 \\
+\bottomrule
+\end{tabular}
+\endgroup
+\end{center}
+
+Token counts include cached input, ordinary input, and output; agent hours
+are summed client-reported durations of completed turns, not human labor.
+The six automatic-review conversations inherit their parent task's purpose:
+their 911,508 tokens are included in the token column but remain unpriced
+in the API-equivalent column.
+The November 4 snapshot adds 7,547,175 tokens and US\$1.81 to the paper
+bucket; its completed turns report 0.34 hours, while the current unfinished
+turn has no completion duration yet.
+
+These are approximate task-purpose labels, not a measurement of effort
+spent editing particular files.
+The formalization bucket includes supporting probability results, proof
+design and failed routes, refactoring, dependency upgrades, builds, and
+artifact documentation and packaging.
+Informal proofs written as working notes to guide Rocq verification stay
+in this bucket.
+The paper bucket includes exposition, literature comparisons, reviewer
+responses, figures, displayed excerpts, LaTeX tooling, and this audit.
+The other bucket includes the June 27 community-service proof session and
+its cleanup, even though those started in the artifact directory, as well
+as the five explicitly identified upstream-support conversations and one
+accidental archived greeting.
+This explains why its cost exceeds the US\$28.66 attributed above to just
+the five upstream-directory conversations.
+
+We reviewed the task requests and split six mixed conversations at explicit
+changes of purpose, rather than assigning the entire large July 8--11
+conversation to formalization.
+For example, the July 10 request at 04:51 UTC explicitly switches to updating
+the paper; subsequent requests alternate between exposition and code
+refactoring and are assigned accordingly.
+Within a task that combines both, the dominant purpose determines the bucket.
+Each token-counter increment is assigned to exactly one segment, including
+the repeated earlier context in that request; completed-turn durations are
+assigned at the completion event.
+The segments reconcile to all 140 historical conversations and the added
+November 4 snapshot, with the original historical token and cost totals
+unchanged.
+The reviewed boundaries, reasons, and full token breakdowns are recorded in
+\path{ai-assistance-data/bucket-rules.json} and the accompanying purpose
+exports, reproducible with \path{scripts/bucket-ai-assistance.py}.
+
+\subsection{Abandoned approaches, cleanup, and human redirection}
+
+Git and the conversations permit some measurement of rework, although they
+do not identify a well-defined fraction of ``wasted'' effort.
+At artifact revision \texttt{4b8625d}, the history contains 231 commits,
+161 with Codex coauthor footers and two with Copilot footers (the categories
+may overlap).
+At manuscript revision \texttt{e6035b2}, there are 134 reachable commits,
+including 114 non-merge commits, of which 77 have Codex footers.
+Across the artifact's non-merge history, Git's rename-aware line statistics
+report 77,096 insertions and 49,866 deletions in Rocq files under
+\texttt{theories/}.
+For May--July 2026 alone the corresponding counts are 74,171 and 47,827.
+These are cumulative edits, including comments, restatements, simplification,
+and repeated editing of the same lines; deleted lines are not necessarily
+failed proofs, and coauthor footers do not apportion authorship.
+
+\paragraph{A detour that review did not immediately resolve.}
+On May 31 the authors explored sequencing rules whose error budget depended
+on a heap location, then on a randomized counter.
+At 14:57 UTC the author challenged an AI-added premise that effectively
+forced the counter to have a single supported value, and at 15:06 asked to
+remove it and revise the interface.
+At 17:29 the author again asked whether the approach was sound before
+continuing; at 17:35, after noting that the original informal argument did
+not go through, the author agreed to further attempts.
+The conversation records 89,871,914 total tokens, comprising 976,419 uncached
+input, 88,749,568 cached input, and 145,927 output, and approximately
+1.71 hours of reported completed-turn duration.
+Its API list-price equivalent under the convention above is US\$53.63.
+It did not settle the route: on June 3, commit \texttt{078fbd6} replaced the
+heap-dependent interface with a fixed tuple of budgets and changed 463 lines
+by insertion and 1,160 by deletion across four Rocq files.
+This supports an account of an abandoned design with repeated human
+questioning, rather than a claim that every token in the conversation was
+wasted or that each intervention immediately corrected the course.
+
+\paragraph{Successful corrections to logic statements.}
+The June 7 hidden-mixture discussion described above records approximately
+4.72 million total tokens and 0.35 hours of reported turn duration.
+The author questioned mixture preservation at 02:10 UTC and the soundness of
+dropping the zero coordinate at 02:53; commit \texttt{162cc37} records the
+repair.
+On June 12 at 18:46 UTC the author supplied the missing-mass counterexample:
+two programs with null output distributions satisfy a vacuous postcondition,
+but have output mass zero, contradicting a proposed full-mass lemma.
+That conversation records approximately 33.23 million total tokens and
+0.92 hours of reported turn duration.
+The June 13 completion conversation records a further 39.59 million tokens
+and 1.07 hours, and led to the completed sequencing and conversion rules
+in commits \texttt{b81d93b}, \texttt{4242f48}, and \texttt{6a30c03}.
+These session totals measure the surrounding discussions and proof work,
+not the isolated cost of discovering a counterexample.
+
+\paragraph{Repair of the chart assumption.}
+The problematic application route was committed as \texttt{5021745} on
+July 9; its title explicitly identifies a false axiom.
+In the conversation, the author challenged the common inverse-chart encoding
+at 15:27:33 UTC, asked to document the problem before further work at 15:29,
+and proposed the shared-postprocessing proof strategy at 15:44.
+The preceding part of this application conversation reports approximately
+647.73 million total tokens and 26.43 hours of completed-turn duration.
+Its API list-price equivalent is US\$424.70.
+It includes substantial reusable invariant and compiler work, so this entire
+quantity cannot be classified as wasted.
+From the objection until the July 10, 04:48:51 UTC completion commit
+\texttt{da878fb}, the counter increases by 341,717,678 tokens:
+7,348,765 uncached input, 333,597,824 cached input, and 771,089 output.
+Completed turns ending in that interval report approximately 12.50 hours;
+the elapsed interval is approximately 13.36 hours.
+The interval's API list-price equivalent is US\$226.68.
+This window also includes other application obligations, author discussion,
+and assumption checking, so it measures the observed recovery interval,
+not a controlled estimate of the extra cost caused by the false assumption.
+
+\paragraph{Pruning and a limit to pruning.}
+On July 13 the author successively requested dependency-based pruning of the
+application proof, the program-logic layer, and the probability layer, at
+05:25, 06:53, and 07:49 UTC.
+Commits \texttt{4dced90}, \texttt{b62edcc}, and \texttt{88465c2} respectively
+record 3,933, 1,888, and 1,634 deleted Rocq lines, with 4, 93, and 23
+inserted lines: 7,455 deletions and a net reduction of 7,335 lines.
+This is evidence of substantial code that was unnecessary for the selected
+final dependency path, including alternative wrappers and supporting lemmas.
+The conversation reports 88,957,338 total tokens
+(1,737,123 uncached input, 86,993,920 cached input, and 226,295 output)
+and approximately 3.87 hours of reported completed-turn duration.
+Its API list-price equivalent is US\$58.97.
+The same review also checked the cleanup criterion: at 08:26 the author
+asked to retain the Gaussian tail bound and its dependencies for future
+imperfect-correctness work, despite their being unused by the current final
+theorem.
+The probability cleanup commit retains this result with an explanatory
+comment.
+Thus dependency pruning required a human decision about future scientific
+use, and ``unused by the current theorem'' was not treated as synonymous
+with ``worthless.''
+
+\paragraph{Reproducibility and limits.}
+The manuscript source includes the extraction script
+\path{scripts/audit-ai-assistance.py}, the repricing script
+\path{scripts/price-ai-assistance.py}, a data export in
+\path{ai-assistance-data/}, and provenance and interpretation notes in
+\path{AI-ASSISTANCE-NOTES.md}.
+The export records session identifiers, source-log hashes, timestamps, model
+identifiers, counters, completed turns, goal updates, Git revisions and line
+statistics, and the boundaries of the selected episodes, without exporting
+complete private conversations.
+Raw conversations remain necessary to reassess the qualitative coding of
+human interventions.
+Uncommitted experiments, deleted or unavailable conversations, work on other
+machines, and unrecorded human reading and thinking remain unmeasured.
+The records establish concrete revisions and recovery episodes, but do not
+support a causal token budget for mistakes, an overall failure rate, or a
+counterfactual comparison with an entirely human development.

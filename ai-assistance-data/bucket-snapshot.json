@@ -1,0 +1,22 @@
+{
+  "snapshot_through_utc": "2026-11-04T18:04:08.685Z",
+  "snapshot_scope": "Historical audit unchanged; add the current AI-assistance documentation conversation only through this fixed source prefix.",
+  "additional_sessions": [
+    {
+      "session_id": "01a1a79c-6f7c-76b1-8d50-1162ba070f87",
+      "scope": "core",
+      "kind": "user",
+      "rollout": "sessions/2026/11/04/rollout-2026-11-04T12-30-09-01a1a79c-6f7c-76b1-8d50-1162ba070f87.jsonl",
+      "sha256": "101b0817ed337e97d93b5a850c58dd69f2cbe788b9173e52ba27183ae9d2665d",
+      "through_line": 330,
+      "through_ordinal": null,
+      "prefix_bytes": 3009429,
+      "metadata_start_utc": "2026-11-04T17:30:09.670Z",
+      "input_tokens": 7483117,
+      "cached_input_tokens": 7261824,
+      "output_tokens": 64058,
+      "reasoning_output_tokens": 22574,
+      "total_tokens": 7547175
+    }
+  ]
+}
