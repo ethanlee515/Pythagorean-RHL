@@ -1,8 +1,6 @@
 \section{Introduction}
 \label{sec:introduction}
 
-\input{theory-map}
-
 Ordinary encryption protects data while it is stored or transmitted, but
 computation typically requires exposing the plaintext.
 Fully homomorphic encryption (FHE) removes this boundary: a client can encrypt
@@ -261,6 +259,10 @@ protocols, where the secret key is shared and parties release partial
 decryptions across repeated, possibly adaptive interactions.
 Neither application is mechanized here; each would require a one-call
 conditional KL bound and invariant suited to its setting.
+
+% Queue the overview near its discussion, rather than at the start of the
+% introduction.  The two-column float can appear at the next page top.
+\input{theory-map}
 
 \subsection{Contributions}
 
