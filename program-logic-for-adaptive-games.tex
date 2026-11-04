@@ -37,21 +37,25 @@ a subdistribution \(\mu\) on \(X\), define its completion on
 Completion makes assertion failure observable.
 Without this, it becomes tedious (and sometimes tricky) to write down couplings for subdistributions and then estimate the probabilities of postconditions.
 
+We use \(\varphi\) for generic preconditions, \(\psi\) for
+postconditions, and \(\theta\) for intermediate assertions.
+Transcript distributions are denoted by \(\cP,\cQ\).
+
 The unary judgment
 \[
- \vDash\mathsf{Hoare}\{P\}\ c\ \{Q\}
+ \vDash\mathsf{Hoare}\{\varphi\}\ c\ \{\psi\}
 \]
 is the standard Hoare triple over the SSProve code.
-It states that whenever the precondition \(P\) is satisfied,
-the postcondition \(Q\) is satisfied with probability one.
+It states that whenever the precondition \(\varphi\) is satisfied,
+the postcondition \(\psi\) is satisfied with probability one.
 
 The additive-error judgment
 \[
- \vDash\AEJ\{P\}\ c_L\approx_\delta c_R\ \{Q\}
+ \vDash\AEJ\{\varphi\}\ c_L\approx_\delta c_R\ \{\psi\}
 \]
 and its inference rules are heavily inspired by EasyCrypt style ``up-to-bad" arguments.
-It states that, from any pair of initial configurations satisfying \(P\), the
-completed outputs of \(c_L\) and \(c_R\) admit a coupling in which \(Q\) fails
+It states that, from any pair of initial configurations satisfying \(\varphi\), the
+completed outputs of \(c_L\) and \(c_R\) admit a coupling in which \(\psi\) fails
 with probability at most \(\delta\).
 For equality postconditions, this is the ordinary statistical-distance bound.
 Unlike EasyCrypt, SSProve allows its users to supply soundness proofs;
@@ -69,11 +73,11 @@ For a configuration \(\rho=(x,m)\), write
 \(\Omega=(Y\times\cM)\cup\{\bot\}\) be the completed output/heap space.
 We write
 \begin{equation}
- \vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}
+ \vDash\Pyth\{\varphi\}\ c_L\approx_s c_R\ \{\psi\}
 \end{equation}
 if every \(s_i\) is nonnegative and, for every pair
 \(\rho_L=(x_L,m_L)\) and \(\rho_R=(x_R,m_R)\) satisfying
-\(P(\rho_L,\rho_R)\), there exist weight-one joint transcript distributions
+\(\varphi(\rho_L,\rho_R)\), there exist weight-one joint transcript distributions
 \[
  \cP,\cQ\in\distr(\Omega^k)
 \]
@@ -91,9 +95,9 @@ such that
  &\forall i\in\{1,\ldots,k\},\ \forall a\in\Omega^{i-1}.\quad
    \KL{\cP_i\mid a}{\cQ_i\mid a}\leq s_i,
  \\
- &\forall z\in\supp\semantic{c_L(x_L)}(m_L).\quad Q(z),
+ &\forall z\in\supp\semantic{c_L(x_L)}(m_L).\quad \psi(z),
  \\
- &\forall z\in\supp\semantic{c_R(x_R)}(m_R).\quad Q(z).
+ &\forall z\in\supp\semantic{c_R(x_R)}(m_R).\quad \psi(z).
 \end{aligned}
 \]
 \end{definition}
@@ -125,26 +129,26 @@ compiler rules omitted here.
   {\mathsf{finiteKL}(D_L,D_R) \\
    \KL{D_L}{D_R}\leq\epsilon \\
    \mathsf{weight}(D_L)=\mathsf{weight}(D_R)=1 \\
-   \forall x\in\supp(D_L)\cup\supp(D_R),\ Q(x)}
-  {\vDash\Pyth\{P\}\
+   \forall x\in\supp(D_L)\cup\supp(D_R),\ \psi(x)}
+  {\vDash\Pyth\{\varphi\}\
      x\leftarrow D_L
      \approx_{[\epsilon]}
-     x\leftarrow D_R\ \{Q\}}
+     x\leftarrow D_R\ \{\psi\}}
 
-\inferrule*[right=\textsc{Pyth-Refl}] {P\Longrightarrow x_L=x_R\wedge m_L=m_R \\ 0\leq s_i\ \text{for every }i} {\vDash\Pyth\{P\}\ c\approx_s c\ \{Q\}}
+\inferrule*[right=\textsc{Pyth-Refl}] {\varphi\Longrightarrow x_L=x_R\wedge m_L=m_R \\ 0\leq s_i\ \text{for every }i} {\vDash\Pyth\{\varphi\}\ c\approx_s c\ \{\psi\}}
 
-\inferrule*[right=\textsc{Pyth-Seq}] {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{M\} \\ \vDash\Pyth\{M^{=}\}\ k_L\approx_t k_R\ \{Q\}} {\vDash\Pyth\{P\}\ (x\leftarrow c_L;k_L(x)) \approx_{s\doubleplus t} (x\leftarrow c_R;k_R(x))\ \{Q\}}
+\inferrule*[right=\textsc{Pyth-Seq}] {\vDash\Pyth\{\varphi\}\ c_L\approx_s c_R\ \{\theta\} \\ \vDash\Pyth\{\theta^{=}\}\ k_L\approx_t k_R\ \{\psi\}} {\vDash\Pyth\{\varphi\}\ (x\leftarrow c_L;k_L(x)) \approx_{s\doubleplus t} (x\leftarrow c_R;k_R(x))\ \{\psi\}}
 
-\inferrule*[right=\textsc{Shared-Prefix}] {\vDash\mathsf{Hoare}\{P\}\ c\ \{M\} \\ \vDash\Pyth\{M^{=}\}\ k_L\approx_s k_R\ \{Q\}} {\vDash\Pyth\{P\}\ (x\leftarrow c;k_L(x)) \approx_{[0]\doubleplus s} (x\leftarrow c;k_R(x))\ \{Q\}}
+\inferrule*[right=\textsc{Shared-Prefix}] {\vDash\mathsf{Hoare}\{\varphi\}\ c\ \{\theta\} \\ \vDash\Pyth\{\theta^{=}\}\ k_L\approx_s k_R\ \{\psi\}} {\vDash\Pyth\{\varphi\}\ (x\leftarrow c;k_L(x)) \approx_{[0]\doubleplus s} (x\leftarrow c;k_R(x))\ \{\psi\}}
 
 \inferrule*[right=\textsc{Micciancio--Walter}]
-  {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{Q\}}
-  {\vDash\AEJ\{P\}\ c_L
+  {\vDash\Pyth\{\varphi\}\ c_L\approx_s c_R\ \{\psi\}}
+  {\vDash\AEJ\{\varphi\}\ c_L
      \approx_{\sqrt{\norm{s}_1/2}}c_R\ \{o_L=o_R\}}
 \end{mathpar}
 \caption{Representative checked rules.
-Here \(M^{=}\) requires equal
-intermediate values and heaps satisfying \(M\), and \(\doubleplus\) denotes
+Here \(\theta^{=}\) requires equal
+intermediate values and heaps satisfying \(\theta\), and \(\doubleplus\) denotes
 tuple concatenation.
 The Rocq theorems additionally expose further typing,
 support, invariant, and nonnegativity premises.}

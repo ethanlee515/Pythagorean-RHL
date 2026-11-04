@@ -59,11 +59,11 @@ The following theorem is the main program-logic bridge.
 
 \begin{theorem}[Replace $q$ calls]
 \label{thm:compile-replace}
-Let \(P_I\) synchronize equal operation inputs and equal heaps satisfying
+Let \(\varphi_I\) synchronize equal operation inputs and equal heaps satisfying
 \(I\).  Suppose two implementations \(P,P'\) of an operation \(p\) satisfy
 the one-call Pythagorean judgment
 \[
- \vDash\Pyth\{P_I\}\ P.p\approx_s P'.p\ \{I\}
+ \vDash\Pyth\{\varphi_I\}\ P.p\approx_s P'.p\ \{I\}
 \]
 for a nonnegative tuple \(s\), preserve \(I\), and meet the compiler's typing,
 footprint, and memory-separation conditions.
@@ -71,7 +71,7 @@ For every concrete SSProve program \(A\), replacing its first
 \(q\) selected calls yields
 \[
 \begin{aligned}
- &\vDash\AEJ\{P_I\}\ \mathsf{Compile}_q(A,p;P,P)\\
+ &\vDash\AEJ\{\varphi_I\}\ \mathsf{Compile}_q(A,p;P,P)\\
  &\quad\approx_{\sqrt{q\norm{s}_1/2}}
    \mathsf{Compile}_q(A,p;P',P)\ \{o_L=o_R\},
 \end{aligned}

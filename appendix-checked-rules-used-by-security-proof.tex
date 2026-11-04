@@ -11,9 +11,9 @@ The figure remains schematic: it suppresses SSProve type indices and writes
 weight, and \(\mathsf{Eq}\) for equality of completed output--heap pairs
 (including failure).
 We use \(E_\#D\) for the pushforward of \(D\) by \(E\), and
-\(\supp(\mu)\subseteq Q\) to mean that \(Q\) holds throughout the support.
-The assertion \(M^{=}\) requires equal values and heaps satisfying \(M\), as
-in \Cref{fig:logic-rules}; \(Q^{=}\) similarly requires \(Q\) on the left
+\(\supp(\mu)\subseteq \psi\) to mean that \(\psi\) holds throughout the support.
+The assertion \(\theta^{=}\) requires equal values and heaps satisfying \(\theta\), as
+in \Cref{fig:logic-rules}; \(\psi^{=}\) similarly requires \(\psi\) on the left
 output--heap pair and equality of both pairs.
 All displayed side conditions are pointwise over inputs satisfying the
 precondition.
@@ -21,22 +21,22 @@ precondition.
 \smallskip\noindent\emph{The raw additive-error judgment.}
 This is a convenience wrapper around the completed judgment, not a second
 coupling semantics.
-For a postcondition \(Q\) on ordinary output--heap pairs, define
+For a postcondition \(\psi\) on ordinary output--heap pairs, define
 \[
  \begin{aligned}
- \widehat Q(\mathsf{Some}(z_L),\mathsf{Some}(z_R))
-   &=Q(z_L,z_R),\\
- \widehat Q(\widehat z_L,\widehat z_R)
+ \widehat{\psi}(\mathsf{Some}(z_L),\mathsf{Some}(z_R))
+   &=\psi(z_L,z_R),\\
+ \widehat{\psi}(\widehat z_L,\widehat z_R)
    &=\mathsf{false}\quad\text{otherwise}.
  \end{aligned}
 \]
 Then the judgment
 \[
- \vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}
+ \vDash\AEJ_{\rm raw}\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\psi\}
 \]
 is defined to mean
 \[
- \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{\widehat Q\}.
+ \vDash\AEJ\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\widehat{\psi}\}.
 \]
 Thus any failure outcome is bad, and the good event supplies concrete
 intermediate values and heaps to a continuation.
@@ -61,46 +61,46 @@ one final \textsc{Micciancio--Walter} conversion.
 \textit{Unary Hoare and additive-error rules}
 \begin{mathpar}
 \inferrule*[right=\textsc{Hoare-Ret}]
-  {P(x,h)\Longrightarrow Q(f(x),h)}
-  {\vDash\mathsf{Hoare}\{P\}\ \mathsf{return}(f(x))\ \{Q\}}
+  {\varphi(x,h)\Longrightarrow \psi(f(x),h)}
+  {\vDash\mathsf{Hoare}\{\varphi\}\ \mathsf{return}(f(x))\ \{\psi\}}
 
 \inferrule*[right=\textsc{AE-TVD}]
   {0\leq\epsilon \\
    \TVD(\completed{\mu^{c_L}_{x_L,h_L}},
         \completed{\mu^{c_R}_{x_R,h_R}})\leq\epsilon}
-  {\vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{\mathsf{Eq}\}}
+  {\vDash\AEJ\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\mathsf{Eq}\}}
 
 \inferrule*[right=\textsc{AE-Raw-TVD}]
   {0\leq\epsilon \\
    \mathsf{wt}(\mu^{c_L}_{x_L,h_L})=
    \mathsf{wt}(\mu^{c_R}_{x_R,h_R})=1 \\
    \TVD(\mu^{c_L}_{x_L,h_L},\mu^{c_R}_{x_R,h_R})\leq\epsilon \\
-   \supp(\mu^{c_L}_{x_L,h_L})\subseteq Q}
-  {\vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q^{=}\}}
+   \supp(\mu^{c_L}_{x_L,h_L})\subseteq \psi}
+  {\vDash\AEJ_{\rm raw}\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\psi^{=}\}}
 
 \inferrule*[right=\textsc{AE-Conseq}]
-  {P'\Longrightarrow P \\ Q\Longrightarrow Q' \\ \epsilon\leq\epsilon' \\
-   \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}}
-  {\vDash\AEJ\{P'\}\ c_L\approx_{\epsilon'}c_R\ \{Q'\}}
+  {\varphi'\Longrightarrow \varphi \\ \psi\Longrightarrow \psi' \\ \epsilon\leq\epsilon' \\
+   \vDash\AEJ\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\psi\}}
+  {\vDash\AEJ\{\varphi'\}\ c_L\approx_{\epsilon'}c_R\ \{\psi'\}}
 
 \inferrule*[right=\textsc{AE-Raw-Conseq}]
-  {P'\Longrightarrow P \\ Q\Longrightarrow Q' \\ \epsilon\leq\epsilon' \\
-   \vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{Q\}}
-  {\vDash\AEJ_{\rm raw}\{P'\}\ c_L\approx_{\epsilon'}c_R\ \{Q'\}}
+  {\varphi'\Longrightarrow \varphi \\ \psi\Longrightarrow \psi' \\ \epsilon\leq\epsilon' \\
+   \vDash\AEJ_{\rm raw}\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\psi\}}
+  {\vDash\AEJ_{\rm raw}\{\varphi'\}\ c_L\approx_{\epsilon'}c_R\ \{\psi'\}}
 
 \inferrule*[right=\textsc{AE-Triangle}]
-  {P\Longrightarrow x_L=x_R\wedge h_L=h_R \\
-   \vDash\AEJ\{P\}\ c_L\approx_\epsilon c_M\ \{\mathsf{Eq}\} \\
-   \vDash\AEJ\{P\}\ c_M\approx_{\epsilon'}c_R\ \{\mathsf{Eq}\}}
-  {\vDash\AEJ\{P\}\ c_L\approx_{\epsilon+\epsilon'}c_R\ \{\mathsf{Eq}\}}
+  {\varphi\Longrightarrow x_L=x_R\wedge h_L=h_R \\
+   \vDash\AEJ\{\varphi\}\ c_L\approx_\epsilon c_M\ \{\mathsf{Eq}\} \\
+   \vDash\AEJ\{\varphi\}\ c_M\approx_{\epsilon'}c_R\ \{\mathsf{Eq}\}}
+  {\vDash\AEJ\{\varphi\}\ c_L\approx_{\epsilon+\epsilon'}c_R\ \{\mathsf{Eq}\}}
 
 \inferrule*[right=\textsc{AE-Seq}]
-  {\vDash\AEJ_{\rm raw}\{P\}\ c_L\approx_\epsilon c_R\ \{M\} \\
-   \vDash\AEJ\{M\}\ k_L\approx_{\epsilon'}k_R\ \{Q\}}
-  {\vDash\AEJ\{P\}\
+  {\vDash\AEJ_{\rm raw}\{\varphi\}\ c_L\approx_\epsilon c_R\ \{\theta\} \\
+   \vDash\AEJ\{\theta\}\ k_L\approx_{\epsilon'}k_R\ \{\psi\}}
+  {\vDash\AEJ\{\varphi\}\
     (y\leftarrow c_L;k_L(y))
     \approx_{\epsilon+\epsilon'}
-    (y\leftarrow c_R;k_R(y))\ \{Q\}}
+    (y\leftarrow c_R;k_R(y))\ \{\psi\}}
 \end{mathpar}
 
 \textit{Pythagorean and derived sampling rules}
@@ -109,35 +109,35 @@ one final \textsc{Micciancio--Walter} conversion.
   {E\ \mathsf{injective} \\ 0\leq\epsilon \\ 0<\sigma \\
    \displaystyle\frac{(v_i-u_i)^2}{2\sigma^2}\leq\epsilon
       \quad\text{for every }i \\
-   P\Longrightarrow h_L=h_R \\
-   P\Longrightarrow Q(y,h_L)\wedge Q(y,h_R)\quad\text{for every }y}
-  {\vDash\Pyth\{P\}\
+   \varphi\Longrightarrow h_L=h_R \\
+   \varphi\Longrightarrow \psi(y,h_L)\wedge \psi(y,h_R)\quad\text{for every }y}
+  {\vDash\Pyth\{\varphi\}\
     z\leftarrow E_\#\mathsf{DG}^{n}(u,\sigma^2)
     \approx_{[n\epsilon]}
-    z\leftarrow E_\#\mathsf{DG}^{n}(v,\sigma^2)\ \{Q\}}
+    z\leftarrow E_\#\mathsf{DG}^{n}(v,\sigma^2)\ \{\psi\}}
 
 \inferrule*[right=\textsc{Pyth-Refl}]
-  {P\Longrightarrow x_L=x_R\wedge h_L=h_R \\
+  {\varphi\Longrightarrow x_L=x_R\wedge h_L=h_R \\
    0\leq s_i\quad\text{for every }i \\
-   \supp(\mu^c_{x_L,h_L})\subseteq Q}
-  {\vDash\Pyth\{P\}\ c\approx_s c\ \{Q\}}
+   \supp(\mu^c_{x_L,h_L})\subseteq \psi}
+  {\vDash\Pyth\{\varphi\}\ c\approx_s c\ \{\psi\}}
 
 \inferrule*[right=\textsc{Shared-Continuation}]
-  {\vDash\Pyth\{P\}\ c_L\approx_s c_R\ \{M\} \\
-   \vDash\mathsf{Hoare}\{M\}\ k\ \{Q\}}
-  {\vDash\Pyth\{P\}\
+  {\vDash\Pyth\{\varphi\}\ c_L\approx_s c_R\ \{\theta\} \\
+   \vDash\mathsf{Hoare}\{\theta\}\ k\ \{\psi\}}
+  {\vDash\Pyth\{\varphi\}\
     (y\leftarrow c_L;k(y))
     \approx_{s\doubleplus[0]}
-    (y\leftarrow c_R;k(y))\ \{Q\}}
+    (y\leftarrow c_R;k(y))\ \{\psi\}}
 
 \inferrule*[right=\textsc{Shared-Prefix}]
-  {P\Longrightarrow x_L=x_R\wedge h_L=h_R\wedge P_0(x_L,h_L) \\
-   \vDash\mathsf{Hoare}\{P_0\}\ c\ \{M\} \\
-   \vDash\Pyth\{M^{=}\}\ k_L\approx_s k_R\ \{Q\}}
-  {\vDash\Pyth\{P\}\
+  {\varphi\Longrightarrow x_L=x_R\wedge h_L=h_R\wedge \varphi_0(x_L,h_L) \\
+   \vDash\mathsf{Hoare}\{\varphi_0\}\ c\ \{\theta\} \\
+   \vDash\Pyth\{\theta^{=}\}\ k_L\approx_s k_R\ \{\psi\}}
+  {\vDash\Pyth\{\varphi\}\
     (y\leftarrow c;k_L(y))
     \approx_{[0]\doubleplus s}
-    (y\leftarrow c;k_R(y))\ \{Q\}}
+    (y\leftarrow c;k_R(y))\ \{\psi\}}
 \end{mathpar}
 
 \textit{Adaptive-call compiler rule}
