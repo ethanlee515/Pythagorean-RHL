@@ -10,6 +10,4 @@ Can you compare your work to Barthe-Olmedo in details? I am not familiar enough 
 
 The abstract says "Given any fully homomorphic encryption scheme.." and I don't think it is true. Please explain all the conditions on which your result rests. (deterministic decryption, probability-one correctness, discrete semantics, and the chart structure).
 
-Don't use "law"?
-
 Clean up AI storytelling

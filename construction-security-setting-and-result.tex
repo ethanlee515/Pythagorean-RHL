@@ -83,15 +83,15 @@ Thus \(J_a\) transports a distribution on \(\bbZ^n\) to a distribution on
 messages.
 Zero displacement therefore returns the center, and decoding a displacement
 cannot increase its \(\ell_\infty\) size in the message metric.
-Taking \(v=0\) in the change-of-basepoint law also gives
+Taking \(v=0\) in the translation identity also gives
 \(J_a(I_a(b))=b\), proved as \nolinkurl{inverse_isometry_isometry} in the
 artifact.
 We do not require \(I_a(J_a(v))=v\) for every integer vector: in a finite
 plaintext space, distinct displacements can wrap to the same message.
-The centering, distance, and translation laws let the security proof compare
+The centering, distance, and translation assumptions let the security proof compare
 flooding around two messages as centered and shifted Gaussians in one common
 copy of \(\bbZ^n\).
-The zero-displacement and displacement-bound laws specify the intended
+The zero-displacement identity and displacement bound specify the intended
 meaning of flooding; the KL security comparison does not need them.
 
 For \(\gamma>0\), noise flooding around \(x\in M\) is consequently the
@@ -127,7 +127,7 @@ Write \((J_x)_*P\) for the pushforward of a distribution \(P\) through
 \(c=\mathsf{Some}(\bar c,e)\).
 The artifact proves
 \begin{equation}
-\label{eq:flood-output-law}
+\label{eq:flood-output-distribution}
  \mathcal{L}(\mathsf{Dec}_{\mathsf{NF}_{\gamma}[S]}(sk,c))
    =(J_x)_*D_{\bbZ^n,0,\sigma_e^2}.
 \end{equation}
@@ -180,10 +180,10 @@ The simulated answer needs neither \(sk\) nor \(b\): the common plaintext
 The probability-one correctness assumption in \Cref{eq:approx-correctness}
 gives
 \(d(\mathsf{dec}_0(sk,c),m)\leq e\).
-By the change-of-basepoint law in \Cref{eq:charts}, the simulated answer can
+By the translation identity in \Cref{eq:charts}, the simulated answer can
 be expressed in the real answer's chart by shifting the integer Gaussian by
 \(I_{\mathsf{dec}_0(sk,c)}(m)\).
-The distance law bounds the \(\ell_\infty\) norm of this shift by \(e\), so
+The distance identity bounds the \(\ell_\infty\) norm of this shift by \(e\), so
 each of its \(n\) coordinates has magnitude at most \(e\).
 The equal-variance discrete-Gaussian identity
 \begin{equation}
