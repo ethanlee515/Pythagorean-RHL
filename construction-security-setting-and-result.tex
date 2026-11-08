@@ -45,10 +45,9 @@ for every encryption or evaluation output
 \label{eq:approx-correctness}
  d(\mathsf{dec}_0(sk,c),m)\leq e.
 \end{equation}
-The artifact calls this \emph{support-level} correctness; in cryptographic
-terms, the bound holds with probability one.
-Nonzero correctness error would require the additional up-to-bad hop discussed
-in \Cref{sec:scope}.
+We call this \emph{support-level} correctness;
+that is, the bound holds with probability one.
+We discuss nonzero correctness errors in \Cref{sec:limitations}.
 
 LMSS's noise-flooding defense postprocesses approximate decryption with fresh
 Gaussian noise~\cite{lmss}.

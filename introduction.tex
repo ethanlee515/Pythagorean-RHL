@@ -155,13 +155,10 @@ itself does not mention FHE.
 \subsection{Machine-checked main theorem}
 \label{sec:scope}
 
-Let \(S\) be an approximate-FHE scheme whose message space has local charts in
-\(\bbZ^n\), let \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform, and
-let \(\cA\) be a well-typed SSProve adversary in the IND-CPAD game with
-decryption-query budget \(q\in\bbN\).
-Under the interfaces and assumptions specified in
-\Cref{sec:assumptions}, the formal development constructs an IND-CPA
-adversary \(\cB_{\cA,q}\) and proves
+Let \(S\) be an approximate-FHE scheme and \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform,
+and let \(\cA\) be an IND-CPAD adversary making up to \(q\in\bbN\) queries.
+Under list of the assumptions given in
+\Cref{sec:assumptions}, we formalize an IND-CPA reduction \(\cB_{\cA,q}\) and proves
 \begin{equation}
 \label{eq:headline}
  \WinProb[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S],q}(\cA)]
@@ -171,8 +168,6 @@ adversary \(\cB_{\cA,q}\) and proves
 \end{equation}
 The expression \(\beta_{\mathsf{CPA}}\) is the supplied winning-probability
 bound for the underlying scheme.
-The formal theorem is given in the artifact as
-\texttt{NoiseFloodingSecure.is\_secure}.
 
 The result covers adaptive oracle programs rather than adversaries prewritten as \(q\) separate query phases.
 Its proof isolates one lossy transition: real flooded decryption is replaced by flooding around the plaintext recorded in the challenge table.
@@ -181,17 +176,9 @@ The formal proof exposes this transition by opening and relinking packages,
 compiling calls, replacing unreachable residual decryptions, and identifying
 the reduction game; each of these representation changes is proved exact.
 
-The checked theorem deliberately isolates the good-execution step of the LMSS
-argument.
-It assumes deterministic decryption, probability-one approximate correctness
-(bad key triples and incorrect encryption or evaluation outputs have
-probability zero), discrete semantics, and the integer charts specified in
-\Cref{sec:assumptions}.
-A concrete CKKS instantiation would additionally require a standard up-to-bad game hop
-for correctness failures and proofs that CKKS satisfies IND-CPA and the stated
-interface assumptions.
-We have not yet formalized those obligations, and therefore do not claim a verified
-CKKS deployment or concrete parameter set.
+% The checked theorem deliberately isolates the good-execution step of the LMSS argument.
+% A concrete CKKS instantiation would require an additional game hop for correctness failures,
+% and proofs that CKKS satisfies other assumptions given in \Cref{sec:assumptions}.
 
 As in SSProve generally, probabilistic polynomial time is not formalized in the
 Rocq semantics and remains a conventional external

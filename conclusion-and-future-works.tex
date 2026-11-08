@@ -1,16 +1,14 @@
 \section{Conclusion and Future Works}
 \label{sec:limitations}
 
-Our formalization deliberately factors correctness failures from the
-quantitative noise-flooding argument.
-Its probability-one hypotheses prove the good-execution case.
-For an imperfectly correct FHE such as CKKS, one more standard up-to-bad game hop must be formalized before instantiation, and the probability of generating ``bad" key pairs and encryptions must be carefully accounted for.
+Our formalization deliberately factors correctness failures from the noise-flooding argument.
+For an imperfectly correct FHE such as CKKS,
+one would add an additional game hop (i.e. consider a hybrid experiment where correctness holds with probability one),
+and apply a standard union bound.
 
 The chart interface from \Cref{eq:charts} also remains abstract.
 A concrete CKKS instantiation must connect its plaintext ring and norm to those
 centering, distance, displacement-bound, and translation assumptions.
-Keeping that obligation separate makes the generic reduction easier to audit,
-but does not discharge it.
 
 Modulo the above proof engineering items, we have formally verified the central LMSS game hop \cite{lmss}.
 Under the assumptions collected in \Cref{sec:assumptions}, noise flooding

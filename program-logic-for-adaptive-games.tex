@@ -235,12 +235,3 @@ The
 noise-flooding proof instantiates \(\epsilon=1/(2\gamma^2)\), obtaining
 \(\epsilon_{\mathsf{nf}}=n/(2\gamma^2)\) without introducing any unverified assumptions.
 
-\subsection{Why the extra judgment is necessary}
-
-The additive-error layer remains essential for exact hops, up-to-bad arguments, and the final triangle calculation.
-Its ordinary sequence rule, however, maps \(\delta_1,\delta_2\) to \(\delta_1+\delta_2\).
-Applying Pinsker inside each decrypt proof would therefore pay \(q\sqrt{\epsilon_{\mathsf{nf}}/2}\).
-The Pythagorean layer delays that nonlinear conversion and obtains \(\sqrt{q\epsilon_{\mathsf{nf}}/2}\).
-It provides a verified relational interface for carrying parameter-critical KL
-information across stateful program composition.
-
