@@ -192,8 +192,11 @@ the reduction.
 The noise-flooding proof starts with a KL-divergence bound between two
 implementations of one decryption call and must end with an additive bound
 between two complete games containing an adaptive adversary.
-SSProve's original architecture addresses this kind of local-to-global gap by
-connecting two proof styles: high-level equational reasoning about
+SSProve's original architecture bridges \emph{local} analysis (i.e. closeness of two oracles)
+with \emph{global} reasoning (i.e. closeness of two hybrid games) by connecting two proof styles:
+% SSProve's original architecture addresses this kind of local-to-global gap by
+% connecting two proof styles:
+high-level equational reasoning about
 cryptographic packages and low-level relational reasoning about their
 procedures~\cite{ssprove}.
 Noise flooding needs a new quantitative connection of the same kind.
