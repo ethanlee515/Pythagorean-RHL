@@ -21,8 +21,46 @@ invariant, constructs the IND-CPA reduction, and composes the exact and
 quantitative game transitions.
 The top-level result is a functor over precisely the scheme, chart,
 probability-one correctness, IND-CPA security, and flooding-parameter
-interfaces described in \Cref{sec:construction}; probability lemmas and
+interfaces collected in \Cref{sec:assumptions}; probability lemmas and
 program rules are proved dependencies.
+
+\subsection{Theorem assumptions and scope}
+\label{sec:assumptions}
+
+The bound in \Cref{thm:main} depends on the following assumptions and semantic
+conventions, detailed at the cited locations.
+
+\begin{enumerate}
+\item \emph{Discrete scheme and program semantics.}
+Programs use SSProve's countable types and discrete subdistributions; the
+scheme has lossless key generation and publicly error-tagged ciphertexts
+(\Cref{sec:construction,app:approximate-homomorphic-encryption-interface}).
+
+\item \emph{Deterministic base decryption.}
+Base decryption agrees with a pure function with probability one
+(\Cref{sec:construction}).
+
+\item \emph{Probability-one approximate correctness.}
+Bad keys and incorrect encryption or evaluation outputs have probability zero,
+as specified in \Cref{eq:approx-correctness,app:support-correctness-excerpt}.
+
+\item \emph{Integer-coordinate chart structure.}
+The message distance and integer-coordinate maps satisfy all five laws in
+\Cref{eq:charts}.
+
+\item \emph{Specified flooding distribution and positive width.}
+The multiplier satisfies \(\gamma>0\), and flooding uses the exact product
+discrete Gaussian specified in \Cref{eq:flood}.
+
+\item \emph{Security experiment, adversaries, and base security bound.}
+Adversaries are well-typed SSProve packages in the bounded IND-CPAD experiment,
+and the base scheme satisfies the supplied IND-CPA winning-probability bound
+(\Cref{sec:construction,app:security-games}).
+\end{enumerate}
+
+Efficiency and concrete CKKS instantiation remain external obligations
+(\Cref{sec:scope}); foundational and library assumptions are listed in
+\Cref{sec:tcb}.
 
 \subsection{Formalization of judgments and rules}
 
@@ -213,8 +251,8 @@ should reproduce the build.
 The trusted base includes the Rocq kernel and standard library; MathComp,
 MathComp Analysis, and their real-number/classical infrastructure; and
 SSProve's program, heap, package, linking, and subdistribution semantics.
-The scheme, chart, correctness, parameter, and IND-CPA interfaces from
-\Cref{sec:construction} are theorem parameters and must be discharged by a
+The scheme, chart, correctness, parameter, and IND-CPA interfaces collected in
+\Cref{sec:assumptions} are theorem parameters and must be discharged by a
 concrete instantiation.
 
 The new KL, Gaussian, relational, compiler, and game-hop results contain no

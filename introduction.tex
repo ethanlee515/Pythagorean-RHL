@@ -157,14 +157,14 @@ itself does not mention FHE.
 
 Let \(S\) be an approximate-FHE scheme whose message space has local charts in
 \(\bbZ^n\), let \(\mathsf{NF}_{\gamma}[S]\) be its noise-flooded transform, and
-let \(\cA\) make at most \(q\) non-failing decryption queries in the IND-CPAD
-game.
+let \(\cA\) be a well-typed SSProve adversary in the IND-CPAD game with
+decryption-query budget \(q\in\bbN\).
 Under the interfaces and assumptions specified in
-\Cref{sec:construction}, the formal development constructs an IND-CPA
+\Cref{sec:assumptions}, the formal development constructs an IND-CPA
 adversary \(\cB_{\cA,q}\) and proves
 \begin{equation}
 \label{eq:headline}
- \WinProb[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S]}(\cA)]
+ \WinProb[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}_{\gamma}[S],q}(\cA)]
  \leq
  \beta_{\mathsf{CPA}}(\cB_{\cA,q})+
  \frac{\sqrt{qn}}{2\gamma}.
@@ -183,9 +183,10 @@ the reduction game; each of these representation changes is proved exact.
 
 The checked theorem deliberately isolates the good-execution step of the LMSS
 argument.
-It assumes deterministic decryption, approximate correctness with certainty
-(that is, no bad key pairs or encryptions exist), and a message space with local
-\(\bbZ^n\) charts.
+It assumes deterministic decryption, probability-one approximate correctness
+(bad key triples and incorrect encryption or evaluation outputs have
+probability zero), discrete semantics, and the integer charts specified in
+\Cref{sec:assumptions}.
 A concrete CKKS instantiation would additionally require a standard up-to-bad game hop
 for correctness failures and proofs that CKKS satisfies IND-CPA and the stated
 interface assumptions.

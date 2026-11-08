@@ -16,7 +16,7 @@ This distinction is parameter-critical in the noise-flooding defense for approxi
 \[
 \varepsilon_{\mathrm{nf}}=\frac{n}{2\gamma^{2}},
 \]
-where $n$ is the noise-coordinate dimension and $\gamma$ controls the flooding width. The two composition strategies therefore give losses proportional, respectively, to
+where $n$ is the message dimension and $\gamma$ controls the flooding width. The two composition strategies therefore give losses proportional, respectively, to
 \[
 \frac{q\sqrt{n}}{2\gamma}
 \qquad\text{and}\qquad
@@ -52,7 +52,7 @@ The KL chain rule, Pinsker's inequality, and the underlying Pythagorean distribu
 \label{sec:intro-result-scope}
 \label{sec:scope}
 
-Let $S$ be an approximate homomorphic-encryption scheme satisfying the scheme, correctness, noise-coordinate, and IND-CPA interfaces specified in \Cref{sec:construction}. Let $\operatorname{NF}_{\gamma}[S]$ denote its noise-flooded transform, where $\gamma>0$ is the Gaussian-width multiplier, and let $n$ be the dimension of the integer noise-coordinate representation. For every well-typed IND-CPAD adversary $\mathcal{A}$ and every decryption-query budget $q$, the formal development constructs an IND-CPA adversary $\mathcal{B}_{\mathcal{A},q}$ and proves
+Let $S$ be an approximate homomorphic-encryption scheme satisfying the assumptions collected in \Cref{sec:assumptions}. Let $\operatorname{NF}_{\gamma}[S]$ denote its noise-flooded transform, where $\gamma>0$ is the Gaussian-width multiplier, and let $n$ be the message dimension. For every well-typed IND-CPAD adversary $\mathcal{A}$ and every decryption-query budget $q$, the formal development constructs an IND-CPA adversary $\mathcal{B}_{\mathcal{A},q}$ and proves
 \begin{equation}
 \begin{aligned}
 &\operatorname{WinProb}\!\left[

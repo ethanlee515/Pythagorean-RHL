@@ -210,9 +210,8 @@ Our contribution is to express its assumptions through the interfaces in
 
 \begin{theorem}[Checked noise-flooding reduction]
 \label{thm:main}
-Let \(S\), its noise-coordinate interface, probability-one correctness proof,
-IND-CPA security interface, and \(\gamma>0\) satisfy
-the requirements of \Cref{sec:construction}.
+Let \(S\) satisfy the assumptions collected in \Cref{sec:assumptions}, with
+message dimension \(n\) and flooding multiplier \(\gamma>0\).
 For every IND-CPAD adversary \(\cA\) represented as a well-typed SSProve oracle
 program, and every \(q\in\bbN\), the formalization constructs an IND-CPA adversary
 \(\cB_{\cA,q}\) with the required oracle interface and proves

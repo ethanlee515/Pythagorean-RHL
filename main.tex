@@ -59,15 +59,18 @@ The cryptographic proof instead accumulates conditional
 Kullback--Leibler (KL) costs and converts to statistical distance once, giving
 the parameter-critical square-root loss.
 
-We machine-check this argument using Rocq and SSProve.
-Given any fully homomorphic encryption scheme that is approximately correct and IND-CPA secure,
+We machine-check this argument using Rocq and SSProve and explicitly list
+its assumptions.
+For an IND-CPA-secure approximate homomorphic encryption scheme with
+deterministic decryption, probability-one correctness, and the discrete
+semantics and required chart structure,
 we formalize a reduction for every \(q\)-query IND-CPAD adversary and prove
 \[
- \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF}}^{\mathcal A}=1]
+ \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF},q}^{\mathcal A}=1]
  \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
        + \frac{\sqrt{qn}}{2\gamma}.
 \]
-where \(n\) is the plaintext dimension and \(\gamma\) is the flooding-width
+where \(n\) is the message dimension and \(\gamma\) is the flooding-width
 multiplier.
 Our proof constructs a new relational program logic
 over SSProve semantics.
