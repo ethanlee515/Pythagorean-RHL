@@ -183,26 +183,20 @@ gives
 By the translation identity in \Cref{eq:charts}, the simulated answer can
 be expressed in the real answer's chart by shifting the integer Gaussian by
 \(I_{\mathsf{dec}_0(sk,c)}(m)\).
-The distance identity bounds the \(\ell_\infty\) norm of this shift by \(e\), so
-each of its \(n\) coordinates has magnitude at most \(e\).
-The equal-variance discrete-Gaussian identity
+% The distance identity bounds the \(\ell_\infty\) norm of this shift by \(e\), so
+% each of its \(n\) coordinates has magnitude at most \(e\).
+By applying the following identity then:
 \begin{equation}
 \label{eq:dg-kl}
  \KL{\DG{\mu}{\sigma^2}}{\DG{\nu}{\sigma^2}}
-   =\frac{(\nu-\mu)^2}{2\sigma^2}.
+   =\frac{(\nu-\mu)^2}{2\sigma^2},
 \end{equation}
-After fixing the adversary's prior view, \(m\), \(c\), and \(e\) are fixed.
-The identity bounds the KL divergence \(\epsilon_i\) between the two answer
+we can bound the KL divergence \(\epsilon_i\) between the two answer
 distributions for this call by
 \begin{equation}
 \label{eq:epsilon-nf}
  \epsilon_i
- \leq
- \frac{ne^2}{2\max\{1,e\}^2\gamma^2}
- \leq
- \epsilon_{\mathsf{nf}},
- \qquad
-\epsilon_{\mathsf{nf}}=\frac{n}{2\gamma^2}.
+ \leq\frac{n}{2\gamma^2}.
 \end{equation}
 
 This is a one-call statement conditioned on an arbitrary prior interaction
