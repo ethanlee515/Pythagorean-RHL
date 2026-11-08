@@ -202,19 +202,10 @@ already been proved.
 
 \subsection{Reproducibility}
 
-The complete artifact is available at
+The complete artifact is available on the \texttt{csf2027} branch of
 \url{https://github.com/ethanlee515/mending}.
-The complete artifact checks with Rocq 9.0.1, MathComp 2.6.0, MathComp Analysis and
-experimental reals 1.18.0, and \texttt{rocq-ssprove} from its \texttt{main}
-branch. The SSProve revision used for this upgrade is
-\texttt{9a37fe0ab79d}; the artifact README records its full hash and commands
-for selecting that snapshot. MathComp's built-in ring tactic replaces the
-separate algebra-tactics package. The branch pin can advance when refreshed,
-so subsequent dependency updates require a complete rebuild and assumption
-audit. The manuscript's
-Rocq listings are refreshed from the checked sources during its build, so the
-displayed propositions and theorem statements do not silently diverge from
-the artifact.
+This branch pins the Rocq and library dependencies; following its README
+should reproduce the build.
 
 \subsection{Trusted computing base}
 \label{sec:tcb}
