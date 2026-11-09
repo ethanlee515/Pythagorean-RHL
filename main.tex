@@ -52,32 +52,23 @@ Noise Flooding in Homomorphic Encryption}
 Noise flooding is a standard defense against decryption attacks on approximate
 homomorphic encryption, but its security proof is unusually sensitive to
 composition.
-Replacing each of \(q\) adaptive decryption answers with a
-statistically close simulation and applying an ordinary hybrid argument loses
-linearly in \(q\).
-The cryptographic proof instead accumulates conditional
-Kullback--Leibler (KL) costs and converts to statistical distance once, giving
-the parameter-critical square-root loss.
+Given an adversary that makes $q$ oracle queries in the security game,
+its advantage scales sub-linearly in $q$.
+The security analysis bounds the cost per query using Kullback--Leibler divergence,
+then convert the security loss to statistical distance after all the oracle queries.
 
-We machine-check this argument using Rocq and SSProve and explicitly list
-its assumptions.
-For an IND-CPA-secure approximate homomorphic encryption scheme with
-deterministic decryption, probability-one correctness, and the discrete
-semantics and required chart structure,
+We machine-check this argument using Rocq and SSProve and explicitly list its assumptions.
+For any IND-CPA secure approximate homomorphic encryption scheme that satisfy these assumptions,
 we formalize a reduction for every \(q\)-query IND-CPAD adversary and prove
 \[
  \Pr[\mathsf{IND\text{-}CPAD}_{\mathsf{NF},q}^{\mathcal A}=1]
  \leq \beta_{\mathsf{CPA}}(\mathcal B_{\mathcal A,q})
        + \frac{\sqrt{qn}}{2\gamma}.
 \]
-where \(n\) is the message dimension and \(\gamma\) is the flooding-width
-multiplier.
-Our proof constructs a new relational program logic
-over SSProve semantics.
-Its Pythagorean judgment composes
-conditional KL budgets without converting them to statistical distance, and a
-verified trace compiler lifts a local oracle rule to arbitrary adaptive
-programs with a single final conversion.
+where \(n\) is the message dimension and \(\gamma\) is the flooding-width multiplier.
+Our proof constructs a new relational program logic over SSProve semantics.
+Its Pythagorean judgment composes conditional KL costs,
+while a verified compiler treats the adversary's adaptive queries.
 \iffalse
 The development also supplies the
 required discrete-Gaussian analysis.
