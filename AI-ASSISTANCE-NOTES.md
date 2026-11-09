@@ -1,5 +1,11 @@
 # Evidence for the AI-assistance appendix
 
+The November 8, 2026 rewrite follows a human-effort narrative. Its additional
+episode counts, newly checked evidence, and preservation map are in
+[AI-ASSISTANCE-REWRITE-NOTES.md](AI-ASSISTANCE-REWRITE-NOTES.md). The detailed
+November 4 audit below and its frozen exports remain unchanged; some of this
+material is now retained here rather than printed in the appendix.
+
 Working notes for the authors; this file is not an input to the manuscript or
 its source-package script. The appendix is in
 `acknowledgment-of-ai-assistance.tex` and is included after the technical
