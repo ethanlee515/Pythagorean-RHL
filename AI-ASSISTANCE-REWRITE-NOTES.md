@@ -157,6 +157,7 @@ and hashes are in `user-records.csv`.
 | --- | --- | --- |
 | First Gaussian KL work and preservation target | Artifact `6ed6bf7`, May 6; `f68ae73`, `cfc7e93`, `b8eb9ff`, `539a2c5`, May 16 | An AI-assisted Gaussian calculation and explicit preservation target predate available conversations. These commits do not establish that the final dependency chain was already complete. |
 | Early logic encodings and statements | `6e14495`, July 12, 2025; `d40b2ff`, `c2834de`, July 14 | Initial encodings, rule statements, and an admitted conversion theorem. The initial Pythagorean encoding was inductive; later versions used semantic judgments. Do not date a completed soundness proof from these statements or the July 21 commit titled “Fix broken proof,” which only repairs the theorem's application syntax. |
+| AI-assisted logic work predates the retained chats | `971cfce`, May 17, 2026; `d918537`, `3183b79`, May 18 | Codex coauthor footers record assistance with judgment revisions, rule development, and a sequencing-soundness repair. These dates establish involvement by May 17–18, not the exact first AI interaction. Together with the 2025 prototypes, they explain the year boundary in subsection B. The earliest recorded AI assistance elsewhere in the artifact is the May 6, 2026 Gaussian work; May 29 dates the available conversations, not the start of assistance. |
 | Human review of totalized KL | `019edbf4-0f21-79c1-89a4-7b254c5e1988`, lines 1754 and 1775, June 19 at 04:48 and 04:55 | The author asks what a nonconvergent KL sum means and how to discharge the resulting debt. The explicit finiteness requirement led to widespread interface changes. |
 | LaTeX before further summability engineering | `019ee0cc-e3cc-7a92-9871-0e49dd6bcb5e`, lines 325, 943, 997, 1078 | June 19: requests an informal summability proof, then an iterated-chain-bound proof, questions sum interchange, and chooses the positive-part summability obligation next. |
 | Review does not always prevent a false intermediate lemma | `019ee2e4-9ec9-7223-8b51-0f6f79f285ed`, around lines 723–893 | June 20: after resuming the proof, a proposed statement is found unsound; the author acknowledges having missed it. Avoid claiming every checkpoint detected the problem in advance. |
@@ -239,3 +240,45 @@ records do not establish the date of the original LaTeX design, the total
 number of early probability interactions, total researcher hours, or a
 counterfactual time/cost saving from author skepticism. No unresolved factual
 placeholder is needed in the LaTeX; the limits are stated directly.
+
+## Recovery check on November 8, 2026
+
+Absence from the inspected stores does not establish expiration or deletion.
+A further read-only inventory found 505 Codex rollouts across the active and
+archived directories; the oldest session metadata is May 19, 2026,
+02:02:43 UTC. The local thread database has the same earliest creation time.
+Thirteen rollouts predate May 29, but none contains the checked project names
+or distinctive theorem identifiers. No earlier project conversation was
+recovered. Current configuration does not explicitly set `history.persistence`
+or `history.max_bytes`; this does not establish the historical settings or
+explain the missing early records.
+
+The additional search did find a project-specific **Copilot transcript** in
+VS Code workspace storage, separate from the global Copilot database inspected
+in the November 4 audit:
+
+```text
+~/.vscode-server/data/User/workspaceStorage/0baff809a2a4f50a510bc5fcee318e13/GitHub.copilot-chat/transcripts/de6aaa72-b41e-4e56-a61a-e97982d34e21.jsonl
+```
+
+Its recorded events span June 14, 2026, 09:56:04–10:26:10 UTC. Its SHA-256 is
+`1bcd7748c7a20b8a91ac26455949c5311ab4008d1731b08b72028c307eb87863`.
+It concerns `codeLinkCompileCallsFromTraceS_decompose` and the use of
+SSProve's `code_link_bind` and monad laws. Five user-message records survive;
+the file starts with an assistant response, so it does not contain the initial
+user prompt. Its event schema differs from the Codex exports and its agent
+turn markers must not be interpreted as the completed Codex turns counted
+above. No private conversation body is copied here.
+
+This find expands the available qualitative evidence, without changing the
+frozen Codex usage totals or recovering the early-May conversations. The
+earlier audit's statement about the inspected global Copilot database remains
+specific to that database; it must not be generalized to all editor storage.
+
+For possible recovery elsewhere, official OpenAI documentation identifies
+[active and archived local transcript directories](https://learn.chatgpt.com/docs/reference/troubleshooting)
+and documents [exporting an available conversation with `/export`](https://learn.chatgpt.com/docs/developer-commands).
+These instructions do not establish a server-side restore mechanism for a
+missing local transcript. Other machines, alternate Codex homes, backups,
+and any separately saved cloud conversations remain possible sources; their
+existence has not been established by this local check.

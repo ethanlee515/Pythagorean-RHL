@@ -25,6 +25,13 @@ measures researcher hours. The following are selected episodes, with
 overlapping scientific responsibilities, rather than complete per-layer totals.
 Conversation dates use UTC.
 
+Subsection B spans two years: human logic design and the initial Rocq
+encodings were underway in July **2025**, while the intensive AI-assisted
+soundness work followed in May–June **2026**. Codex assistance with the logic
+is recorded by May 17–18, 2026, before the first available chats on May 29.
+AI assistance elsewhere in the artifact is recorded by May 6, 2026. The
+exact date of the earlier human LaTeX design is unknown.
+
 | Part | Established dates and interaction counts | Human work to emphasize |
 | --- | --- | --- |
 | Analysis | Gaussian KL work entered May 6; preservation target May 16; final June 19–21 analysis/assumption push: 60 requests, 82 completed turns; June 22 Gaussian-rule restoration: 8 requests, 8 turns | Questioning totalized nonconvergent sums; making KL finiteness explicit; asking for LaTeX proofs of summability, the chain bound, and Pinsker; directing proof organization. Earlier conversations are missing, so no total round-trip count is available. |
