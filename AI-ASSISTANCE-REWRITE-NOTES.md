@@ -50,6 +50,7 @@ for Pythagorean preservation or the initial Gaussian KL work.
 | Initial sequencing proof | One full conversation, June 9–11 | 51 | 50 | 0 |
 | Missing-mass review and completion | Two full conversations, June 12–13 | 28 | 28 | 0 |
 | Initial compiler construction and correctness | Twelve full conversations, June 3–6 | 47 | 45 | 0 |
+| Quantitative compiler rule, excluding shared logic/probability work | Eleven full conversations, June 6–19 | 61 | 60 | 0 |
 | Application through the July 10 milestone | Prefix of three conversations, defined below | 46 | 297 | 269 |
 
 ### Selection manifest
@@ -80,6 +81,17 @@ retained by the November 4 audit.
 | Initial compiler | `019e914f-a0ca-7180-889a-b16fbf11bc8a` | 7 | 5 |
 | Initial compiler | `019e9c45-f3d2-7de2-8697-f02dc5629b3e` | 14 | 14 |
 | Initial compiler | `019e9c9a-af96-7f92-a5a0-e9c747e77f24` | 3 | 3 |
+| Quantitative compiler | `019e9ce6-21e0-71b0-a3f1-84c839321b89` | 8 | 8 |
+| Quantitative compiler | `019ebc16-02e8-7353-884c-8356a2517704` | 2 | 2 |
+| Quantitative compiler | `019ec18d-d7cf-7c71-833e-8b39fb97635c` | 16 | 16 |
+| Quantitative compiler | `019ec3c7-dc3d-75d3-8985-56c88b2ebd17` | 22 | 21 |
+| Quantitative compiler | `019ec6da-8f64-7011-9191-ff6b95eeb6b0` | 1 | 1 |
+| Quantitative compiler | `019edba9-f6ae-7fb2-9a09-bcee9e5f60db` | 1 | 1 |
+| Quantitative compiler | `019edbb9-a2d6-7a31-8b53-270a8be69bc2` | 3 | 3 |
+| Quantitative compiler | `019edbd9-4289-7862-a86f-70e5a1e5e5c0` | 1 | 1 |
+| Quantitative compiler | `019edbe3-98bb-7c22-97fb-319c33e020c9` | 5 | 5 |
+| Quantitative compiler | `019eddec-0067-7cc0-a7b0-8fc44081ed14` | 1 | 1 |
+| Quantitative compiler | `019ee0c0-498f-7770-809a-a8813b0e6602` | 1 | 1 |
 
 The final probability push spans June 19 at 10:49:07 through June 21 at
 03:57:24 UTC. Its reported completed-turn durations sum to 10.70 hours;
@@ -87,6 +99,20 @@ that is agent time under the audit's convention, not researcher labor.
 The initial sequencing conversation spans June 9–11. The initial compiler
 selection spans June 3 at 22:54 through June 6 at 11:32 UTC, ending around
 the correctness-proof repair recorded in `9245c47`.
+
+The quantitative-compiler selection was added during the November 10
+continuation of the rewrite. It starts on June 6 at 12:29:52 UTC and ends on
+June 19 at 16:47:19 UTC. Its 61 requests and 60 completed turns account for
+3.67 reported agent hours. It covers statement design, invariant conditions,
+the inductive proof, budget bookkeeping, composition with the
+Micciancio–Walter rule, and the zero-call case. It excludes the shared
+sequencing and completion work and the final probability push listed above;
+the June 14 Copilot transcript described below is also outside these Codex
+counts. The paper's roughly two-week span runs from the early rule statement
+(`a458a1d`, June 6) to the discharge of the final project assumptions
+(`9799d05`, June 21), rather than just the last conversation in this selection.
+These are selected interaction records, not an exhaustive count of effort
+attributable to the rule. The frozen November 4 usage exports are unchanged.
 
 The application episode includes events in the following three sessions
 **strictly before July 10, 2026, 04:48:51 UTC**, the timestamp of completion
@@ -125,6 +151,10 @@ groups = {
     "compiler": ["019e8fb1", "019e9050", "019e9066", "019e906d",
                  "019e9071", "019e9083", "019e90a7", "019e90bf",
                  "019e9149", "019e914f", "019e9c45", "019e9c9a"],
+    "quantitative_compiler": ["019e9ce6", "019ebc16", "019ec18d",
+                              "019ec3c7", "019ec6da", "019edba9",
+                              "019edbb9", "019edbd9", "019edbe3",
+                              "019eddec", "019ee0c0"],
     "application": ["019f1816", "019f1edf", "019f4224"],
 }
 
@@ -164,6 +194,10 @@ and hashes are in `user-records.csv`.
 | Pinsker proof strategy and organization | `019ee58d-e712-70b1-92d4-3c3f5974ea83`, lines 5824, 5912, 6072, 6099, 6272 | June 21: requests LaTeX, discusses binary data processing and the calculus step, and directs top-down/depth-first organization. `9799d05` records completion of Pinsker and compiler-rule analysis, still relative to inherited library assumptions. |
 | Gaussian convergence review after the logic changes | `019eee80-315f-7e61-acb5-c9243b8423a8`, lines 6, 790–1016, 1387–1416; `46da66d` | June 22: restore sampling rules, revisit `finite_kl` and injective pushforwards, then reconnect the proof. The commit is dated June 23 at +08:00, equivalent to June 22 UTC. |
 | Author-directed compiler redesign and proof repair | `019e9c45-f3d2-7de2-8697-f02dc5629b3e`, lines 6 and 48; `019e9c9a-af96-7f92-a5a0-e9c747e77f24`, line 6 | June 6: the author says the intended selected-call/resumption behavior was lost and asks to restore it; correctness is then reproved for the revised construction. |
+| Invariant repair for the quantitative compiler rule | `019ec18d-d7cf-7c71-833e-8b39fb97635c`, lines 6, 71, 77, 96, 127, 167, 552, and 820; artifact `31d501e` | June 13: the agent identifies a counterexample using local heap mutation. The author asks how to state preservation between calls and suggests the memory-frame route. The revised rule protects the invariant's footprint from direct local updates and separately requires preservation by nonselected operations. The agent proves the corresponding traversal-preservation lemma. |
+| Top-down compiler proof and composition review | `019ec18d-d7cf-7c71-833e-8b39fb97635c`, lines 218 and 372; `019ec3c7-dc3d-75d3-8985-56c88b2ebd17`, lines 101, 231, 573, 1068, and 1165; artifacts `7cd59f3`, `2a97eee`, `0d7ee27`, `6ea7f64` | June 13–14: the author asks for intermediate statements and reviews their roles, then asks to check whether proved subcases assemble. The agent adjusts their packed-trace interfaces before completing the parent case split. |
+| Final zero-budget coordinate | `019edba9-f6ae-7fb2-9a09-bcee9e5f60db`, lines 6 and 216; artifact `97aab54` | June 18 UTC: the author proposes appending zero to the sequencing budget rather than continuing to prove the stronger common-postprocessing lemma. The agent derives the revised rule from the existing sequence rule and adjusts the compiler's error tuple. This adds a transcript coordinate without increasing its norm. This is a later, separate adjustment from the June 7 shared-prefix coordinate. |
+| Composition and final compiler-rule milestone | `019edbe3-98bb-7c22-97fb-319c33e020c9`, lines 6, 262, 274, 279, and 282; `019ee58d-e712-70b1-92d4-3c3f5974ea83`, lines 6 and 8955; artifacts `41ee318`, `9799d05` | June 18: the author asks to compose the Pythagorean compiler bound with Micciancio–Walter and inspect `Print Assumptions`; the agent reports no project assumptions from the former, with the remaining work in the latter's probability dependencies. The final conversion dependencies are discharged on June 21, relative to inherited library and logical assumptions. |
 | Adversary-independent security-bound correction | `019f4224-099b-7d53-879f-23e05ef54fd2`, lines 48493, 48657, 48781; artifact `06fa6c5` | July 11 at 04:51:09: the author challenges a bound uniform over all adversaries, including unbounded ones. At 05:02 the author requests an adversary-dependent conclusion exposing the reduction, then asks to explain the external efficiency obligation. The correction is after the July 10 milestone and outside its interaction-count window. |
 
 The hidden-mixture, missing-mass, chart-repair, and pruning evidence remains

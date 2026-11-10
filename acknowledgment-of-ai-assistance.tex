@@ -39,11 +39,11 @@ We then reviewed the resulting statements and arguments.
 Through the formalization process, we uncovered and fixed several soundness bugs and design issues.
 For instance, an earlier version of our Pythagorean logic would allow the error budget to depend on runtime values (i.e. the heap memory).
 This however introduced an unintended constraint where the judgment becomes too restrictive.
-After discussions with the agent, eventually it was decided that the error budgets would be fixed.
+After discussions with the agent, eventually it was decided that the error budgets would be fixed statically.
 
 Another design issue involves the sequence rule, where we initially did not insert zero entries in the vectors.
 Though this is not unsound in and of itself, it would make the soundness proofs much harder,
-and make the Pythagorean judgment more general than our conceptual understanding of it.
+and make the Pythagorean judgment more general than intended.
 
 Finally, another issue arised with subnormalized distributions.
 MathComp distributions are subnormalized by default;
@@ -67,43 +67,10 @@ The agent came back with an unnecessarily restrictive theorem statement,
 which was then promptly repaired accordingly.
 Altogether, the compiler construction and correctness have taken around 45 messages over around a week.
 
-As for the compile rule \Cref{thm:compile-replace},
-(TODO say a bit more story, and how much time/interaction?)
-
-The compiler addressed a problem identified by the authors: the logic could
-compose a fixed schedule of oracle calls, whereas a cryptographic adversary
-chooses its calls adaptively.
-On May 31 an author asked about compiling a general adversary into a factored
-form suitable for the logic.
-The authors supplied the intended suspension/resumption behavior and semantic
-preservation requirement, and brought a partial trace/replay implementation
-for review on June 3.
-That scaffold had itself already received AI assistance.
-Codex filled in substantial implementation details, helped state correctness,
-and constructed proofs through intermediate lemmas.
-
-The human work included both interface decisions and corrections to the
-proposed theorem.
-On June 4 the authors rejected an unnecessary bounded-call hypothesis for
-same-package semantic correctness: calls after the selected prefix remain in
-the residual program and are handled by linking to the original package.
-On June 6 they asked to rework the construction so that the selected external
-call and its recorded result appeared at the intended point between
-suspension and resumption; the correctness proof was then adapted.
-The twelve retained conversations about construction and correctness from
-June 3--6 contain 47 human-request records and 45 completed agent turns.
-This count includes syntax and library-interface questions, and ends before
-the later quantitative replacement proof.
-
-That quantitative rule was developed alongside the logic and probability
-analysis through June 21.
-The discussions revised its invariant requirements and the treatment of local
-computation between selected calls.
-The authors continued to review the statement and proof structure, while
-Codex supplied substantial proofs, including extended work discharging
-assumptions.
-The nominal-extension migration and associated SSProve interface repairs had
-already begun in late May, before the trace compiler.
+The quantitative compile rule \Cref{thm:compile-replace} required more interaction.
+The design of the rule itself, especially its treatment of invariants and memory restrictions, had to be treated carefully.
+The formalized rule was a result of many rounds of discussions and iterations with AI agents.
+The work spanned roughly two weeks over around 60 prompts to the agent.
 
 \subsection{Application to noise flooding}
 
