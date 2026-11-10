@@ -1,13 +1,13 @@
 \section{Use of AI in the Research and Formalization}
 \label{app:ai-assistance}
 
-Both our Rocq formalization and paper writing are heavily AI-assisted.
+Both our Rocq formalization and the writing of this paper were heavily AI-assisted.
 In this appendix, we recount our proof engineering efforts.
-We remark that our experience reflects the AI agents of 2025--2026,
-especially through summer 2026.
-We expect that a state-of-the-art agent would be able to produce Rocq formalization more independently and cheaply.
+Our experience reflects the agents available during development,
+especially in summer 2026.
+We expect newer agents to produce Rocq formalizations with less human guidance and at lower cost.
 
-We organize our account by first by project organization, then proceeding chronologically within each part.
+We organize our account by part of the project, proceeding chronologically within each part.
 Some parts were developed together, so their timelines overlap.
 
 \subsection{Real and probability analysis}
@@ -15,87 +15,88 @@ Some parts were developed together, so their timelines overlap.
 The main probability targets were Pythagorean probability preservation for
 MathComp distributions (\Cref{lem:verified-pythagorean-preservation}) and the
 KL divergence between discrete Gaussians (\Cref{lem:dg-kl}).
-Work on Pythagorean preservation began on mid-May and continued through mid-June.
+Work on Pythagorean preservation began in mid-May 2026 and continued through late June.
 
-The main obstacle in the formalization was convergence in the real analysis sense.
-In particular, as KL divergence involves summation over the (possibly infinite) support of the distributions,
-a priori, the resulting value may not converge.
-This process involves several dozens of interactions with the agent,
-where we initially asked the agents to independently dispatch any real analytic convergence obligations.
-Whenever an agent takes a long time,
-we asked the agent to first write down the argument in LaTeX and reviewed the informal proof strategy ourselves.
+The main obstacle in the formalization was proving convergence of infinite sums.
+In particular, the series defining KL divergence need not converge to a finite value without further hypotheses.
+We had to make convergence requirements explicit and prove the necessary summability facts.
+The final stage involved dozens of interactions with the agents.
+We initially asked them to discharge the real-analysis obligations independently.
+When progress was slow, we asked an agent to first write down the argument in LaTeX and reviewed the informal proof strategy ourselves.
 It however remains unclear if that provided any significant benefits.
 
 \subsection{Program logic soundness}
 
-Our work on the program logic started sometime in 2025,
-where we handwrote some judgments and rules in LaTeX then encoded them in Rocq.
-These resulted in prototypes which eventually needed adjustments before their soundness could be established.
+Our work on the program logic began in 2025,
+when we wrote some judgments and rules by hand in LaTeX and then encoded them in Rocq.
+The resulting prototypes needed adjustments before their soundness could be established.
 After a break, intensive AI-assisted development resumed in May 2026.
-In each round of the interaction, we typically selected a rule,
+In each round of interaction, we typically selected a rule
 and asked an agent to prove its soundness or break the argument down into lemmas.
 We then reviewed the resulting statements and arguments.
 
-Through the formalization process, we uncovered and fixed several soundness bugs and design issues.
-For instance, an earlier version of our Pythagorean logic would allow the error budget to depend on runtime values (i.e. the heap memory).
-This however introduced an unintended constraint where the judgment becomes too restrictive.
-After discussions with the agent, eventually it was decided that the error budgets would be fixed statically.
+During formalization, we uncovered and fixed several soundness bugs and design issues.
+For instance, an earlier version of our Pythagorean logic allowed the error budget to depend on runtime values in the heap.
+This led to unintended restrictions in the sequencing rules.
+After discussions with the agents, we switched to statically fixed error budgets.
+Another issue arose in the sequencing rules, where we initially omitted various zero-cost coordinates.
+As a result, we were unable to verify the rules' soundness until they were revised.
+% This hid conditioning information needed for the KL bounds and led to an unsound proposed rule.
+% We revised the rules to retain these coordinates.
+We also encountered an issue with subnormalized distributions.
+MathComp's distribution type allows total mass below one, which SSProve uses to represent assertion failure and non-termininating programs.
+Several proposed rules incorrectly relied on distributions having full mass.
+We worked with the agents to introduce completion of subdistributions and add the necessary side conditions.
 
-Another design issue involves the sequence rule, where we initially did not insert zero entries in the vectors.
-Though this is not unsound in and of itself, it would make the soundness proofs much harder,
-and make the Pythagorean judgment more general than intended.
-
-Finally, another issue arised with subnormalized distributions.
-MathComp distributions are subnormalized by default;
-this is also a conventional way to treat programs that do not terminate.
-We noticed that several of our rules turned out unsound in the presense of subnormalized distributions,
-and had our agent add the necessary constraints accordingly.
-
-Finally, we also directed the agents to clean up the formalization.
-This trimmed more than a thousand lines from the codebase.
-Altogether, this effort took dozens of messages with the agents as well.
+Finally, we directed the agents to clean up the formalization,
+trimming more than a thousand lines of Rocq script.
 
 \subsection{Compiler construction and verification}
 
 We now discuss the development of the compiler from \Cref{sec:trace-compiler}.
-In early June, we produced a partial implementation, and had an agent fill in the details.
-The agent produced a correct implementation, though the code quality had to be improved.
+In early June, we discussed the possibilities of such a compiler with an agent.
+We then developed a partial implementation, and asked the agent to fill in the details.
+We subsequently revised the implementation and improved the code quality.
 
-The compiler correctness verification was surprisingly uneventful.
-We started with relatively little initial human input.
-The agent came back with an unnecessarily restrictive theorem statement,
-which was then promptly repaired accordingly.
-Altogether, the compiler construction and correctness have taken around 45 messages over around a week.
+The initial compiler correctness proof went relatively smoothly.
+We initially supplied little proof guidance.
+The agent proposed an unnecessarily restrictive theorem statement,
+where we then removed a bound on the number of oracle calls.
+This involved 47 human prompts in under a week.
 
-The quantitative compile rule \Cref{thm:compile-replace} required more interaction.
+The quantitative compilation rule in \Cref{thm:compile-replace} required more interaction.
 The design of the rule itself, especially its treatment of invariants and memory restrictions, had to be handled carefully.
-The formalized rule was a result of many rounds of discussions and iterations with AI agents.
-The work spanned roughly two weeks over around 60 prompts to the agent.
+The formalized rule resulted from many rounds of discussion and revision with AI agents.
+This included about 60 prompts over roughly two more weeks.
 
 \subsection{Application to noise flooding}
 
-For the noise flooding proof, the goalpost was set mostly by hand in 2025.
-That is, the security games and noise-flooding transforms had been mostly in place.
-By then, we also had written a rough outline of the proof.
+For the noise-flooding proof, we had set the main targets largely by hand in 2025.
+The security games and a preliminary noise-flooding transform were already in place.
+At this point, we also had a rough proof outline in LaTeX.
+%The checked result concerns the abstract approximate-HE interface in \Cref{sec:assumptions}; a concrete CKKS instantiation remains outside its scope.
 
 After developing the program logic and compiler above,
 we tried having an agent independently verify the final security theorem using them.
-The process went surprisingly smoothly, though not without human interventions.
-For example, the agent added an assumption to our metric charts that in fact does not hold dunder the CKKS setting.
-The assumption was removed after discussions and clarifications to the agent.
-Moreover, the agent also attempted to state the bound in a statistically secure language;
-that is, assuming no adversaries (efficient or otherwise) can break the underlying FHE scheme.
-This has also been corrected.
-Finally, after the formalization, a clean-up round removed almost 4000 lines of Rocq in this part of the project.
+The process went surprisingly smoothly, though not without human intervention.
+For example, the agent added an assumption that would not hold under the CKKS setting.
+We removed the assumption and revised the proof after further discussion.
 
-Altogether, this part of the formalization took 46 prompts over 10 days.
+Reaching an initial proof on July 10 took 46 recorded human prompts over about 10 days.
+Afterwards, we identified and fixed another bug:
+the theorem was stated in a statistically secure way.
+That is, it assumed that no adversaries (efficient or otherwise) can break the underlying FHE scheme.
+
+Finally, a cleanup round removed almost 4,000 lines of Rocq code from this part of the project.
 
 \subsection{Recorded AI usage and costs}
 \label{app:ai-usage-records}
 
 Finally, we record the cost of the AI agents themselves.
-Note that we used a monthly subscription.
-The table below is an overestimate, as what we \emph{would have} paid under the standard API rates per token.
+We used monthly subscriptions.
+The table summarizes our AI usage, allocated approximately by purpose.
+The monetary column gives a hypothetical API equivalent at the standard token rates.
+%Actual project-specific subscription costs have not been reconstructed.
 
 \begin{center}
 \begingroup
@@ -116,4 +117,7 @@ Total         & 3686.615 & 124.40 & 2476.66 \\
 \endgroup
 \end{center}
 
-
+% Token totals include uncached input, cached input, and output, counting repeatedly processed context each time.
+% Agent hours sum reported durations of completed turns, including tool use and waiting; they do not measure human labor.
+% Automatic-review usage without an identified public rate is included in the usage totals but excluded from the monetary column; missing records and non-token costs are also excluded.
+The ``other work'' column mainly contains the upstream MathComp Analysis contribution.
