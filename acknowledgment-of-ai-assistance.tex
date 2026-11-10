@@ -1,156 +1,74 @@
 \section{Use of AI in the Research and Formalization}
 \label{app:ai-assistance}
 
-Our formalization is heavily AI-assisted.
-We describe the development through the human work involved in obtaining the
-checked result.
-The authors supplied the research objectives and initial specifications,
-reviewed definitions and theorem statements, discussed mathematical arguments,
-and redirected both proof development and exposition.
-OpenAI Codex contributed substantial implementations and proof scripts,
-auxiliary lemma statements, mathematical arguments and counterexamples,
-explanations of library interfaces, and manuscript drafts and revisions.
-The authors retain responsibility for the definitions, assumptions, results,
-and text.
+Both our Rocq formalization and paper writing are heavily AI-assisted.
+In this appendix, we recount our proof engineering efforts.
+We remark that our experience reflects the AI agents of 2025--2026,
+especially through summer 2026.
+We expect that a state-of-the-art agent would be able to produce Rocq formalization more independently and cheaply.
 
-This is a historical account of work in 2025--2026, especially summer 2026.
-We expect improving agents to change the amount of human guidance and model
-usage needed for such a development; we have not tested an independent
-reconstruction from the finished manuscript.
-We organize the account by the probability analysis, logic, compiler, and
-cryptographic application, proceeding chronologically within each part.
-The parts were developed together, so their timelines overlap.
-
-The account draws on the authors' recollection, Git histories, and retained
-local conversations.
-The conversations available for this project begin on May 29, 2026, although
-Git records AI assistance earlier in May.
-For selected episodes we report both human-request records and completed
-agent turns: request records include retries and routine instructions, while
-agent turns can also follow automatic continuations of a persistent goal.
-These counts describe interaction, rather than distinct mathematical
-interventions or hours of human labor.
-Dates of conversation events below are in UTC.
+We organize our account by first by project organization, then proceeding chronologically within each part.
+Some parts were developed together, so their timelines overlap.
 
 \subsection{Real and probability analysis}
 
 The main probability targets were Pythagorean probability preservation for
 MathComp distributions (\Cref{lem:verified-pythagorean-preservation}) and the
 KL divergence between discrete Gaussians (\Cref{lem:dg-kl}).
-The Gaussian distributions had been developed before the intensive
-AI-assisted work; an AI-assisted version of their KL calculation entered the
-artifact on May 6, 2026.
-Work on Pythagorean preservation began on May 16 and continued through the
-completion of the Pinsker and compiler-rule analysis on June 21.
-The missing early conversations prevent us from giving a total interaction
-count for either development.
+Work on Pythagorean preservation began on mid-May and continued through mid-June.
 
-The main obstacle in the preservation proof was making the countable-sum
-argument precise.
-The formalization needed both a bound on the iterated KL divergence and
-proofs that the relevant series were summable.
-On June 18--19, the authors questioned what MathComp's totalized sum meant
-when a KL series did not converge, and asked to make finiteness explicit in
-the distribution predicate and supporting lemmas.
-This changed interfaces used throughout the logic and exposed further proof
-obligations.
-Codex developed the summability, chain-rule, and data-processing arguments,
-while the authors repeatedly asked how the intermediate statements followed
-from the intended mathematics and whether their assumptions were necessary.
-
-The authors also used informal proofs as review checkpoints.
-On June 19 they asked Codex to write the summability and iterated-chain-bound
-arguments in LaTeX before continuing the Rocq proofs.
-On June 21 they made the same request for Pinsker's inequality, discussed the
-binary-event data-processing route, and asked for a top-down organization in
-which each outstanding obligation had an identifiable role in the theorem.
-The five retained conversations in this final June 19--21 push contain
-60 human-request records and 82 completed agent turns, including work on
-compiler dependencies.
-They cover roughly three calendar days, rather than three days of continuous
-human attention.
-By June 20 some obligations were being delegated for extended execution
-between author checkpoints.
-The records show what the authors reviewed and requested, but do not tell
-us whether each checkpoint saved time relative to leaving the agent alone.
-
-On June 22 the authors asked to restore the discrete-Gaussian sampling rules
-after the logic interfaces had changed.
-That conversation contains eight requests and eight completed turns.
-The discussion revisited finite KL and injective pushforwards, illustrating
-that an earlier value-level calculation did not by itself discharge every
-convergence obligation needed by the later interface.
-The subsequent proof work reconnected the Gaussian analysis to the revised
-logic.
+The main obstacle in the formalization was convergence in the real analysis sense.
+In particular, as KL divergence involves summation over the (possibly infinite) support of the distributions,
+a priori, the resulting value may not converge.
+This process involves several dozens of interactions with the agent,
+where we initially asked the agents to independently dispatch any real analytic convergence obligations.
+Whenever an agent takes a long time,
+we asked the agent to first write down the argument in LaTeX and reviewed the informal proof strategy ourselves.
+It however remains unclear if that provided any significant benefits.
 
 \subsection{Program logic soundness}
 
-Human design of the logic was underway by July 2025.
-The authors first wrote judgments and proposed rules in LaTeX, then encoded
-them in Rocq; the earliest retained encodings are dated July 12--14, 2025,
-with inference-rule and soundness statements on July 14.
-These records do not establish the date of the preceding LaTeX design.
-These were prototype definitions and statements, rather than a completed
-soundness development.
+Our work on the program logic started sometime in 2025,
+where we handwrote some judgments and rules in LaTeX then encoded them in Rocq.
+These resulted in prototypes which eventually needed adjustments before their soundness could be established.
+After a break, intensive AI-assisted development resumed in May 2026.
+In each round of the interaction, we typically selected a rule,
+and asked an agent to prove its soundness or break the argument down into lemmas.
+We then reviewed the resulting statements and arguments.
 
-After a break, intensive AI-assisted development resumed the following year,
-in May 2026.
-Git records Codex-assisted revisions of the program judgments on May 17,
-followed by rule development and a sequencing-soundness repair on May 18.
-This work was already underway before the first retained conversations on
-May 29, 2026.
-All remaining dates in this subsection refer to 2026.
-The authors typically selected a rule, asked Codex to prove it or expose
-smaller obligations, and reviewed the resulting statements and arguments.
-Codex implemented the proofs and revised them using compiler feedback.
+Through the formalization process, we uncovered and fixed several soundness bugs and design issues.
+For instance, an earlier version of our Pythagorean logic would allow the error budget to depend on runtime values (i.e. the heap memory).
+This however introduced an unintended constraint where the judgment becomes too restrictive.
+After discussions with the agent, eventually it was decided that the error budgets would be fixed.
 
-Some human review led through unsuccessful designs.
-On May 31 the authors explored sequencing with heap-dependent error budgets
-and then a randomized counter.
-They challenged a premise that effectively forced the counter to have a
-single supported value, requested its removal, and later reopened the
-soundness question.
-The discussion nevertheless continued along this route; on June 3 the
-interface was replaced by a fixed tuple of budgets.
-Human questioning did not always resolve a detour immediately.
+Another design issue involves the sequence rule, where we initially did not insert zero entries in the vectors.
+Though this is not unsound in and of itself, it would make the soundness proofs much harder,
+and make the Pythagorean judgment more general than our conceptual understanding of it.
 
-Two later repairs affected the judgments used in the final development.
-On June 7 the authors asked whether the proposed Pythagorean predicate
-respected mixtures.
-Codex supplied a counterexample: hiding a shared random intermediate value
-can invalidate coordinatewise conditional-KL bounds.
-The repair retained that value as an explicit transcript coordinate with
-zero KL budget.
-The authors also questioned a subsequent suggestion to drop the leading zero
-even when the two initial programs were identical and perfectly coupled.
-Keeping the coordinate preserves conditioning information without increasing
-the numerical loss.
+Finally, another issue arised with subnormalized distributions.
+MathComp distributions are subnormalized by default;
+this is also a conventional way to treat programs that do not terminate.
+We noticed that several of our rules turned out unsound in the presense of subnormalized distributions,
+and had our agent add the necessary constraints accordingly.
 
-The June 9--11 sequencing-proof conversation contains 51 human-request
-records and 50 completed turns, reaching an initial proved sequence rule on
-June 11.
-On June 12, however, the authors identified a separate problem with missing
-probability mass: two null output distributions satisfy a vacuous
-postcondition but cannot justify a claimed full-mass conclusion.
-On June 13 they proposed reusing the existing completion construction for
-the Pythagorean judgment.
-The June 12 review and June 13 completion conversations together contain
-28 requests and 28 completed turns.
-The revised judgment accounts for missing mass with an explicit \(\bot\)
-outcome, and Codex helped develop and prove the completed sequencing and
-KL-to-additive-error rules.
-The earlier sequencing milestone was therefore followed by a change to the
-semantics and further proofs.
-
-The authors also directed cleanup after the application was proved.
-On July 13, dependency-based pruning removed 1,888 Rocq lines from the logic
-layer and 1,634 from the probability layer, alongside small additions.
-The authors explicitly retained the Gaussian tail bound and its dependencies
-for future imperfect-correctness work, despite their being unused by the
-current theorem.
-Deciding what to preserve required a judgment about future scientific use.
+Finally, we also directed the agents to clean up the formalization.
+This trimmed more than a thousand lines from the codebase.
+Altogether, this effort took dozens of messages with the agents as well.
 
 \subsection{Compiler construction and verification}
+
+We now discuss the development of the compiler from \Cref{sec:trace-compiler}.
+In early June, we produced a partial implementation, and had an agent fill in the details.
+The agent produced a correct implementation, though the code quality had to be improved.
+
+The compiler correctness verification was surprisingly uneventful.
+We started with relatively little initial human input.
+The agent came back with an unnecessarily restrictive theorem statement,
+which was then promptly repaired accordingly.
+Altogether, the compiler construction and correctness have taken around 45 messages over around a week.
+
+As for the compile rule \Cref{thm:compile-replace},
+(TODO say a bit more story, and how much time/interaction?)
 
 The compiler addressed a problem identified by the authors: the logic could
 compose a fixed schedule of oracle calls, whereas a cryptographic adversary
