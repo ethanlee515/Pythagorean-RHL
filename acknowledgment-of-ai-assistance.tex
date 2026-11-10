@@ -68,85 +68,34 @@ which was then promptly repaired accordingly.
 Altogether, the compiler construction and correctness have taken around 45 messages over around a week.
 
 The quantitative compile rule \Cref{thm:compile-replace} required more interaction.
-The design of the rule itself, especially its treatment of invariants and memory restrictions, had to be treated carefully.
+The design of the rule itself, especially its treatment of invariants and memory restrictions, had to be handled carefully.
 The formalized rule was a result of many rounds of discussions and iterations with AI agents.
 The work spanned roughly two weeks over around 60 prompts to the agent.
 
 \subsection{Application to noise flooding}
 
-For the CKKS-inspired application, the formal target is noise flooding for
-the abstract approximate-HE interface specified in \Cref{sec:assumptions};
-a concrete CKKS instantiation remains outside the checked result.
-The authors had formalized the encryption interface and IND-CPA and IND-CPAD
-games largely by hand in 2025.
-A security-reduction statement existed by August 11, although its proof and
-some quantitative parameters were placeholders.
-The authors supplied this target, an existing pen-and-paper outline, and the
-strategy of accumulating per-decryption KL costs before one conversion to
-statistical distance.
+For the noise flooding proof, the goalpost was set mostly by hand in 2025.
+That is, the security games and noise-flooding transforms had been mostly in place.
+By then, we also had written a rough outline of the proof.
 
-Beginning on June 30, Codex undertook extended proof tasks on the reduction,
-invariants, local decryption comparison, and composition of exact and
-quantitative transitions.
-Across three retained application conversations, up to the first checked
-completion milestone on July 10, there are 46 human-request records,
-269 automatic goal-continuation records, and 297 completed agent turns.
-These are different event counts; the automatic continuations were not
-additional human instructions.
-The authors reviewed progress records and intervened on assumptions and
-proof strategy between the longer runs.
+After developing the program logic and compiler above,
+we tried having an agent independently verify the final security theorem using them.
+The process went surprisingly smoothly, though not without human interventions.
+For example, the agent added an assumption to our metric charts that in fact does not hold dunder the CKKS setting.
+The assumption was removed after discussions and clarifications to the agent.
+Moreover, the agent also attempted to state the bound in a statistically secure language;
+that is, assuming no adversaries (efficient or otherwise) can break the underlying FHE scheme.
+This has also been corrected.
+Finally, after the formalization, a clean-up round removed almost 4000 lines of Rocq in this part of the project.
 
-The chart assumptions required a substantial correction.
-On July 9 an author challenged an AI-added assumption equating encodings
-through different inverse charts, because it contradicted the intended
-origin-centered charts.
-The author asked to document the problem before proceeding and proposed
-comparing the Gaussian samples first, then applying shared postprocessing.
-The replacement proof compares centers in a common chart and uses that
-postprocessing argument, with the required chart laws made explicit.
-Codex implemented the revised route and its proofs.
-
-Review also continued after the July 10 milestone.
-On July 11 an author challenged an IND-CPA security bound that was constant
-across all adversaries, including computationally unbounded ones.
-The interface was revised to let the bound depend on the adversary, and the
-final theorem exposes its application to the constructed reduction.
-Both this correction and the chart episode show the human task of deciding
-whether a formally checked implication has assumptions and a conclusion that
-express the intended cryptographic claim.
-
-The authors also shaped the game presentation.
-Codex drafted intermediate games and explanations; the authors requested an
-explicit reduction and conventional cryptographic endpoints, and on July 10
-proposed the seven-stage \(H_0,\ldots,H_6\) organization separating the original,
-linked, and compiled experiments.
-Later revisions distinguished those implementation stages from the three
-conceptual games in \Cref{eq:conceptual-game-chain}.
-Codex also contributed extensive drafting and revision elsewhere in the
-manuscript, under repeated author review.
-
-Across all layers, acceptance of proofs relied on Rocq kernel checking and
-inspection of \texttt{Print Assumptions}.
-Human review concentrated especially on interfaces, theorem statements,
-assumptions, and the interpretation of the result.
-The trusted base and remaining inherited assumption are documented in
-\Cref{sec:tcb}.
-The July 13 pruning also removed 3,933 application-proof lines; together with
-the logic and probability cleanup, this amounted to 7,455 deletions and a net
-reduction of 7,335 lines.
-Those edits record cleanup of alternatives and unused support code, rather
-than a measured fraction of wasted AI work.
+Altogether, this part of the formalization took 46 prompts over 10 days.
 
 \subsection{Recorded AI usage and costs}
 \label{app:ai-usage-records}
 
-A local audit on November 4, 2026 covers 126 user-facing project conversations
-with recorded events from May 29 to October 28, plus separately identified
-subagent, automatic-review, and upstream-support conversations.
-The table allocates usage approximately by task purpose, and additionally
-includes a frozen prefix of the November 4 documentation conversation through
-18:04:08 UTC.
-Usage after that snapshot is excluded.
+Finally, we record the cost of the AI agents themselves.
+Note that we used a monthly subscription.
+The table below is an overestimate, as what we \emph{would have} paid under the standard API rates per token.
 
 \begin{center}
 \begingroup
@@ -167,42 +116,4 @@ Total         & 3686.615 & 124.40 & 2476.66 \\
 \endgroup
 \end{center}
 
-Tokens include uncached input, cached input, and output; repeated processing
-of context accounts for most of the total.
-We use final cumulative conversation counters, preserving downward
-corrections, and count reasoning tokens within output.
-Agent hours sum client-reported completed-turn durations, including tools and
-waiting within turns; they do not measure researcher labor or pure model
-computation.
-The formalization category includes proof design, failed routes, supporting
-analysis, refactoring, dependency upgrades, builds, and artifact documentation.
-The paper category includes exposition, review, figures, excerpts, LaTeX
-tooling, and the audit; other work principally concerns the MathComp Analysis
-contribution.
-Mixed conversations are split at reviewed changes of task purpose.
 
-The authors used monthly OpenAI subscriptions and changed tiers during
-development; project-specific subscription expenditure has not been
-reconstructed.
-The monetary column instead reprices retained usage at the Standard API
-rates recorded on November 4, using the observed model identifiers,
-ordinary and cached input separately, and applicable long-context premiums.
-It gives approximately US\$2,232 for formalization and US\$2,477 for the full
-sample, assuming the API attains the recorded cache-read pattern.
-The six automatic-review conversations contribute 911,508 tokens to the
-table but remain unpriced because their recorded model has no identified
-public rate.
-Hosted-tool fees, local compute, taxes, and unavailable usage are excluded.
-The authors intended this comparison as an illustrative overestimate of the
-cost attributable to their subscription workflow; it is not a billing audit
-or a strict upper bound on expenditure.
-
-The manuscript repository retains the extraction scripts, usage exports, and
-detailed accounting and historical evidence.\footnote{%
-See \path{scripts/}, \path{ai-assistance-data/},
-\path{AI-ASSISTANCE-NOTES.md}, and \path{AI-ASSISTANCE-REWRITE-NOTES.md}.}
-These records omit unavailable conversations and unrecorded human reading and
-thinking.
-They support concrete examples of human direction and measured agent usage,
-but do not establish total human effort, an overall AI failure rate, or the
-time or cost of an entirely human or independently automated development.
