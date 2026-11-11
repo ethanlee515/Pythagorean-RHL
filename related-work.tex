@@ -28,7 +28,7 @@ Fontaine et al. implement bound-annotated tactics and proof-term elaboration for
 This reachability reasoning shares additive probability-error accounting with our \(\AEJ\) judgment, but its bounds concern formula-failure probabilities over random tapes; \(\AEJ\) instead bounds postcondition-failure probability in an existential coupling of completed program outputs.
 
 \emph{Program logics for differential privacy.}
-Approximate relational Hoare logic (apRHL) of \cite{certipriv} and its follow up work fpRHL \cite{aprhl} are relational program logics for cryptographic games in differential privacy settings.
+Approximate relational Hoare logic (apRHL) of \cite{certipriv} and its follow up work fpRHL \cite{aprhl} are relational program logics for differential privacy settings.
 
 apRHL was initially formalized in Coq as part of the CertiPriv framework,
 and was later integrated into EasyCrypt as well \cite{aprhl-couplings, aprhl-advanced}.
@@ -36,14 +36,14 @@ The settings it targets are incomparable with those of homomorphic encryptions.
 In particular, their security bounds allow multiplicative errors,
 but still scales linearly in the number of oracle calls.
 
-fpRHL \emph{does} allow sub-linear compositions much like our Pythagorean logic.
+On the other hand, fpRHL \emph{does} allow sub-linear compositions, much like our Pythagorean logic.
 The logic is parameterized by $f$-divergences, which is a more general notion than KL-divergence.
 To the best of our knowledge, fpRHL has not been formalized or verified in any proof assistant software.
-For our purpose, it would have been a valid strategy to implement fpRHL instead,
-or its specialization to KL-divergences.
+For our purpose then, it would also have been a valid strategy to implement fpRHL,
+or its specialization to KL-divergence instead.
 From there, it still remains to treat adaptive adversaries,
 which would require either extending fpRHL with EasyCrypt-style ``adversarial call'' rules,
 or using our compiler again.
 On the other hand, we wanted to model Micciancio--Walter Pythagorean preservation~\cite{mw17} itself as an inference rule,
 and to verify the soundness of any program logic rules in SSProve.
-The rest of our design decisions followed accordingly.
+This has led us down a different path from the apRHL/fpRHL line of literature.
