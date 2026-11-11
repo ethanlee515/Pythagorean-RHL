@@ -26,27 +26,24 @@ Baelde et al. extend this logic with explicit failure-probability and computatio
 Their proof transformations avoid exponential losses caused by duplicated induction hypotheses.
 Fontaine et al. implement bound-annotated tactics and proof-term elaboration for the reachability fragment, leaving concrete indistinguishability with precise complexity bounds outside the scope of their implementation~\cite{squirrel-errors}.
 This reachability reasoning shares additive probability-error accounting with our \(\AEJ\) judgment, but its bounds concern formula-failure probabilities over random tapes; \(\AEJ\) instead bounds postcondition-failure probability in an existential coupling of completed program outputs.
-Our development connects conditional KL budgets to completed SSProve semantics and adaptive oracle syntax through checked rules and a verified selected-call compiler.
 
-\emph{Approximate relational logics.} apRHL was introduced for differential privacy and mechanized in the Coq-based CertiPriv framework~\cite{certipriv}.
-Its \((\varepsilon,\delta)\) judgments express multiplicative and additive bounds on event probabilities through approximate relational liftings.
-The basic sequence rule adds the privacy parameters, giving linear parameter growth when it is repeatedly applied to fixed per-call bounds.
+\emph{Program logics for differential privacy.}
+Approximate relational Hoare logic (apRHL) of \cite{certipriv} and its follow up work fpRHL \cite{aprhl} are relational program logics for cryptographic games in differential privacy settings.
 
-Barthe and Olmedo subsequently developed fpRHL, a relational logic parameterized by \(f\)-divergences, explicitly including KL and statistical distance~\cite{aprhl}.
-Their judgments use two witness distributions over pairs of outputs, both supported on the post-relation, with the error bounded by the divergence between the witnesses.
-For equality postconditions, the KL instance is exactly a KL bound on the program output distributions.
-Its sequence rule adds KL costs; composing \(q\) fragments of cost \(\kappa\) and applying Pinsker once yields the same statistical-distance bound \(\sqrt{q\kappa/2}\) used here.
-Thus fpRHL already captures the divergence accounting required by the noise-flooding hop.
-The 2013 presentation assumes almost-sure termination and does not include oracle or abstract-adversary call rules.
-Extending its KL instance with a bounded-call adversary rule would require a soundness argument connecting uniform local costs and an invariant to the complete interaction.
-Barthe and Olmedo prove soundness mathematically; we are not aware of a publicly available proof-assistant implementation or a machine-checked soundness development for their general fpRHL calculus.
+apRHL was initially formalized in Coq as part of the CertiPriv framework,
+and was later integrated into EasyCrypt as well \cite{aprhl-couplings, aprhl-advanced}.
+The settings it targets are incomparable with those of homomorphic encryptions.
+In particular, their security bounds allow multiplicative errors,
+but still scales linearly in the number of oracle calls.
 
-Later apRHL developments introduced further coupling rules~\cite{aprhl-couplings} and EasyCrypt support for advanced composition and adaptive adversaries~\cite{aprhl-advanced}.
-In particular, the bounded-call adversary rule accumulates per-oracle privacy costs while preserving an invariant.
-Consequently, linear growth under the basic sequence rule is not a general limitation of the apRHL line, nor is support for adaptivity unique to our development.
-
-Our aim is to mechanize Micciancio--Walter Pythagorean preservation~\cite{mw17} and connect it to the LMSS noise-flooding analysis~\cite{lmss} in SSProve.
-We chose a specialized judgment carrying conditional KL transcript budgets and common unary invariants, together with a final conversion to additive error and a verified selected-call compiler.
-Our additive-error judgment uses one coupling and charges the probability of postcondition failure; at equality postconditions it has the same meaning as a statistical-distance lifting over normalized outputs.
-We complete SSProve subdistributions so that assertion failure remains observable.
-Our contribution is the checked integration of this known KL composition principle with stateful adaptive SSProve oracle programs and the security reduction.
+fpRHL \emph{does} allow sub-linear compositions much like our Pythagorean logic.
+The logic is parameterized by $f$-divergences, which is a more general notion than KL-divergence.
+To the best of our knowledge, fpRHL has not been formalized or verified in any proof assistant software.
+For our purpose, it would have been a valid strategy to implement fpRHL instead,
+or its specialization to KL-divergences.
+From there, it still remains to treat adaptive adversaries,
+which would require either extending fpRHL with EasyCrypt-style ``adversarial call'' rules,
+or using our compiler again.
+On the other hand, we wanted to model Micciancio--Walter Pythagorean preservation~\cite{mw17} itself as an inference rule,
+and to verify the soundness of any program logic rules in SSProve.
+The rest of our design decisions followed accordingly.
